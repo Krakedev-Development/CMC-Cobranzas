@@ -1,0 +1,528 @@
+SPEC.md — Prototipo de gestión de cobranzas, conciliación bancaria y trazabilidad
+Objetivo del documento: instruir a Google AI Studio para construir un prototipo web navegable, visualmente pulido y funcional con datos ficticios. Este documento especifica un prototipo para validar procesos con la usuaria principal; no representa una implementación productiva ni una integración real con bancos, AWS Textract o el SRI.
+
+1. Objetivo y contexto
+Construir un sistema reutilizable para gestionar clientes, productos adquiridos, deudas, pagos, comprobantes, conciliación bancaria, documentos/facturas, usuarios, permisos y auditoría.
+
+El primer caso de uso es una escuela que cobra productos o programas educativos, por ejemplo Móviles Nivel 1. La arquitectura conceptual no debe quedar limitada a una escuela: debe admitir otros negocios que gestionen clientes, productos o servicios, cuentas por cobrar y pagos.
+
+El problema principal que debe resolver es que el personal pueda:
+1. Identificar quién adquirió cada producto y cuánto debe.
+2. Registrar pagos y conservar sus comprobantes.
+3. Simular la lectura de datos del comprobante mediante OCR.
+4. Importar movimientos bancarios y conciliar pagos automáticamente cuando la coincidencia sea inequívoca.
+5. Resolver manualmente las coincidencias dudosas.
+6. Registrar los datos y archivos de facturas, sin emitirlas electrónicamente en esta fase.
+7. Consultar el historial completo de un cliente.
+8. Administrar usuarios y configurar permisos personalizados.
+9. Auditar acciones, aprobaciones y cambios, incluidos los valores anteriores y nuevos.
+2. Instrucciones generales de construcción
+- Construye una aplicación web tipo dashboard, responsive, con una interfaz moderna, clara, profesional y extremadamente intuitiva para usuarios no técnicos.
+- Implementa navegación y operaciones funcionales; no generes solo una maqueta estática.
+- Usa datos ficticios coherentes y relacionados entre módulos.
+- Todas las acciones principales deben producir un resultado visible: crear, editar, buscar, filtrar, importar de muestra, registrar pagos, simular OCR, conciliar, aprobar, registrar factura, cambiar permisos y consultar auditoría.
+- Los datos modificados deben persistir al navegar entre módulos y recargar la página, usando almacenamiento local o el mecanismo de persistencia de demostración disponible. No dependas solo del estado temporal de componentes.
+- Añade una acción visible y confirmada para Restaurar datos de demostración. Debe restablecer el escenario inicial con relaciones coherentes.
+- No uses información personal real. Todos los clientes, identificaciones, teléfonos, correos, transacciones y documentos deben ser ficticios. Identificaciones claramente etiquetadas como datos de demostración.
+- No afirmes que se conecta realmente a un banco, Amazon Textract, AWS, SRI o un servicio externo.
+- Simula el procesamiento OCR y la conciliación con datos locales de demostración, pero presenta claramente estados como “Simulación de demostración” cuando corresponda.
+- Evita botones sin acción. Si una funcionalidad queda fuera del alcance, no la presentes como si estuviera operativa.
+- Incluye estados vacíos, carga, éxito, error y confirmación para operaciones relevantes.
+- Usa español para todas las etiquetas, mensajes, tablas y formularios. Moneda predeterminada: USD ($). Fechas en formato DD/MM/AAAA y fechas/hora coherentes para la demostración.
+- Mantén componentes, datos y reglas organizados de forma que puedan ampliarse después. No hardcodees las reglas de negocio dentro de una única pantalla.
+3. Requisito visual prioritario: navbar lateral derecho que se contrae automáticamente
+La navegación principal debe estar ubicada en el lado derecho de la pantalla, no en el lado izquierdo.
+
+Comportamiento requerido:
+- Implementa una barra lateral vertical fija o sticky en el borde derecho de la aplicación.
+- En escritorio, la barra lateral debe contraerse automáticamente a un modo compacto al cargar la aplicación o al perder el foco/interacción, dejando visibles los iconos. Cuando el usuario pase el cursor sobre ella, haga clic o la enfoque con teclado, debe expandirse para mostrar iconos y nombres de los módulos.
+- Cuando el usuario selecciona un módulo, navega a ese módulo y vuelve al estado compacto después de un breve retraso o cuando pierde el foco, siempre que no esté interactuando con un menú desplegable.
+- Incluye una forma accesible de fijar/expandir temporalmente la barra si es necesario. Si el usuario la fija abierta, respeta esa preferencia durante la sesión; permite deshacerlo.
+- El modo compacto debe mostrar tooltips con el nombre de cada módulo.
+- La expansión y contracción deben ser suaves, sin desplazar ni tapar contenido de forma brusca. El área principal debe reservar espacio para la barra y adaptarse al ancho expandido/compacto.
+- La barra debe admitir teclado, estados de foco visibles, etiquetas accesibles y contraste suficiente.
+- En pantallas pequeñas, conviértela en un drawer lateral derecho que se abra con un botón visible y se cierre al seleccionar una opción o tocar fuera.
+- El contenido principal debe mantener una jerarquía visual clara; no coloques el navbar a la izquierda.
+- En la barra derecha incluye un logotipo/nombre textual de la aplicación, enlaces a módulos, indicador de usuario actual y acceso a configuración/perfil si cabe.
+- No hagas que el navbar se expanda y colapse de forma tan rápida que impida usarlo. Añade un pequeño retardo para evitar parpadeos al pasar el cursor.
+4. Diseño visual y experiencia de usuario
+- Estilo SaaS profesional, limpio, moderno y sobrio; espacios en blanco generosos, tipografía legible, tablas ordenadas, tarjetas de indicadores, bordes suaves y estados de color consistentes.
+- Prioriza la claridad operativa por encima de decoraciones excesivas.
+- Usa una paleta accesible y consistente. Los estados no deben depender solo del color; deben tener texto e icono.
+- Dashboard con indicadores clave, tareas pendientes y actividad reciente.
+- Tablas con búsqueda, filtros, ordenación, paginación o carga por bloques y acciones contextuales.
+- Formularios divididos en secciones comprensibles, validaciones junto a los campos y mensajes de error accionables.
+- Para acciones sensibles (anular pago, aprobar conciliación, cambiar permisos), mostrar confirmación y, cuando corresponda, pedir una justificación.
+- Utiliza breadcrumbs o títulos claros para que el usuario sepa dónde está.
+- La ficha de cliente debe ser un punto central para consultar productos, deudas, pagos, comprobantes y facturas.
+5. Navegación y módulos
+Incluye estos módulos, sujetos a permisos del usuario:
+1. Inicio / Dashboard
+2. Clientes
+3. Productos
+4. Deudas
+5. Pagos
+6. Conciliación bancaria
+7. Facturas y documentos
+8. Reportes
+9. Administración de usuarios y permisos
+10. Auditoría
+La lectura de comprobantes/OCR debe estar integrada en el flujo de registro de pagos y también ser accesible desde el detalle del pago, no es obligatorio crear un módulo independiente.
+6. Modelo de datos conceptual
+Usa IDs internos únicos para todas las entidades. Los IDs externos de los archivos importados, cuando existan, se conservan por separado.
+6.1 Cliente
+- id
+- cedula (obligatoria; ficticia en demo)
+- nombres
+- apellidos
+- telefono
+- correo
+- estado (activo/inactivo)
+- notas
+- createdAt, createdBy
+- updatedAt, updatedBy
+Reglas:
+- La cédula es obligatoria.
+- Validar posibles duplicados por cédula al crear o importar.
+- Permitir búsqueda por cédula, nombre y teléfono.
+- La importación debe ofrecer vista previa, errores y duplicados antes de confirmar.
+6.2 Producto
+- id
+- nombre
+- descripcion
+- precioNominal
+- estado (activo/inactivo)
+- createdAt, createdBy
+- updatedAt, updatedBy
+6.3 Deuda / adquisición
+Representa la asociación de un cliente con un producto adquirido. No equivale a emitir una factura ni a registrar una venta contable.
+- id
+- clienteId
+- productoId
+- fechaAdquisicion
+- precioNominalAplicado
+- precioAcordado (valor final directo; no es obligatorio calcular porcentaje de descuento)
+- saldoInicial
+- observaciones
+- estado (pendiente, parcialmente pagada, pagada, anulada)
+- createdAt, createdBy
+- updatedAt, updatedBy
+Reglas:
+- Se puede asociar un cliente a varios productos y cada producto a varios clientes.
+- La asociación no genera factura automáticamente.
+- La deuda inicial se basa en el precio acordado.
+- La carga masiva permite usar Excel de clientes/deudas. Antes de confirmar se muestra una vista previa con clientes, productos, precio nominal, precio acordado y errores.
+- Permitir tanto carga de clientes existentes como creación de clientes nuevos durante la importación, con detección de duplicados y resolución antes de confirmar.
+- No sobrescribir silenciosamente deudas existentes al volver a importar.
+6.4 Pago
+- id
+- deudaId
+- clienteId (consistente con deudaId)
+- monto
+- fechaPago
+- metodo (transferencia, depósito, efectivo, otro; los métodos distintos de transferencia/depósito se pueden marcar como sujetos a validación)
+- bancoOrigen (opcional)
+- numeroTransaccion (opcional hasta revisión)
+- referencia (opcional)
+- comprobanteId (si existe)
+- estadoRegistro (registrado, pendiente de revisión, anulado)
+- estadoConciliacion (pendiente, conciliado automáticamente, pendiente de revisión manual, conciliado manualmente, no encontrado, con diferencias)
+- observaciones
+- createdAt, createdBy
+- updatedAt, updatedBy
+Reglas:
+- Cada pago se aplica a una deuda/producto específico en esta primera versión. No se distribuye entre varias deudas.
+- El pago registrado actualiza el saldo pendiente de la deuda, salvo que esté anulado.
+- Saldo pendiente = saldo inicial − suma de pagos válidos aplicados a esa deuda.
+- No permitir pagos negativos ni pagos mayores que el saldo pendiente, salvo que la aplicación muestre una advertencia y exista una regla explícita. Para este prototipo, bloquear pagos superiores al saldo y explicar el motivo.
+- Registrar no significa conciliar. El estado de conciliación es independiente.
+- No borrar pagos silenciosamente. Permitir anulación con motivo y conservar auditoría.
+- La conciliación automática no debe duplicar ni volver a aplicar un movimiento ya utilizado.
+6.5 Comprobante / documento
+- id
+- tipo (comprobante de pago, factura, otro)
+- nombreArchivo
+- tipoArchivo
+- fechaCarga
+- entidadRelacionadaTipo e entidadRelacionadaId
+- archivoDemo o referencia de archivo
+- datosExtraidos (cuando aplique)
+- estadoAnalisis (no analizado, analizado, revisión requerida)
+- createdBy
+Reglas:
+- El comprobante debe abrirse desde el pago correcto.
+- Conservar el archivo original o un recurso local de demostración asociado al registro.
+- No reemplazar un archivo silenciosamente: registrar la sustitución en auditoría.
+- Para la demo, usar archivos de muestra o vistas previas claramente ficticias.
+6.6 Movimiento bancario
+- id
+- fecha
+- monto
+- numeroTransaccion
+- referencia
+- ordenante
+- banco
+- archivoImportacionId
+- estado (sin asignar, conciliado, duplicado, revisión)
+- pagoRelacionadoId (opcional)
+6.7 Conciliación
+- id
+- pagoId
+- movimientoBancarioId
+- tipo (automática/manual)
+- estado
+- reglaCoincidencia
+- observacion
+- fechaConciliacion
+- conciliadoPor
+- createdAt
+Reglas:
+- Un movimiento bancario solo puede asignarse a un pago.
+- Detectar posibles movimientos duplicados por identificador y combinación de datos.
+- No confirmar una coincidencia basada únicamente en el monto.
+- Priorizar número de transacción exacto y comprobar coherencia del monto; usar fecha y referencia como apoyo.
+- Los casos ambiguos quedan pendientes de revisión manual.
+- Las conciliaciones manuales requieren confirmar la asociación y registrar quién y cuándo la confirmó.
+- Si se deshace una conciliación, registrar motivo y auditoría; no borrar el historial.
+6.8 Factura
+- id
+- clienteId
+- deudaId (opcional hasta definir la regla final)
+- numeroFactura
+- fechaFactura
+- monto (opcional en demo)
+- archivoId
+- estadoDocumental (pendiente de registrar, registrada)
+- observaciones
+- createdAt, createdBy
+- updatedAt, updatedBy
+Reglas:
+- En esta versión se registra la factura y se adjunta su archivo; no se emite electrónicamente ni se conecta al SRI.
+- No mostrar una factura como “emitida por el sistema” solo por adjuntar un PDF.
+- La relación entre una factura y una o varias deudas/pagos queda diseñada de forma ampliable, pero la UI de demo puede asociar la factura a una deuda y permitir su consulta desde el cliente.
+6.9 Usuario y permisos
+Usuario:
+- id
+- username
+- nombre
+- estado (activo/inactivo)
+- permisos
+- perfilBase opcional
+- createdAt, createdBy
+- updatedAt, updatedBy
+Permisos granulares por módulo y acción:
+- ver
+- crear
+- modificar
+- eliminar
+- aprobar/ejecutar, cuando corresponda
+- exportar, cuando corresponda
+El prototipo puede simular inicio de sesión/cambio de usuario con usuarios demo, sin afirmar que es autenticación segura de producción.
+6.10 Auditoría
+- id
+- fechaHora
+- usuarioId y nombre visible del usuario en ese momento
+- modulo
+- accion
+- entidadTipo
+- entidadId
+- resultado (exitoso, rechazado, fallido)
+- valoresAnteriores (cuando corresponda)
+- valoresNuevos (cuando corresponda)
+- motivo/observacion
+- aprobadorId (cuando corresponda)
+- datos de aprobación o regla ejecutada
+- origen de la acción (interfaz/importación/simulación, cuando se conozca)
+Reglas:
+- Registrar todas las operaciones relevantes de creación, modificación, anulación, aprobación, importación, cambio de permisos, conciliación y carga/sustitución de documentos.
+- Para cambios de campos, guardar valores anteriores y nuevos.
+- Para operaciones aprobadas, registrar quién aprobó, cuándo, qué aceptó y la observación, si se ingresó.
+- La auditoría es de solo lectura desde la interfaz; ningún usuario, incluido el administrador ordinario, puede editar o eliminar registros de auditoría desde el prototipo.
+- La demo debe registrar eventos en su almacenamiento local. Aclarar que la protección de auditoría no equivale a inmutabilidad de nivel productivo.
+7. Requisitos funcionales
+RF-01. Clientes
+- Crear, consultar y modificar clientes.
+- Activar/desactivar clientes.
+- Buscar por cédula, nombre y teléfono.
+- Importar clientes desde Excel mediante una experiencia simulada de carga, validación, vista previa y confirmación.
+- Detectar duplicados y permitir revisar antes de continuar.
+- Ver ficha completa del cliente: datos, productos/deudas, pagos, comprobantes, conciliaciones y facturas.
+- Registrar en auditoría creación, modificación, importación y cambio de estado.
+RF-02. Productos y deudas
+- Crear, consultar y modificar productos con nombre, descripción, precio nominal y estado.
+- Asociar un cliente con un producto adquirido de forma individual sin generar factura ni venta contable.
+- Importar masivamente asociaciones/deudas desde Excel.
+- Aceptar precio nominal y precio acordado por cliente; el precio acordado se introduce como valor directo.
+- Mostrar vista previa antes de confirmar la carga masiva.
+- Validar campos obligatorios, clientes inexistentes, precios inválidos y posibles duplicados.
+- Permitir corregir errores en la vista previa.
+- No sobrescribir registros existentes sin advertir y solicitar confirmación.
+- Calcular saldo pendiente en función de pagos válidos.
+RF-03. Pagos
+- Buscar y seleccionar cliente y deuda/producto.
+- Mostrar deuda inicial, pagos acumulados y saldo pendiente antes de registrar un nuevo pago.
+- Registrar monto, fecha, método, número de transacción, banco/referencia y observaciones.
+- Adjuntar un comprobante.
+- Permitir que la persona usuaria revise datos antes de guardar.
+- Actualizar saldo e historial al confirmar el pago.
+- Abrir el comprobante específico desde el detalle/historial.
+- Permitir anulación con motivo, sin borrar el registro original.
+- Mantener estados de registro y conciliación separados.
+- Registrar las acciones en auditoría.
+RF-04. Análisis simulado de comprobantes
+- Permitir cargar un archivo de demostración de tipo imagen o PDF.
+- Mostrar una animación/estado de análisis.
+- Completar campos simulados: ordenante, fecha, monto, número de transacción, banco y referencia cuando estén disponibles.
+- Mostrar que los datos fueron extraídos de forma simulada, no por una conexión real a AWS Textract.
+- Permitir editar los datos extraídos antes de guardar.
+- Señalar campos no detectados o dudosos.
+- Exigir revisión/confirmación del usuario antes de registrar el pago.
+- Conservar el comprobante asociado al pago.
+- Permitir volver a ver los datos extraídos y el archivo desde el detalle del pago.
+- Preparar una separación lógica para futura integración con Amazon Textract, sin implementarla en esta fase.
+RF-05. Conciliación bancaria
+- Importar un archivo de banco simulado en Excel/CSV.
+- Incluir una plantilla descargable o una tabla de ejemplo que explique las columnas esperadas: fecha, monto, número de transacción, referencia, ordenante y banco.
+- Validar formato y mostrar vista previa antes de importar.
+- Detectar registros repetidos en el mismo archivo o respecto de importaciones previas.
+- Comparar movimientos con pagos registrados.
+- Conciliar automáticamente solo cuando la coincidencia sea inequívoca: número de transacción exacto y monto coherente, sin reutilizar un movimiento.
+- Utilizar fecha, referencia y ordenante como señales de apoyo, nunca confirmar únicamente por monto.
+- Mostrar resultados por categorías: conciliados automáticamente, pendientes de revisión, con diferencias, pagos sin movimiento y movimientos sin pago.
+- Ofrecer una pantalla de conciliación manual con dos paneles: pagos pendientes y movimientos bancarios no asignados.
+- Permitir seleccionar un pago y un movimiento, comparar sus datos y confirmar la asociación.
+- Exigir motivo/observación para resolver manualmente diferencias relevantes.
+- Registrar el resultado, regla de coincidencia, usuario y fecha.
+- Permitir consultar detalle de la conciliación y su auditoría.
+- No conectar con bancos reales.
+RF-06. Facturas y documentos
+- Registrar número y fecha de factura.
+- Adjuntar un archivo de factura de demostración.
+- Asociar la factura al cliente y, cuando se defina, a la deuda relacionada.
+- Consultar facturas desde la ficha del cliente.
+- Distinguir entre “sin factura registrada” y “factura registrada”.
+- Permitir editar datos y sustituir archivo con auditoría.
+- No emitir facturas electrónicas ni conectar al SRI.
+RF-07. Historial y trazabilidad
+- Mostrar en la ficha del cliente un resumen con precio nominal, precio acordado, total pagado y saldo pendiente.
+- Mostrar lista de deudas/productos, pagos, estados de conciliación, comprobantes y facturas.
+- Presentar una línea de tiempo de eventos relevantes.
+- Permitir abrir cada archivo desde el registro al que pertenece.
+- Mantener las relaciones entre cliente, deuda, pago, movimiento bancario, conciliación y factura.
+RF-08. Dashboard y reportes
+Dashboard con:
+- Total de cartera pendiente.
+- Total recaudado en el periodo de demostración.
+- Cantidad de pagos pendientes de conciliación.
+- Cantidad de movimientos bancarios sin asignar.
+- Cantidad de facturas pendientes de registrar.
+- Pagos recientes y acciones pendientes.
+Reportes:
+- Cartera por cliente/producto.
+- Historial de pagos.
+- Pagos pendientes de conciliación.
+- Pagos conciliados.
+- Movimientos sin coincidencia.
+- Pagos con diferencias.
+- Facturas registradas.
+- Trazabilidad por cliente.
+Filtros sugeridos:
+- Fecha desde/hasta.
+- Cliente/cédula.
+- Producto.
+- Estado de deuda.
+- Estado del pago.
+- Estado de conciliación.
+- Estado de factura.
+Permitir exportación de tablas a CSV/Excel simulado o real según lo que soporte el prototipo. No crear botones de exportación inactivos.
+RF-09. Administración de usuarios
+- Crear, consultar, modificar y activar/desactivar usuarios de demostración.
+- Mostrar nombre, usuario, estado y permisos.
+- Permitir seleccionar un usuario de demostración para probar sus permisos.
+- Registrar creación, modificación, desactivación y cambios de permisos en auditoría.
+- No presentar el cambio de usuario demo como autenticación segura de producción.
+RF-10. Permisos personalizados
+- Permitir al administrador configurar permisos individuales por usuario y por módulo.
+- Los permisos deben ser configurables sin modificar código.
+- Ofrecer permisos independientes de ver, crear, modificar, eliminar, aprobar/ejecutar y exportar cuando aplique.
+- Permitir perfiles base opcionales (por ejemplo Atención al cliente, Cobranzas, Conciliación, Facturación), pero el administrador debe poder personalizar cada usuario.
+- Los permisos deben afectar navegación y operaciones, no solo esconder enlaces.
+- Si un usuario no tiene permiso, deshabilitar/ocultar la acción y mostrar un mensaje claro si intenta acceder a una ruta restringida.
+- El administrador tiene acceso completo CRUD a los módulos operativos, y a usuarios, permisos y configuración.
+- La auditoría es de solo lectura para todos, incluido el administrador ordinario.
+- Registrar cada cambio de permisos con valores anteriores/nuevos y usuario responsable.
+Usuarios demo iniciales:
+1. admin: acceso completo a módulos operativos, usuarios, permisos y configuración; auditoría solo lectura.
+2. chris: perfil operativo de demostración con acceso a clientes, productos, deudas, pagos, conciliación, documentos y reportes; sin administración de usuarios, salvo que el administrador se lo conceda.
+3. atencion01: acceso de ejemplo a consulta/creación de clientes y consulta de deudas; sin modificar pagos ni conciliar.
+4. contabilidad01: acceso de ejemplo a pagos, conciliación, documentos y reportes; sin administración de usuarios.
+   Los permisos exactos son datos configurables de demostración, no una definición definitiva de cargos reales.
+RF-11. Auditoría
+- Crear una vista de auditoría de solo lectura.
+- Filtrar por rango de fechas, usuario, módulo, acción, entidad/registro y resultado.
+- Mostrar tabla con fecha/hora, usuario, módulo, acción, registro afectado y resultado.
+- Abrir el detalle de cada evento.
+- Mostrar valores anteriores y nuevos para cambios.
+- Mostrar quién aprobó, cuándo, qué se aprobó y motivo/observación cuando aplique.
+- Registrar acciones relevantes: crear, modificar, anular, aprobar, importar, conciliar, cargar/sustituir archivos, cambiar permisos y operaciones rechazadas relevantes.
+- Registrar acciones tanto individuales como importaciones masivas, con un resumen y detalle de los registros afectados.
+- No permitir editar ni borrar eventos desde la interfaz.
+- Ofrecer exportación solo a usuarios autorizados, si la funcionalidad está implementada.
+- Añadir datos de auditoría ficticios iniciales para mostrar cómo se utiliza el módulo.
+8. Reglas de negocio
+1. La cédula del cliente es obligatoria.
+2. El precio nominal representa el precio original del producto.
+3. El precio acordado es el valor final que debe pagar la persona; no es obligatorio calcular un porcentaje de descuento.
+4. La asociación de cliente con producto crea una deuda/adquisición, no una factura.
+5. Cada pago se aplica a una deuda específica en esta versión.
+6. Saldo pendiente = precio acordado/saldo inicial − suma de pagos válidos no anulados.
+7. Un pago anulado no reduce el saldo pendiente.
+8. Bloquear pagos mayores al saldo pendiente en esta versión y explicar el motivo.
+9. Registrar un pago no equivale a conciliarlo.
+10. Una conciliación automática requiere coincidencia inequívoca y movimiento no utilizado.
+11. Una coincidencia solo por monto no es suficiente para conciliar automáticamente.
+12. Un movimiento bancario no se puede asignar a varios pagos.
+13. Las conciliaciones manuales conservan usuario, fecha, decisión y motivo cuando corresponda.
+14. La factura registrada no significa que el sistema la haya emitido electrónicamente.
+15. La auditoría conserva eventos históricos y no permite su edición o eliminación desde la UI.
+16. Las acciones de modificación sensibles deben conservar valores anteriores y nuevos.
+17. Todas las operaciones deben respetar los permisos del usuario actual.
+18. No borrar silenciosamente datos con historial financiero; preferir anulación/desactivación con motivo y auditoría.
+9. Datos de muestra
+Crear datos ficticios completos para demostrar el recorrido de principio a fin:
+- 20 clientes ficticios.
+- 3 productos de ejemplo: Móviles Nivel 1 ($890), Móviles Nivel 2 ($1.200), Taller de Especialización ($350).
+- Al menos 20 asociaciones/deudas con distintos precios acordados (precio completo y descuentos directos), estados de pago y saldos.
+- Aproximadamente 30 pagos distribuidos entre varios clientes: sin pago, pago parcial, varios abonos, deuda saldada, pago pendiente de conciliación, conciliado y con diferencias.
+- Comprobantes de muestra asociados correctamente a sus pagos. Si no se pueden crear archivos reales, crear vistas previas/archivos de demostración claramente identificados, no enlaces rotos.
+- Un archivo bancario demo con aproximadamente 25 movimientos: coincidencias exactas, movimientos sin asignar, pagos sin movimiento, diferencias y algunos duplicados para mostrar detección.
+- Facturas ficticias: algunas registradas y otras pendientes.
+- Usuarios demo descritos en RF-10.
+- Eventos de auditoría relacionados con los mismos IDs de clientes, pagos, conciliaciones, facturas y usuarios.
+Todos los datos deben ser coherentes: el saldo de cada deuda debe coincidir con sus pagos válidos; una conciliación debe enlazar un pago con un único movimiento bancario; una factura y un comprobante deben abrirse desde sus registros correctos.
+Ejemplo de deuda
+Cliente demo Carlos Mendoza:
+- Producto: Móviles Nivel 1.
+- Precio nominal: $890.
+- Precio acordado: $790.
+- Pagos válidos: $100 y $150.
+- Total pagado: $250.
+- Saldo pendiente: $540.
+Escenarios de conciliación a incluir
+- Transacción exacta y monto coherente: conciliación automática.
+- Número de transacción coincidente pero monto diferente: revisión/diferencia, no conciliación automática.
+- Monto igual pero sin referencia identificable: revisión manual.
+- Pago sin movimiento bancario: pendiente/no encontrado.
+- Movimiento bancario sin pago asociado: movimiento sin asignar.
+- Movimiento duplicado: advertencia y bloqueo de doble asignación.
+10. Flujos de usuario que deben funcionar
+Flujo A: carga inicial de deudas
+1. Entrar en Deudas.
+2. Elegir un producto.
+3. Cargar un Excel demo o utilizar un archivo de muestra precargado.
+4. Ver vista previa, errores y duplicados.
+5. Corregir o confirmar.
+6. Ver deudas creadas y saldos.
+7. Ver el evento en auditoría.
+Flujo B: registrar un pago con comprobante
+1. Buscar cliente.
+2. Seleccionar deuda/producto.
+3. Ver saldo pendiente.
+4. Iniciar registro de pago.
+5. Adjuntar comprobante demo.
+6. Ejecutar análisis OCR simulado.
+7. Revisar y corregir los campos extraídos.
+8. Confirmar pago.
+9. Ver el saldo actualizado.
+10. Abrir el comprobante desde el historial.
+11. Ver eventos de auditoría.
+Flujo C: conciliar pagos
+1. Abrir Conciliación bancaria.
+2. Seleccionar archivo bancario demo o importar uno.
+3. Ver vista previa.
+4. Ejecutar conciliación.
+5. Ver resumen de coincidencias y casos pendientes.
+6. Abrir un caso ambiguo.
+7. Seleccionar manualmente un movimiento compatible.
+8. Confirmar con observación si aplica.
+9. Ver estado actualizado.
+10. Ver quién y cuándo concilió en auditoría.
+Flujo D: registrar una factura
+1. Buscar cliente o pago conciliado.
+2. Abrir su ficha.
+3. Registrar número y fecha de factura.
+4. Adjuntar archivo demo.
+5. Guardar.
+6. Consultar el documento desde la ficha.
+7. Ver evento de auditoría.
+Flujo E: personalizar permisos
+1. Entrar como admin.
+2. Abrir Administración de usuarios.
+3. Seleccionar atencion01.
+4. Habilitar el permiso de registrar pagos, sin habilitar conciliación ni administración de usuarios.
+5. Guardar.
+6. Cambiar a atencion01.
+7. Comprobar que puede registrar pagos, pero no conciliar ni administrar usuarios.
+8. Abrir auditoría y comprobar que el cambio de permisos quedó registrado con valores anteriores y nuevos.
+Flujo F: consultar auditoría
+1. Abrir Auditoría con un usuario autorizado.
+2. Filtrar por usuario, módulo y fecha.
+3. Abrir un evento de modificación.
+4. Comparar valores anteriores y nuevos.
+5. Consultar una aprobación y ver quién la ejecutó, qué aceptó y la observación.
+6. Verificar que no existan controles de editar o eliminar eventos.
+11. Criterios de aceptación
+El prototipo se considera listo para validación si:
+- [ ] La barra de navegación está a la derecha y se contrae/expande automáticamente como se describe en la sección 3.
+- [ ] La navegación funciona y los módulos se adaptan a los permisos del usuario.
+- [ ] Hay datos de muestra relacionados entre sí.
+- [ ] Se pueden crear y modificar clientes y productos.
+- [ ] Se puede asociar una persona a un producto sin emitir factura.
+- [ ] La carga masiva muestra vista previa y permite revisar errores.
+- [ ] El registro de pago conserva el comprobante correcto.
+- [ ] El OCR simulado permite revisar los datos antes de confirmar.
+- [ ] El saldo se recalcula correctamente tras registrar o anular un pago.
+- [ ] La conciliación automática distingue coincidencias exactas de casos ambiguos.
+- [ ] La conciliación manual enlaza un pago con un movimiento y deja trazabilidad.
+- [ ] La factura se registra y se puede consultar desde el cliente.
+- [ ] Los permisos personalizados cambian efectivamente las operaciones disponibles.
+- [ ] El administrador tiene acceso CRUD completo a los módulos operativos.
+- [ ] La auditoría registra quién hizo qué, cuándo y qué valores cambiaron.
+- [ ] Los eventos de auditoría no se pueden modificar ni borrar desde la interfaz.
+- [ ] Los datos persisten al navegar y recargar.
+- [ ] Restaurar datos demo devuelve un estado inicial coherente.
+- [ ] No se simula falsamente una integración real con banco, AWS Textract o SRI.
+- [ ] Los controles principales no son botones decorativos sin comportamiento.
+12. Fuera de alcance
+No implementar en esta fase:
+- Conexión real con bancos.
+- Integración real con Amazon Textract/AWS.
+- Emisión electrónica o conexión con el SRI.
+- Pasarela de pagos.
+- Notificaciones automáticas.
+- Recordatorios de cobranza.
+- Autenticación, autorización y almacenamiento con garantías de producción.
+- Inmutabilidad criptográfica o almacenamiento externo de auditoría.
+- Distribución de un único pago entre varias deudas.
+- Contabilidad general/ERP completo.
+13. Puntos pendientes de validación con Chris
+Mantenerlos visibles como decisiones pendientes, sin bloquear los flujos principales:
+1. Si un pago puede cubrir varias deudas en una fase futura.
+2. Qué métodos de pago, además de transferencias y depósitos, deben aceptarse.
+3. Qué formatos bancarios reales se utilizarán y cuáles son sus columnas.
+4. Si todas las coincidencias exactas pueden conciliarse automáticamente bajo la política operativa definitiva.
+5. Si una factura puede relacionarse con varios pagos o deudas.
+6. Si se requiere un flujo de aprobación separado para anulaciones o modificaciones financieras.
+7. Qué permisos exactos necesitará cada persona y quién puede exportar auditoría.
+14. Entregable esperado de Google AI Studio
+Generar una aplicación prototipo navegable y funcional que cumpla los requisitos anteriores, con:
+- UI completa en español.
+- Navbar lateral derecho con contracción automática.
+- Dashboard y todos los módulos descritos.
+- Datos ficticios precargados.
+- Formularios, tablas, filtros, vistas de detalle, modales de confirmación y mensajes de estado.
+- Simulaciones transparentes de OCR y conciliación bancaria.
+- Administración de permisos y auditoría funcionales dentro del entorno demo.
+- Persistencia local y restauración de datos demo.
+- Sin enlaces rotos, errores visibles ni botones principales sin acción.
+Prioriza el flujo operativo completo y la coherencia de los datos antes que agregar funcionalidades no solicitadas.

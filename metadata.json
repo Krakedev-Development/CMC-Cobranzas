@@ -1,0 +1,6 @@
+{
+  "name": "Gestión de Cobranzas y Conciliación",
+  "description": "Prototipo interactivo de gestión de clientes, cobranzas educativas, simulación OCR de comprobantes, conciliación bancaria inteligente, facturación documental y auditoría de cambios.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
