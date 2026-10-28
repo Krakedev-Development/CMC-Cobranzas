@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { ModuleName } from '../../types';
 import { useApp } from '../../context/AppContext';
-import { Shield, Sparkles, ChevronRight, User, HelpCircle, RotateCcw, Bell, Clock, AlertTriangle, ArrowRight } from 'lucide-react';
+import { Shield, Sparkles, ChevronRight, User, HelpCircle, RotateCcw, Bell, Clock, AlertTriangle, ArrowRight, Sun, Moon } from 'lucide-react';
 
 interface TopHeaderProps {
   currentModule: ModuleName;
@@ -9,6 +9,8 @@ interface TopHeaderProps {
   onOpenResetModal: () => void;
   onNavigateToModule?: (module: ModuleName) => void;
   isExpanded: boolean;
+  isDark: boolean;
+  onToggleTheme: () => void;
 }
 
 const MODULE_TITLES: Record<ModuleName, { title: string; subtitle: string }> = {
@@ -60,6 +62,8 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   onOpenResetModal,
   onNavigateToModule,
   isExpanded,
+  isDark,
+  onToggleTheme,
 }) => {
   const { currentUser, debts, clients, products, getDebtFinancials } = useApp();
   const info = MODULE_TITLES[currentModule] || { title: 'Sistema de Cobranzas', subtitle: '' };
@@ -172,6 +176,16 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
 
         {/* Right zone: Overdue Notification Bell + Simulation Notice + User Badge */}
         <div className="flex items-center gap-3 self-start sm:self-auto shrink-0">
+          <button
+            type="button"
+            onClick={onToggleTheme}
+            className="p-2 rounded-xl border bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100 transition-all flex items-center justify-center"
+            title={isDark ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
+            aria-label={isDark ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
+          >
+            {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </button>
+
           {/* CAMPANA DE ALERTA DE COBRANZAS EN EL TOPBAR */}
           <div className="relative" ref={dropdownRef}>
             <button

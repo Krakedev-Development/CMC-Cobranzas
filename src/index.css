@@ -47,3 +47,130 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* ==========================================================================
+   TEMA OSCURO
+   Se activa con la clase "dark" en <html>. Tailwind v4 resuelve sus colores
+   mediante variables, asi que redefinimos la escala clara (50-200 fondos y
+   bordes, 600-700 textos) sin tocar los componentes. 800/900 se manejan por
+   clase porque tambien se usan como fondo de botones oscuros.
+   ========================================================================== */
+.dark {
+  color-scheme: dark;
+
+  --color-slate-50: #0b1220;
+  --color-slate-100: #1a2436;
+  --color-slate-200: #2a3850;
+  --color-slate-600: #a8b5c7;
+  --color-slate-700: #cbd5e1;
+
+  --color-indigo-50: #1b1d3f;
+  --color-indigo-100: #25285a;
+  --color-indigo-200: #343a7a;
+  --color-emerald-50: #06251d;
+  --color-emerald-100: #0a3a2c;
+  --color-emerald-200: #115e45;
+  --color-rose-50: #2d0f1a;
+  --color-rose-100: #4a1526;
+  --color-rose-200: #6b1d36;
+  --color-red-50: #2d0f12;
+  --color-red-100: #4a1519;
+  --color-red-200: #6b1d24;
+  --color-amber-50: #2b1d07;
+  --color-amber-100: #43300a;
+  --color-amber-200: #6b4b0e;
+  --color-blue-50: #0c1d3a;
+  --color-blue-100: #12305e;
+  --color-blue-200: #1e4a8a;
+  --color-purple-50: #231240;
+  --color-purple-100: #34196a;
+  --color-purple-200: #4c2599;
+}
+
+.dark body {
+  background-color: #060b16;
+}
+.dark .bg-white,
+.dark .hover\:bg-white:hover,
+.dark .focus\:bg-white:focus {
+  background-color: #0f172a;
+}
+.dark .text-slate-800,
+.dark .hover\:text-slate-800:hover {
+  color: #e2e8f0;
+}
+.dark .text-slate-900,
+.dark .hover\:text-slate-900:hover,
+.dark .group:hover .group-hover\:text-slate-900 {
+  color: #f1f5f9;
+}
+.dark .border-slate-300,
+.dark .hover\:border-slate-300:hover {
+  border-color: #3a4a63;
+}
+.dark .border-white {
+  border-color: #0f172a;
+}
+.dark .shadow-2xl,
+.dark .shadow-xs,
+.dark .shadow-2xs {
+  --tw-shadow-color: rgb(0 0 0 / 0.5);
+}
+.dark select option {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+.dark select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5'/%3E%3C/svg%3E");
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #64748b;
+}
+.dark input,
+.dark textarea {
+  color-scheme: dark;
+}
+
+/* Textos de color: se aclaran para mantener contraste sobre fondos oscuros */
+.dark .text-indigo-600,.dark .hover\:text-indigo-600:hover{color:#a5b4fc}
+.dark .text-indigo-700,.dark .hover\:text-indigo-700:hover{color:#a5b4fc}
+.dark .text-indigo-800{color:#c7d2fe}
+.dark .text-indigo-900{color:#e0e7ff}
+.dark .text-indigo-950{color:#e0e7ff}
+.dark .text-emerald-600,.dark .hover\:text-emerald-600:hover{color:#6ee7b7}
+.dark .text-emerald-700,.dark .hover\:text-emerald-700:hover{color:#6ee7b7}
+.dark .text-emerald-800{color:#a7f3d0}
+.dark .text-emerald-900{color:#d1fae5}
+.dark .text-emerald-950{color:#d1fae5}
+.dark .text-rose-600,.dark .hover\:text-rose-600:hover{color:#fda4af}
+.dark .text-rose-700,.dark .hover\:text-rose-700:hover{color:#fda4af}
+.dark .text-rose-800{color:#fecdd3}
+.dark .text-rose-900{color:#ffe4e6}
+.dark .text-rose-950{color:#ffe4e6}
+.dark .text-red-600,.dark .hover\:text-red-600:hover{color:#fca5a5}
+.dark .text-red-700,.dark .hover\:text-red-700:hover{color:#fca5a5}
+.dark .text-red-800{color:#fecaca}
+.dark .text-red-900{color:#fee2e2}
+.dark .text-red-950{color:#fee2e2}
+.dark .text-amber-600,.dark .hover\:text-amber-600:hover{color:#fcd34d}
+.dark .text-amber-700,.dark .hover\:text-amber-700:hover{color:#fcd34d}
+.dark .text-amber-800{color:#fde68a}
+.dark .text-amber-900{color:#fef3c7}
+.dark .text-amber-950{color:#fef3c7}
+.dark .text-blue-600,.dark .hover\:text-blue-600:hover{color:#93c5fd}
+.dark .text-blue-700,.dark .hover\:text-blue-700:hover{color:#93c5fd}
+.dark .text-blue-800{color:#bfdbfe}
+.dark .text-blue-900{color:#dbeafe}
+.dark .text-blue-950{color:#dbeafe}
+.dark .text-purple-600,.dark .hover\:text-purple-600:hover{color:#d8b4fe}
+.dark .text-purple-700,.dark .hover\:text-purple-700:hover{color:#d8b4fe}
+.dark .text-purple-800{color:#e9d5ff}
+.dark .text-purple-900{color:#f3e8ff}
+.dark .text-purple-950{color:#f3e8ff}

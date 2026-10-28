@@ -34,6 +34,7 @@ import {
   Bell,
   AlertOctagon,
   RefreshCw,
+  Landmark,
 } from 'lucide-react';
 import { CustomSelect } from '../components/common/CustomSelect';
 import { Pagination } from '../components/common/Pagination';
@@ -58,6 +59,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     products,
     payments,
     addDebt,
+    addClient,
     addProduct,
     importDebtsBulk,
     getDebtFinancials,
@@ -103,6 +105,12 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
   const [saleRegisterInitialPayment, setSaleRegisterInitialPayment] = useState<boolean>(false);
   const [saleInitialPayAmount, setSaleInitialPayAmount] = useState<string>('');
   const [saleInitialTxNumber, setSaleInitialTxNumber] = useState<string>('');
+  const [isQuickClientOpen, setIsQuickClientOpen] = useState<boolean>(false);
+  const [quickClient, setQuickClient] = useState({ cedula: '', nombres: '', apellidos: '', telefono: '', correo: '' });
+  const [quickClientError, setQuickClientError] = useState('');
+  const [saleVoucherFileName, setSaleVoucherFileName] = useState<string | null>(null);
+  const [saleVoucherOcr, setSaleVoucherOcr] = useState<ExtractedData | null>(null);
+  const [isSaleOcrScanning, setIsSaleOcrScanning] = useState<boolean>(false);
   const [observaciones, setObservaciones] = useState('');
   const [formError, setFormError] = useState('');
   const [showOverdueOnly, setShowOverdueOnly] = useState<boolean>(false);
@@ -404,6 +412,8 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     setSaleRegisterInitialPayment(false);
     setSaleInitialPayAmount('');
     setSaleInitialTxNumber('');
+    setSaleVoucherFileName(null);
+    setSaleVoucherOcr(null);
     setObservaciones('');
     setFormError('');
     setIsCreateModalOpen(true);
@@ -442,8 +452,13 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
       }
     } else if (method === 'transferencia') {
       setPayBank('Banco Pichincha');
-      if (!payTxNumber || payTxNumber.startsWith('REC-') || payTxNumber.startsWith('AUTH-')) {
+      if (!payTxNumber || payTxNumber.startsWith('REC-') || payTxNumber.startsWith('AUTH-') || payTxNumber.startsWith('DEP-')) {
         setPayTxNumber(`TX-${Math.floor(100000 + Math.random() * 900000)}`);
+      }
+    } else if (method === 'deposito') {
+      setPayBank('Banco Pichincha');
+      if (!payTxNumber || payTxNumber.startsWith('TX-') || payTxNumber.startsWith('REC-') || payTxNumber.startsWith('AUTH-')) {
+        setPayTxNumber(`DEP-${Math.floor(100000 + Math.random() * 900000)}`);
       }
     }
   };
@@ -517,6 +532,62 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
       setPayRef(ocr.referencia || `Váucher: ${file.name}`);
       setIsPayOcrScanning(false);
     }, 700);
+  };
+
+  const handleQuickClientSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const cedula = quickClient.cedula.trim();
+    if (!cedula || !quickClient.nombres.trim() || !quickClient.apellidos.trim()) {
+      setQuickClientError('Cédula, nombres y apellidos son obligatorios.');
+      return;
+    }
+    if (clients.some((c) => c.cedula.toLowerCase().replace(' (demo)', '').trim() === cedula.toLowerCase())) {
+      setQuickClientError('Ya existe un cliente con esa cédula.');
+      return;
+    }
+    const created = addClient({
+      cedula: `${cedula} (Demo)`,
+      nombres: quickClient.nombres.trim(),
+      apellidos: quickClient.apellidos.trim(),
+      telefono: quickClient.telefono.trim(),
+      correo: quickClient.correo.trim(),
+      estado: 'activo',
+      notas: '',
+    });
+    setSelectedClientId(created.id);
+    setClientSearchText(`${created.nombres} ${created.apellidos} (${created.cedula})`);
+    setIsQuickClientOpen(false);
+  };
+
+  const handleSaleVoucherUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setSaleVoucherFileName(file.name);
+    setIsSaleOcrScanning(true);
+
+    setTimeout(() => {
+      const typedAmount = parseFloat(saleInitialPayAmount);
+      const amount = !isNaN(typedAmount) && typedAmount > 0 ? typedAmount : 150;
+      const randomTx = `TX-${Math.floor(100000 + Math.random() * 900000)}`;
+      const client = clients.find((c) => c.id === selectedClientId);
+
+      const ocr: ExtractedData = {
+        banco: saleBankOrEntity,
+        numeroTransaccion: randomTx,
+        monto: amount,
+        fecha: new Date().toISOString().slice(0, 10),
+        ordenante: client ? `${client.nombres} ${client.apellidos}`.toUpperCase() : 'ORDENANTE COMPROBANTE',
+        referencia: `Abono inicial ${file.name.slice(0, 20)}`,
+        confianza: Math.floor(95 + Math.random() * 4),
+      };
+
+      setSaleVoucherOcr(ocr);
+      setSaleInitialPayAmount(amount.toFixed(2));
+      setSaleInitialTxNumber(randomTx);
+      setIsSaleOcrScanning(false);
+    }, 700);
+    e.target.value = '';
   };
 
   const handleSimulateInlineOCR = () => {
@@ -705,17 +776,26 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
       const initAmount = parseFloat(saleInitialPayAmount);
       if (!isNaN(initAmount) && initAmount > 0) {
         const finalInitAmount = Math.min(initAmount, acordado);
-        registerPayment({
-          deudaId: newDebt.id,
-          clienteId: selectedClientId,
-          monto: finalInitAmount,
-          fechaPago: new Date().toISOString().slice(0, 10),
-          metodo: salePaymentMethod,
-          bancoOrigen: saleBankOrEntity,
-          numeroTransaccion: saleInitialTxNumber.trim() || undefined,
-          referencia: `Abono inicial venta ${newDebt.id}`,
-          observaciones: `Abono inicial registrado en conjunto con la nueva venta (${salePaymentMethod})`,
-        });
+        registerPayment(
+          {
+            deudaId: newDebt.id,
+            clienteId: selectedClientId,
+            monto: finalInitAmount,
+            fechaPago: new Date().toISOString().slice(0, 10),
+            metodo: salePaymentMethod,
+            bancoOrigen: saleBankOrEntity,
+            numeroTransaccion: saleInitialTxNumber.trim() || undefined,
+            referencia: `Abono inicial venta ${newDebt.id}`,
+            observaciones: `Abono inicial registrado en conjunto con la nueva venta (${salePaymentMethod})`,
+          },
+          saleVoucherFileName && saleVoucherOcr
+            ? {
+                nombreArchivo: saleVoucherFileName,
+                tipoArchivo: /\.(png|jpe?g)$/i.test(saleVoucherFileName) ? 'image/jpeg' : 'application/pdf',
+                datosExtraidos: saleVoucherOcr,
+              }
+            : undefined
+        );
         logAudit(
           'pagos',
           'crear',
@@ -741,6 +821,8 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     setSaleRegisterInitialPayment(false);
     setSaleInitialPayAmount('');
     setSaleInitialTxNumber('');
+    setSaleVoucherFileName(null);
+    setSaleVoucherOcr(null);
     setObservaciones('');
   };
 
@@ -1027,6 +1109,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                   { value: 'transferencia', label: 'Transferencia' },
                   { value: 'efectivo', label: 'Efectivo' },
                   { value: 'tarjeta', label: 'Tarjeta' },
+                  { value: 'deposito', label: 'Depósito' },
                 ]}
                 value={debtMethodFilter}
                 onChange={(val) => {
@@ -1133,7 +1216,13 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                                       Tarjeta
                                     </span>
                                   )}
-                                  {dMethod !== 'transferencia' && dMethod !== 'efectivo' && dMethod !== 'tarjeta' && (
+                                  {dMethod === 'deposito' && (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                      <Landmark className="w-3 h-3" />
+                                      Depósito
+                                    </span>
+                                  )}
+                                  {dMethod !== 'transferencia' && dMethod !== 'efectivo' && dMethod !== 'tarjeta' && dMethod !== 'deposito' && (
                                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200 capitalize">
                                       {dMethod}
                                     </span>
@@ -1320,6 +1409,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                   { value: 'transferencia', label: 'Transferencia' },
                   { value: 'efectivo', label: 'Efectivo' },
                   { value: 'tarjeta', label: 'Tarjeta' },
+                  { value: 'deposito', label: 'Depósito' },
                 ]}
                 value={paymentMethodFilter}
                 onChange={(val) => {
@@ -1449,7 +1539,13 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                                   Tarjeta
                                 </span>
                               )}
-                              {p.metodo !== 'transferencia' && p.metodo !== 'efectivo' && p.metodo !== 'tarjeta' && (
+                              {p.metodo === 'deposito' && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                  <Landmark className="w-3 h-3" />
+                                  Depósito
+                                </span>
+                              )}
+                              {p.metodo !== 'transferencia' && p.metodo !== 'efectivo' && p.metodo !== 'tarjeta' && p.metodo !== 'deposito' && (
                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200 capitalize">
                                   {p.metodo}
                                 </span>
@@ -1575,9 +1671,23 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {/* 1. SELECCIONAR CLIENTE */}
                 <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-200/80 space-y-2">
-                  <label className="block font-bold text-slate-800 text-xs">
-                    1. Seleccionar Alumno / Cliente *
-                  </label>
+                  <div className="flex items-center justify-between gap-2">
+                    <label className="block font-bold text-slate-800 text-xs">
+                      1. Seleccionar Alumno / Cliente *
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setQuickClient({ cedula: '', nombres: '', apellidos: '', telefono: '', correo: '' });
+                        setQuickClientError('');
+                        setIsQuickClientOpen(true);
+                      }}
+                      className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[11px] font-semibold inline-flex items-center gap-1 transition-colors"
+                    >
+                      <Plus className="w-3 h-3" />
+                      <span>Nuevo cliente</span>
+                    </button>
+                  </div>
                   <div className="relative">
                     <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
@@ -1869,7 +1979,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                 <label className="block font-semibold text-slate-700 mb-1.5">
                   Tipo / Método de Pago Acordado *
                 </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <button
                     type="button"
                     onClick={() => {
@@ -1914,6 +2024,21 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                   >
                     <CreditCard className="w-4 h-4 text-purple-600" />
                     <span>Tarjeta</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSalePaymentMethod('deposito');
+                      setSaleBankOrEntity('Banco Pichincha');
+                    }}
+                    className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 border transition-all ${
+                      salePaymentMethod === 'deposito'
+                        ? 'bg-amber-50 text-amber-700 border-amber-400 ring-2 ring-amber-500/20 shadow-xs'
+                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    <Landmark className="w-4 h-4 text-amber-600" />
+                    <span>Depósito</span>
                   </button>
                 </div>
               </div>
@@ -2026,6 +2151,60 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                       />
                     </div>
                   </div>
+
+                  <div className="space-y-2">
+                    <label className="block font-semibold text-emerald-900 text-[11px]">
+                      Comprobante de pago (imagen o PDF)
+                    </label>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <label
+                        className={`cursor-pointer px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition-colors inline-flex items-center gap-1.5 ${
+                          isSaleOcrScanning ? 'opacity-60 pointer-events-none' : ''
+                        }`}
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>{saleVoucherFileName ? 'Cambiar comprobante' : 'Subir comprobante'}</span>
+                        <input
+                          type="file"
+                          accept="image/*,.pdf"
+                          className="hidden"
+                          disabled={isSaleOcrScanning}
+                          onChange={handleSaleVoucherUpload}
+                        />
+                      </label>
+                      {isSaleOcrScanning && (
+                        <span className="text-emerald-800 text-xs font-medium flex items-center gap-1.5">
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          Leyendo comprobante...
+                        </span>
+                      )}
+                    </div>
+
+                    {saleVoucherFileName && !isSaleOcrScanning && (
+                      <div className="flex items-center justify-between p-2.5 bg-white border border-emerald-200 rounded-lg text-xs text-slate-700">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <FileText className="w-4 h-4 text-emerald-600 shrink-0" />
+                          <span className="truncate font-medium">{saleVoucherFileName}</span>
+                          {saleVoucherOcr && (
+                            <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 font-semibold">
+                              Confianza {saleVoucherOcr.confianza}%
+                            </span>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSaleVoucherFileName(null);
+                            setSaleVoucherOcr(null);
+                          }}
+                          className="text-slate-400 hover:text-red-500 text-xs ml-2 px-1"
+                          title="Quitar archivo"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -2062,6 +2241,65 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                     Guardar Nueva Venta
                   </button>
                 </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* --- MODAL: CREAR CLIENTE RAPIDO DESDE NUEVA VENTA --- */}
+      {isQuickClientOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200 overflow-hidden">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <h2 className="text-sm font-bold text-slate-900">Registrar Nuevo Cliente</h2>
+              <button
+                type="button"
+                onClick={() => setIsQuickClientOpen(false)}
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-200/50"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <form onSubmit={handleQuickClientSubmit} className="p-5 space-y-3.5 text-xs">
+              {quickClientError && (
+                <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span>{quickClientError}</span>
+                </div>
+              )}
+              {([
+                ['cedula', 'Cédula / Identificación *', 'Ej: 1712345678'],
+                ['nombres', 'Nombres *', 'Ej: María José'],
+                ['apellidos', 'Apellidos *', 'Ej: Pérez Andrade'],
+                ['telefono', 'Teléfono', 'Ej: +593 99 123 4567'],
+                ['correo', 'Correo electrónico', 'Ej: alumno@correo.com'],
+              ] as const).map(([key, label, placeholder]) => (
+                <div key={key}>
+                  <label className="block font-semibold text-slate-700 mb-1">{label}</label>
+                  <input
+                    type="text"
+                    placeholder={placeholder}
+                    value={quickClient[key]}
+                    onChange={(e) => setQuickClient({ ...quickClient, [key]: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none"
+                  />
+                </div>
+              ))}
+              <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsQuickClientOpen(false)}
+                  className="px-4 py-2 border border-slate-200 text-slate-700 rounded-xl font-semibold hover:bg-slate-100"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold"
+                >
+                  Registrar Cliente
+                </button>
               </div>
             </form>
           </div>
@@ -2376,7 +2614,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                       <label className="block font-semibold text-slate-700 mb-1 text-xs">
                         Método / Forma de Pago *
                       </label>
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         <button
                           type="button"
                           onClick={() => handlePayMethodChange('transferencia')}
@@ -2412,6 +2650,18 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                         >
                           <CreditCard className="w-4 h-4 text-purple-600" />
                           <span>Tarjeta</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handlePayMethodChange('deposito')}
+                          className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 border transition-all ${
+                            payMethod === 'deposito'
+                              ? 'bg-amber-50 text-amber-700 border-amber-400 ring-2 ring-amber-500/20 shadow-xs'
+                              : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-white'
+                          }`}
+                        >
+                          <Landmark className="w-4 h-4 text-amber-600" />
+                          <span>Depósito</span>
                         </button>
                       </div>
                     </div>
@@ -2465,6 +2715,8 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                             ? 'N° Recibo de Caja'
                             : payMethod === 'tarjeta'
                             ? 'N° Autorización / Lote'
+                            : payMethod === 'deposito'
+                            ? 'N° Papeleta de Depósito'
                             : 'N° Transacción / Comprobante'}
                         </label>
                         <input
@@ -2474,6 +2726,8 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                               ? 'Ej: REC-00421'
                               : payMethod === 'tarjeta'
                               ? 'Ej: AUTH-882190'
+                              : payMethod === 'deposito'
+                              ? 'Ej: DEP-451208'
                               : 'Ej: TX-984120'
                           }
                           value={payTxNumber}
@@ -2773,7 +3027,13 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                                         Tarjeta
                                       </span>
                                     )}
-                                    {p.metodo !== 'transferencia' && p.metodo !== 'efectivo' && p.metodo !== 'tarjeta' && (
+                                    {p.metodo === 'deposito' && (
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                        <Landmark className="w-3 h-3" />
+                                        Depósito
+                                      </span>
+                                    )}
+                                    {p.metodo !== 'transferencia' && p.metodo !== 'efectivo' && p.metodo !== 'tarjeta' && p.metodo !== 'deposito' && (
                                       <span className="capitalize text-slate-700 text-[11px] font-medium">{p.metodo}</span>
                                     )}
                                   </div>

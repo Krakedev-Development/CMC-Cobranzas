@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { ModuleName, Payment } from './types';
 import { SidebarNav } from './components/layout/SidebarNav';
@@ -23,6 +23,18 @@ const AppContent: React.FC = () => {
 
   const [currentModule, setCurrentModule] = useState<ModuleName>('dashboard');
   const [isNavExpanded, setIsNavExpanded] = useState<boolean>(false);
+
+  const [isDark, setIsDark] = useState<boolean>(() =>
+    document.documentElement.classList.contains('dark')
+  );
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', isDark);
+    try {
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    } catch {
+      // almacenamiento no disponible: el tema solo dura la sesion
+    }
+  }, [isDark]);
 
   // Modals state
   const [isValidationModalOpen, setIsValidationModalOpen] = useState<boolean>(false);
@@ -96,6 +108,8 @@ const AppContent: React.FC = () => {
           onOpenResetModal={() => setIsResetModalOpen(true)}
           onNavigateToModule={(mod) => setCurrentModule(mod)}
           isExpanded={effectiveExpanded}
+          isDark={isDark}
+          onToggleTheme={() => setIsDark((d) => !d)}
         />
 
         {/* Dynamic View Body */}

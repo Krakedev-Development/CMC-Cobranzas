@@ -20,6 +20,7 @@ import {
   Banknote,
   ArrowLeftRight,
   X,
+  Landmark,
 } from 'lucide-react';
 
 import { CustomSelect } from '../components/common/CustomSelect';
@@ -278,6 +279,7 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({
               { value: 'transferencia', label: 'Transferencia' },
               { value: 'efectivo', label: 'Efectivo' },
               { value: 'tarjeta', label: 'Tarjeta' },
+              { value: 'deposito', label: 'Depósito' },
             ]}
             value={methodFilter}
             onChange={(val) => {
@@ -416,7 +418,13 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({
                             Tarjeta
                           </span>
                         )}
-                        {p.metodo !== 'transferencia' && p.metodo !== 'efectivo' && p.metodo !== 'tarjeta' && (
+                        {p.metodo === 'deposito' && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                            <Landmark className="w-3 h-3" />
+                            Depósito
+                          </span>
+                        )}
+                        {p.metodo !== 'transferencia' && p.metodo !== 'efectivo' && p.metodo !== 'tarjeta' && p.metodo !== 'deposito' && (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200 capitalize">
                             {p.metodo}
                           </span>
@@ -720,7 +728,7 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({
               {/* Selector de Método de Pago */}
               <div>
                 <label className="block font-semibold text-slate-700 mb-1.5">Método de Pago *</label>
-                <div className="grid grid-cols-3 gap-2 mb-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
                   <button
                     type="button"
                     onClick={() => {
@@ -774,6 +782,24 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({
                   >
                     <CreditCard className="w-4 h-4 text-purple-600" />
                     <span>Tarjeta</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormMetodo('deposito');
+                      setFormBanco('Banco Pichincha');
+                      if (!formTransaccion || formTransaccion.startsWith('TX-') || formTransaccion.startsWith('REC-') || formTransaccion.startsWith('AUTH-')) {
+                        setFormTransaccion(`DEP-${Math.floor(100000 + Math.random() * 900000)}`);
+                      }
+                    }}
+                    className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 border transition-all ${
+                      formMetodo === 'deposito'
+                        ? 'bg-amber-50 text-amber-700 border-amber-400 ring-2 ring-amber-500/20 shadow-xs'
+                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    <Landmark className="w-4 h-4 text-amber-600" />
+                    <span>Depósito</span>
                   </button>
                 </div>
               </div>
