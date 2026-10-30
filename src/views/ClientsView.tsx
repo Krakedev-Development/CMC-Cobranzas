@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
-import { Client, Debt, Payment, Invoice, AuditLog } from '../types';
+import { Client, Payment } from '../types';
 import {
   Users,
   Search,
@@ -10,16 +10,12 @@ import {
   UserX,
   Eye,
   Edit2,
-  FileText,
   DollarSign,
-  Receipt,
-  CreditCard,
   Clock,
   X,
   CheckCircle2,
   AlertTriangle,
   ArrowRight,
-  History,
   Calendar,
   Phone,
   Mail,
@@ -28,6 +24,7 @@ import {
 
 import { CustomSelect } from '../components/common/CustomSelect';
 import { Pagination } from '../components/common/Pagination';
+import { ClientDetailsModal } from '../components/modals/ClientDetailsModal';
 
 interface ClientsViewProps {
   onRegisterPaymentForClient?: (clientId: string) => void;
@@ -45,8 +42,6 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
     toggleClientStatus,
     importClientsBulk,
     getClientFinancials,
-    getDebtFinancials,
-    auditLogs,
     hasPermission,
   } = useApp();
 
@@ -108,22 +103,6 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
     return filteredClients.slice(startIndex, startIndex + pageSize);
   }, [filteredClients, currentPage, pageSize]);
 
-
-  // Selected client details
-  const selectedFinancials = selectedClientDetailId
-    ? getClientFinancials(selectedClientDetailId)
-    : null;
-
-  // Selected client audit events
-  const clientAuditEvents = useMemo(() => {
-    if (!selectedClientDetailId) return [];
-    return auditLogs.filter(
-      (log) =>
-        log.entidadId === selectedClientDetailId ||
-        log.valoresNuevos?.clienteId === selectedClientDetailId ||
-        log.valoresNuevos?.cliente?.includes(selectedFinancials?.client.apellidos || '')
-    );
-  }, [selectedClientDetailId, auditLogs, selectedFinancials]);
 
   // Form submit
   const handleSaveClient = (e: React.FormEvent) => {
@@ -713,295 +692,16 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
         </div>
       )}
 
-      {/* --- CLIENT INTEGRAL DETAIL DRAWER (FICHA COMPLETA) --- */}
-      {selectedFinancials && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/40 backdrop-blur-xs">
-          <div className="w-full max-w-2xl bg-white h-screen shadow-2xl flex flex-col border-l border-slate-200 overflow-hidden animate-in slide-in-from-right duration-200">
-            {/* Drawer Header */}
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
-                  {selectedFinancials.client.nombres[0]}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-base font-bold text-slate-900 leading-tight">
-                      {selectedFinancials.client.nombres} {selectedFinancials.client.apellidos}
-                    </h2>
-                    <span className="text-[10px] font-semibold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md">
-                      {selectedFinancials.client.estado}
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-500 font-mono mt-0.5">
-                    Cédula: {selectedFinancials.client.cedula} · Tel: {selectedFinancials.client.telefono}
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setSelectedClientDetailId(null)}
-                className="p-2 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-200/50"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Financial Summary Strip */}
-            <div className="grid grid-cols-4 bg-slate-900 text-white p-4 text-center divide-x divide-slate-800 text-xs">
-              <div>
-                <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Precio Nominal</span>
-                <span className="text-sm font-bold tabular-nums">
-                  ${selectedFinancials.totalPrecioNominal.toFixed(2)}
-                </span>
-              </div>
-              <div>
-                <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Precio Acordado</span>
-                <span className="text-sm font-bold tabular-nums text-indigo-300">
-                  ${selectedFinancials.totalPrecioAcordado.toFixed(2)}
-                </span>
-              </div>
-              <div>
-                <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Total Pagado</span>
-                <span className="text-sm font-bold tabular-nums text-emerald-400">
-                  ${selectedFinancials.totalPagado.toFixed(2)}
-                </span>
-              </div>
-              <div>
-                <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Saldo Pendiente</span>
-                <span className="text-sm font-bold tabular-nums text-amber-400">
-                  ${selectedFinancials.saldoPendienteTotal.toFixed(2)}
-                </span>
-              </div>
-            </div>
-
-            {/* Drawer Body Tabs */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 text-xs">
-              {/* Programas y Deudas */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-bold text-slate-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
-                    <Receipt className="w-4 h-4 text-indigo-600" />
-                    Programas Adquiridos ({selectedFinancials.deudas.length})
-                  </h3>
-                  {onRegisterPaymentForClient && (
-                    <button
-                      onClick={() => {
-                        setSelectedClientDetailId(null);
-                        onRegisterPaymentForClient(selectedFinancials.client.id);
-                      }}
-                      className="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg font-semibold text-[11px] border border-indigo-200 transition-colors"
-                    >
-                      + Registrar Pago para este alumno
-                    </button>
-                  )}
-                </div>
-
-                <div className="space-y-2.5">
-                  {selectedFinancials.deudas.map((debt) => {
-                    const fin = getDebtFinancials(debt.id);
-                    return (
-                      <div
-                        key={debt.id}
-                        className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <span className="font-bold text-slate-900 block">
-                              {fin?.product?.nombre || debt.productoId}
-                            </span>
-                            <span className="text-[11px] text-slate-500">
-                              Adquisición: {debt.fechaAdquisicion} · ID: {debt.id}
-                            </span>
-                          </div>
-                          <span
-                            className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${
-                              debt.estado === 'pagada'
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                : debt.estado === 'parcial'
-                                ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                : 'bg-slate-100 text-slate-700 border-slate-200'
-                            }`}
-                          >
-                            {debt.estado === 'pagada' ? 'Pagada' : debt.estado === 'parcial' ? 'Parcial' : 'Pendiente'}
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-3 gap-2 bg-white p-2 rounded-lg border border-slate-200 text-center text-[11px]">
-                          <div>
-                            <span className="text-slate-400 block">Acordado</span>
-                            <span className="font-bold text-slate-800">${debt.precioAcordado.toFixed(2)}</span>
-                          </div>
-                          <div>
-                            <span className="text-slate-400 block">Abonado</span>
-                            <span className="font-bold text-emerald-600">
-                              ${(fin?.validPaymentsTotal || 0).toFixed(2)}
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-slate-400 block">Saldo</span>
-                            <span className="font-bold text-amber-600">
-                              ${(fin?.saldoPendiente || 0).toFixed(2)}
-                            </span>
-                          </div>
-                        </div>
-
-                        {debt.observaciones && (
-                          <p className="text-[11px] text-slate-500 italic bg-white/60 p-1.5 rounded">
-                            {debt.observaciones}
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Historial de Pagos y Comprobantes */}
-              <div>
-                <h3 className="font-bold text-slate-900 uppercase tracking-wider text-[11px] mb-3 flex items-center gap-1.5">
-                  <CreditCard className="w-4 h-4 text-emerald-600" />
-                  Historial de Pagos ({selectedFinancials.pagos.length})
-                </h3>
-
-                {selectedFinancials.pagos.length === 0 ? (
-                  <p className="text-slate-400 text-xs italic">No hay pagos registrados para este cliente.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {selectedFinancials.pagos.map((p) => (
-                      <div
-                        key={p.id}
-                        className={`p-3 rounded-xl border flex items-center justify-between text-xs ${
-                          p.estadoRegistro === 'anulado'
-                            ? 'bg-rose-50/50 border-rose-200 opacity-60'
-                            : 'bg-white border-slate-200 shadow-xs'
-                        }`}
-                      >
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-slate-900">${p.monto.toFixed(2)}</span>
-                            <span className="text-slate-500">· {p.fechaPago}</span>
-                            <span className="font-mono text-[11px] text-slate-600">
-                              [{p.numeroTransaccion || 'Sin TX'}]
-                            </span>
-                          </div>
-                          <div className="text-[11px] text-slate-500 mt-0.5">
-                            {p.metodo} · {p.bancoOrigen || 'Sin banco especificado'}
-                          </div>
-                          {p.motivoAnulacion && (
-                            <div className="text-[10px] text-rose-600 font-medium mt-1">
-                              Anulado: {p.motivoAnulacion}
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${
-                              p.estadoConciliacion === 'conciliado_auto' || p.estadoConciliacion === 'conciliado_manual'
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                : 'bg-amber-50 text-amber-700 border-amber-200'
-                            }`}
-                          >
-                            {p.estadoConciliacion}
-                          </span>
-
-                          {p.comprobanteId && onViewVoucher && (
-                            <button
-                              onClick={() => onViewVoucher(p)}
-                              className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-[11px] font-semibold transition-colors flex items-center gap-1"
-                            >
-                              <Eye className="w-3 h-3" /> Comprobante
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Facturas Documentales */}
-              <div>
-                <h3 className="font-bold text-slate-900 uppercase tracking-wider text-[11px] mb-3 flex items-center gap-1.5">
-                  <FileText className="w-4 h-4 text-purple-600" />
-                  Facturas Registradas ({selectedFinancials.facturas.length})
-                </h3>
-
-                {selectedFinancials.facturas.length === 0 ? (
-                  <p className="text-slate-400 text-xs italic">
-                    Sin facturas físicas/externas registradas para este cliente.
-                  </p>
-                ) : (
-                  <div className="space-y-2">
-                    {selectedFinancials.facturas.map((inv) => (
-                      <div
-                        key={inv.id}
-                        className="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between text-xs shadow-xs"
-                      >
-                        <div>
-                          <div className="font-bold text-slate-900 font-mono">{inv.numeroFactura}</div>
-                          <div className="text-[11px] text-slate-500">
-                            Fecha: {inv.fechaFactura} · Monto: ${(inv.monto || 0).toFixed(2)}
-                          </div>
-                          {inv.nombreArchivo && (
-                            <div className="text-[10px] text-indigo-600 flex items-center gap-1 mt-0.5">
-                              <FileText className="w-3 h-3" /> {inv.nombreArchivo}
-                            </div>
-                          )}
-                        </div>
-                        <span
-                          className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${
-                            inv.estadoDocumental === 'registrada'
-                              ? 'bg-purple-50 text-purple-700 border-purple-200'
-                              : 'bg-slate-100 text-slate-600'
-                          }`}
-                        >
-                          {inv.estadoDocumental}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Timeline de Eventos / Auditoría del Cliente */}
-              <div>
-                <h3 className="font-bold text-slate-900 uppercase tracking-wider text-[11px] mb-3 flex items-center gap-1.5">
-                  <History className="w-4 h-4 text-slate-500" />
-                  Trazabilidad de Auditoría del Cliente
-                </h3>
-
-                <div className="space-y-2 border-l-2 border-slate-200 pl-3">
-                  {clientAuditEvents.length === 0 ? (
-                    <p className="text-slate-400 text-xs">Sin registros de auditoría específicos.</p>
-                  ) : (
-                    clientAuditEvents.map((aud) => (
-                      <div key={aud.id} className="text-xs space-y-0.5">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-slate-800 capitalize">{aud.accion}</span>
-                          <span className="text-[10px] text-slate-400">{aud.fechaHora}</span>
-                        </div>
-                        <div className="text-slate-600 text-[11px]">
-                          Por {aud.usuarioNombre} · {aud.motivo || 'Operación registrada'}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Drawer Footer */}
-            <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end">
-              <button
-                onClick={() => setSelectedClientDetailId(null)}
-                className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800"
-              >
-                Cerrar Ficha
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ClientDetailsModal
+        isOpen={Boolean(selectedClientDetailId)}
+        clientId={selectedClientDetailId}
+        onClose={() => setSelectedClientDetailId(null)}
+        onRegisterPayment={(clientId) => {
+          setSelectedClientDetailId(null);
+          onRegisterPaymentForClient?.(clientId);
+        }}
+        onViewVoucher={onViewVoucher}
+      />
     </div>
   );
 };
