@@ -21,7 +21,6 @@ import {
   Printer,
   Download,
   Sparkles,
-  Scan,
   ShieldAlert,
   ChevronRight,
   TrendingUp,
@@ -2495,35 +2494,21 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                             {isPayOcrScanning ? 'Escaneando comprobante...' : 'Asistente OCR de Comprobantes'}
                           </span>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                          <label
-                            className={`cursor-pointer px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold transition-colors shrink-0 shadow-2xs inline-flex items-center gap-1.5 ${
-                              isPayOcrScanning ? 'opacity-60 pointer-events-none' : ''
-                            }`}
-                          >
-                            <Upload className="w-3.5 h-3.5" />
-                            <span>{payUploadedFileName ? 'Cambiar Váucher' : 'Subir Váucher'}</span>
-                            <input
-                              type="file"
-                              accept="image/*,.pdf"
-                              className="hidden"
-                              disabled={isPayOcrScanning}
-                              onChange={handleOcrFileUpload}
-                            />
-                          </label>
-                          {!payUploadedFileName && (
-                            <button
-                              type="button"
-                              disabled={isPayOcrScanning}
-                              onClick={handleSimulateInlineOCR}
-                              title="Simular escaneo de prueba con váucher generado"
-                              className="px-2.5 py-1.5 bg-slate-50 border border-indigo-200 hover:bg-indigo-50 text-indigo-700 rounded-lg text-xs font-medium transition-colors shrink-0 inline-flex items-center gap-1"
-                            >
-                              <Scan className="w-3 h-3" />
-                              <span>Muestra</span>
-                            </button>
-                          )}
-                        </div>
+                        <label
+                          className={`cursor-pointer px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold transition-colors shrink-0 shadow-2xs inline-flex items-center gap-1.5 ${
+                            isPayOcrScanning ? 'opacity-60 pointer-events-none' : ''
+                          }`}
+                        >
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>{payUploadedFileName ? 'Cambiar Váucher' : 'Subir Váucher'}</span>
+                          <input
+                            type="file"
+                            accept="image/*,.pdf"
+                            className="hidden"
+                            disabled={isPayOcrScanning}
+                            onChange={handleOcrFileUpload}
+                          />
+                        </label>
                       </div>
 
                       <p className="text-[11px] text-slate-500">
@@ -2544,10 +2529,10 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                               setPayUploadedFileName(null);
                               setPayOcrExtracted(null);
                             }}
-                            className="text-slate-400 hover:text-red-500 text-xs ml-2 px-1"
+                            className="text-slate-400 hover:text-red-500 text-xs ml-2 p-1 rounded-md transition-colors inline-flex items-center"
                             title="Quitar archivo"
                           >
-                            ✕
+                            <X className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       )}
