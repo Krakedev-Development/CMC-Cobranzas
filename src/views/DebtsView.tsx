@@ -966,7 +966,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
               className="w-full sm:w-auto px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-xs"
             >
               <Plus className="w-4 h-4" />
-              <span>+ Nueva Venta</span>
+              <span>Nueva Venta</span>
             </button>
           )}
 
@@ -976,7 +976,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
               className="w-full sm:w-auto px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-xs"
             >
               <CreditCard className="w-3.5 h-3.5 text-emerald-400" />
-              <span>+ Registrar Pago</span>
+              <span>Registrar Pago</span>
             </button>
           )}
         </div>
