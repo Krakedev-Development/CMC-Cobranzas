@@ -37,6 +37,7 @@ import {
 } from 'lucide-react';
 import { CustomSelect } from '../components/common/CustomSelect';
 import { Pagination } from '../components/common/Pagination';
+import { DatePicker } from '../components/common/DatePicker';
 
 interface DebtsViewProps {
   onRegisterPaymentForDebt?: (debtId: string, clientId: string) => void;
@@ -2583,12 +2584,11 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                         <label className="block font-semibold text-slate-700 mb-1 text-xs">
                           Fecha Efectiva de Pago *
                         </label>
-                        <input
-                          type="date"
+                        <DatePicker
                           required
                           value={payDate}
-                          onChange={(e) => setPayDate(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white focus:outline-none"
+                          onChange={(date) => setPayDate(date)}
+                          className="w-full"
                         />
                       </div>
                     </div>

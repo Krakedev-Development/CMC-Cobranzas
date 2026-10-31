@@ -15,6 +15,7 @@ import {
   DollarSign,
   CheckCircle2,
 } from 'lucide-react';
+import { DatePicker } from '../components/common/DatePicker';
 
 export const ReportsView: React.FC = () => {
   const {
@@ -310,21 +311,21 @@ export const ReportsView: React.FC = () => {
 
           <div className="flex items-center gap-1.5">
             <span className="text-slate-400 font-semibold">Desde:</span>
-            <input
-              type="date"
+            <DatePicker
               value={filterDateFrom}
-              onChange={(e) => setFilterDateFrom(e.target.value)}
-              className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-800 focus:bg-white focus:outline-none"
+              onChange={(val) => setFilterDateFrom(val)}
+              placeholder="dd/mm/aaaa"
+              className="w-36"
             />
           </div>
 
           <div className="flex items-center gap-1.5">
             <span className="text-slate-400 font-semibold">Hasta:</span>
-            <input
-              type="date"
+            <DatePicker
               value={filterDateTo}
-              onChange={(e) => setFilterDateTo(e.target.value)}
-              className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-800 focus:bg-white focus:outline-none"
+              onChange={(val) => setFilterDateTo(val)}
+              placeholder="dd/mm/aaaa"
+              className="w-36"
             />
           </div>
         </div>

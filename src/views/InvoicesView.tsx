@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 
 import { Pagination } from '../components/common/Pagination';
+import { DatePicker } from '../components/common/DatePicker';
 
 export const InvoicesView: React.FC = () => {
   const { invoices, clients, debts, products, registerInvoice, updateInvoice, hasPermission } =
@@ -407,12 +408,11 @@ export const InvoicesView: React.FC = () => {
 
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Fecha de Factura *</label>
-                  <input
-                    type="date"
+                  <DatePicker
                     required
                     value={formFecha}
-                    onChange={(e) => setFormFecha(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    onChange={(val) => setFormFecha(val)}
+                    className="w-full"
                   />
                 </div>
               </div>

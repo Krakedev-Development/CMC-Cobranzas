@@ -20,6 +20,7 @@ import {
 
 import { CustomSelect } from '../components/common/CustomSelect';
 import { Pagination } from '../components/common/Pagination';
+import { DatePicker } from '../components/common/DatePicker';
 
 export const AuditView: React.FC = () => {
   const { auditLogs, exportToCSV, hasPermission } = useApp();
@@ -201,15 +202,14 @@ export const AuditView: React.FC = () => {
             className="w-44"
           />
 
-          <input
-            type="date"
+          <DatePicker
             value={dateFrom}
-            onChange={(e) => {
-              setDateFrom(e.target.value);
+            onChange={(val) => {
+              setDateFrom(val);
               setCurrentPage(1);
             }}
-            className="bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-slate-700 text-xs"
-            title="Fecha desde"
+            placeholder="Fecha desde"
+            className="w-40"
           />
         </div>
       </div>
