@@ -1075,7 +1075,6 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                   ...products.map((p) => ({
                     value: p.id,
                     label: p.nombre,
-                    badge: `$${p.precioNominal}`,
                   })),
                 ]}
                 value={productFilter}
