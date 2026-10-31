@@ -36,6 +36,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   required = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [openUpwards, setOpenUpwards] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const initialDate = value ? new Date(value + 'T00:00:00') : new Date();
@@ -61,6 +62,17 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     if (isOpen) document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
+
+  const handleToggle = () => {
+    if (disabled) return;
+    if (!isOpen && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      setOpenUpwards(spaceBelow < 250 && spaceAbove > spaceBelow);
+    }
+    setIsOpen((prev) => !prev);
+  };
 
   const changeMonth = (delta: number) => {
     const nextDate = new Date(viewYear, viewMonth + delta, 1);
@@ -101,15 +113,15 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         name={name}
         type="button"
         disabled={disabled}
-        onClick={() => setIsOpen((prev) => !prev)}
-        className={`w-full flex items-center justify-between gap-2.5 px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 transition-colors shadow-2xs hover:border-slate-400 dark:hover:border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 ${
-          disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
-        }`}
+        onClick={handleToggle}
+        className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 transition-colors shadow-2xs hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 ${
+          disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+        } ${isOpen ? 'ring-2 ring-indigo-500/20 border-indigo-500' : ''}`}
       >
-        <span className={value ? 'font-medium' : 'text-slate-400 dark:text-slate-500'}>
+        <span className={value ? 'font-medium text-slate-800' : 'text-slate-400 font-normal'}>
           {value ? formatDisplayDate(value) : placeholder}
         </span>
-        <Calendar className="w-4 h-4 text-slate-400 dark:text-slate-500 shrink-0" />
+        <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
       </button>
 
       {isOpen && !disabled && (
@@ -119,6 +131,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
           selectedDate={value}
           minDate={minDate}
           maxDate={maxDate}
+          openUpwards={openUpwards}
           onPrevMonth={() => changeMonth(-1)}
           onNextMonth={() => changeMonth(1)}
           onSelectDate={handleSelectDate}
