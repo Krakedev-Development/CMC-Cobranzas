@@ -715,8 +715,8 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
 
       {/* --- CLIENT INTEGRAL DETAIL DRAWER (FICHA COMPLETA) --- */}
       {selectedFinancials && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/40 backdrop-blur-xs">
-          <div className="w-full max-w-2xl bg-white h-screen shadow-2xl flex flex-col border-l border-slate-200 overflow-hidden animate-in slide-in-from-right duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/50 backdrop-blur-xs">
+          <div className="w-full max-w-3xl bg-white rounded-2xl shadow-2xl flex flex-col border border-slate-200 overflow-hidden max-h-[85vh]">
             {/* Drawer Header */}
             <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
               <div className="flex items-center gap-3">
