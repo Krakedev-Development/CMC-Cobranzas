@@ -176,23 +176,23 @@
 .dark .text-purple-950{color:#f3e8ff}
 
 /* ==========================================================================
-   BARRA LATERAL (SIDEBAR) — COLOR AZUL CORPORATIVO #305CDE EN MODO CLARO
+   BARRA LATERAL (SIDEBAR) — COLOR AZUL CORPORATIVO #1D4ED8 EN MODO CLARO
    Se aplica única y exclusivamente cuando <html> NO tiene la clase "dark".
    En modo oscuro (html.dark), este bloque queda 100% inactivo garantizando
    que la barra se renderice exactamente igual que en el Paso 5.
    ========================================================================== */
 html:not(.dark) .sidebar-aside {
-  background-color: #305CDE !important;
-  border-right-color: #244CBF !important;
+  background-color: #1D4ED8 !important;
+  border-right-color: #1E40AF !important;
 }
 
 html:not(.dark) .sidebar-header {
-  border-bottom-color: #244CBF !important;
+  border-bottom-color: #1E40AF !important;
 }
 
 html:not(.dark) .sidebar-logo {
   background-color: #ffffff !important;
-  color: #305CDE !important;
+  color: #1D4ED8 !important;
 }
 
 html:not(.dark) .sidebar-title {
@@ -206,7 +206,7 @@ html:not(.dark) .sidebar-subtitle {
 html:not(.dark) .sidebar-pin-btn-active {
   background-color: #ffffff !important;
   border-color: #ffffff !important;
-  color: #305CDE !important;
+  color: #1D4ED8 !important;
 }
 
 html:not(.dark) .sidebar-pin-btn-inactive {
@@ -216,12 +216,11 @@ html:not(.dark) .sidebar-pin-btn-inactive {
 }
 html:not(.dark) .sidebar-pin-btn-inactive:hover {
   background-color: rgba(255, 255, 255, 0.2) !important;
-  color: #ffffff !important;
 }
 
 html:not(.dark) .sidebar-user-box {
-  background-color: #264DC7 !important;
-  border-bottom-color: #244CBF !important;
+  background-color: #1E40AF !important;
+  border-bottom-color: #1E3A8A !important;
 }
 
 html:not(.dark) .sidebar-user-label {
@@ -233,24 +232,24 @@ html:not(.dark) .sidebar-user-role {
 }
 
 html:not(.dark) .sidebar-user-select {
-  background-color: #1E41B5 !important;
+  background-color: #17348F !important;
   border-color: rgba(255, 255, 255, 0.25) !important;
   color: #ffffff !important;
 }
 
 html:not(.dark) .sidebar-user-select option {
-  background-color: #305CDE !important;
+  background-color: #1D4ED8 !important;
   color: #ffffff !important;
 }
 
 html:not(.dark) .sidebar-user-avatar {
-  background-color: #1E41B5 !important;
+  background-color: #17348F !important;
   border-color: rgba(255, 255, 255, 0.25) !important;
   color: #ffffff !important;
 }
 
 html:not(.dark) .sidebar-nav-active {
-  background-color: #1C3EAA !important;
+  background-color: #17348F !important;
   color: #ffffff !important;
   border: 1px solid rgba(255, 255, 255, 0.25) !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
@@ -281,7 +280,7 @@ html:not(.dark) .sidebar-icon-disabled {
 
 html:not(.dark) .sidebar-badge-compact {
   background-color: #f59e0b !important;
-  color: #1C3EAA !important;
+  color: #17348F !important;
 }
 
 html:not(.dark) .sidebar-badge {
@@ -297,8 +296,8 @@ html:not(.dark) .sidebar-restricted {
 }
 
 html:not(.dark) .sidebar-footer {
-  background-color: #264DC7 !important;
-  border-top-color: #244CBF !important;
+  background-color: #1E40AF !important;
+  border-top-color: #1E3A8A !important;
 }
 
 html:not(.dark) .sidebar-footer-btn-chris {
@@ -324,4 +323,17 @@ html:not(.dark) .sidebar-footer-btn-reset:hover {
 }
 html:not(.dark) .sidebar-footer-icon-reset {
   color: #fecdd3 !important;
+}
+
+/* ==========================================================================
+   CABECERA SUPERIOR (TOP HEADER) — COLOR AZUL CORPORATIVO #1D4ED8 EN MODO CLARO
+   Se aplica única y exclusivamente cuando <html> NO tiene la clase "dark".
+   En modo oscuro (html.dark), queda 100% inactivo preservando el modo oscuro original.
+   ========================================================================== */
+html:not(.dark) .top-header-title {
+  color: #1D4ED8 !important;
+}
+
+html:not(.dark) .top-header-breadcrumb {
+  color: #1D4ED8 !important;
 }

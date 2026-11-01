@@ -168,9 +168,9 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           <div className="flex items-center gap-2 text-xs text-slate-500 mb-1 font-medium">
             <span>Cobranzas & Trazabilidad</span>
             <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-            <span className="text-indigo-600 capitalize">{currentModule}</span>
+            <span className="top-header-breadcrumb text-indigo-600 capitalize">{currentModule}</span>
           </div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">{info.title}</h1>
+          <h1 className="top-header-title text-xl font-bold text-slate-900 tracking-tight">{info.title}</h1>
           <p className="text-xs text-slate-500 mt-0.5">{info.subtitle}</p>
         </div>
 
