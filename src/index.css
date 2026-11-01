@@ -174,3 +174,154 @@
 .dark .text-purple-800{color:#e9d5ff}
 .dark .text-purple-900{color:#f3e8ff}
 .dark .text-purple-950{color:#f3e8ff}
+
+/* ==========================================================================
+   BARRA LATERAL (SIDEBAR) — COLOR AZUL CORPORATIVO #305CDE EN MODO CLARO
+   Se aplica única y exclusivamente cuando <html> NO tiene la clase "dark".
+   En modo oscuro (html.dark), este bloque queda 100% inactivo garantizando
+   que la barra se renderice exactamente igual que en el Paso 5.
+   ========================================================================== */
+html:not(.dark) .sidebar-aside {
+  background-color: #305CDE !important;
+  border-right-color: #244CBF !important;
+}
+
+html:not(.dark) .sidebar-header {
+  border-bottom-color: #244CBF !important;
+}
+
+html:not(.dark) .sidebar-logo {
+  background-color: #ffffff !important;
+  color: #305CDE !important;
+}
+
+html:not(.dark) .sidebar-title {
+  color: #ffffff !important;
+}
+
+html:not(.dark) .sidebar-subtitle {
+  color: #dbeafe !important;
+}
+
+html:not(.dark) .sidebar-pin-btn-active {
+  background-color: #ffffff !important;
+  border-color: #ffffff !important;
+  color: #305CDE !important;
+}
+
+html:not(.dark) .sidebar-pin-btn-inactive {
+  background-color: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  color: #ffffff !important;
+}
+html:not(.dark) .sidebar-pin-btn-inactive:hover {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+}
+
+html:not(.dark) .sidebar-user-box {
+  background-color: #264DC7 !important;
+  border-bottom-color: #244CBF !important;
+}
+
+html:not(.dark) .sidebar-user-label {
+  color: #bfdbfe !important;
+}
+
+html:not(.dark) .sidebar-user-role {
+  color: #ffffff !important;
+}
+
+html:not(.dark) .sidebar-user-select {
+  background-color: #1E41B5 !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  color: #ffffff !important;
+}
+
+html:not(.dark) .sidebar-user-select option {
+  background-color: #305CDE !important;
+  color: #ffffff !important;
+}
+
+html:not(.dark) .sidebar-user-avatar {
+  background-color: #1E41B5 !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  color: #ffffff !important;
+}
+
+html:not(.dark) .sidebar-nav-active {
+  background-color: #1C3EAA !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+}
+
+html:not(.dark) .sidebar-nav-link {
+  color: #dbeafe !important;
+}
+html:not(.dark) .sidebar-nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+}
+
+html:not(.dark) .sidebar-nav-disabled {
+  color: rgba(219, 234, 254, 0.45) !important;
+}
+
+html:not(.dark) .sidebar-icon-link {
+  color: #bfdbfe !important;
+}
+html:not(.dark) .group:hover .sidebar-icon-link {
+  color: #ffffff !important;
+}
+
+html:not(.dark) .sidebar-icon-disabled {
+  color: rgba(191, 219, 254, 0.4) !important;
+}
+
+html:not(.dark) .sidebar-badge-compact {
+  background-color: #f59e0b !important;
+  color: #1C3EAA !important;
+}
+
+html:not(.dark) .sidebar-badge {
+  background-color: rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+html:not(.dark) .sidebar-restricted {
+  background-color: rgba(245, 158, 11, 0.2) !important;
+  color: #fef08a !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+html:not(.dark) .sidebar-footer {
+  background-color: #264DC7 !important;
+  border-top-color: #244CBF !important;
+}
+
+html:not(.dark) .sidebar-footer-btn-chris {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  color: #dbeafe !important;
+}
+html:not(.dark) .sidebar-footer-btn-chris:hover {
+  background-color: rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+}
+html:not(.dark) .sidebar-footer-icon-chris {
+  color: #ffffff !important;
+}
+
+html:not(.dark) .sidebar-footer-btn-reset {
+  background-color: rgba(244, 63, 94, 0.2) !important;
+  border-color: rgba(251, 113, 133, 0.35) !important;
+  color: #ffe4e6 !important;
+}
+html:not(.dark) .sidebar-footer-btn-reset:hover {
+  background-color: rgba(244, 63, 94, 0.3) !important;
+  color: #ffffff !important;
+}
+html:not(.dark) .sidebar-footer-icon-reset {
+  color: #fecdd3 !important;
+}

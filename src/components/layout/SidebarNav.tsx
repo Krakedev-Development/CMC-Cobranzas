@@ -147,7 +147,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
       <aside
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        className={`fixed top-0 left-0 h-screen bg-white border-r border-slate-200 z-40 flex flex-col justify-between shadow-xl transition-all duration-300 ease-in-out ${
+        className={`sidebar-aside fixed top-0 left-0 h-screen bg-white border-r border-slate-200 z-40 flex flex-col justify-between shadow-xl transition-all duration-300 ease-in-out ${
           // Mobile responsive drawer
           isMobileOpen
             ? 'translate-x-0 w-80'
@@ -159,17 +159,17 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
         aria-label="Navegación principal lateral izquierda"
       >
         {/* Header of the Left Navbar */}
-        <div className="p-3.5 border-b border-slate-100 flex items-center justify-between gap-2">
+        <div className="sidebar-header p-3.5 border-b border-slate-100 flex items-center justify-between gap-2">
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="w-10 h-10 shrink-0 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-sm">
+            <div className="sidebar-logo w-10 h-10 shrink-0 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-sm">
               C
             </div>
             {effectiveExpanded && (
               <div className="overflow-hidden whitespace-nowrap">
-                <span className="block font-bold text-sm text-slate-900 leading-tight">
+                <span className="sidebar-title block font-bold text-sm text-slate-900 leading-tight">
                   Cobranzas & Trazabilidad
                 </span>
-                <span className="text-[11px] text-slate-500 font-medium">
+                <span className="sidebar-subtitle text-[11px] text-slate-500 font-medium">
                   Prototipo Operativo
                 </span>
               </div>
@@ -183,8 +183,8 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
               title={isNavPinned ? 'Desfijar barra lateral (se contraerá automáticamente)' : 'Fijar barra lateral abierta'}
               className={`hidden md:flex p-1.5 rounded-lg border transition-colors ${
                 isNavPinned
-                  ? 'bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100'
-                  : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+                  ? 'sidebar-pin-btn-active bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100'
+                  : 'sidebar-pin-btn-inactive bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
               {isNavPinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
@@ -193,18 +193,18 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
         </div>
 
         {/* Current Demo User Switcher Bar */}
-        <div className="px-3 py-2 bg-slate-50 border-b border-slate-100">
+        <div className="sidebar-user-box px-3 py-2 bg-slate-50 border-b border-slate-100">
           {effectiveExpanded ? (
             <div>
               <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium mb-1">
-                <span>Usuario activo (Demo):</span>
-                <span className="text-indigo-600 font-semibold">{currentUser.cargo}</span>
+                <span className="sidebar-user-label">Usuario activo (Demo):</span>
+                <span className="sidebar-user-role text-indigo-600 font-semibold">{currentUser.cargo}</span>
               </div>
               <div className="relative">
                 <select
                   value={currentUser.id}
                   onChange={(e) => setCurrentUserId(e.target.value)}
-                  className="w-full text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer"
+                  className="sidebar-user-select w-full text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer"
                   title="Cambiar usuario para probar permisos"
                 >
                   {users.map((u) => (
@@ -217,7 +217,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
             </div>
           ) : (
             <div className="flex justify-center" title={`Usuario: ${currentUser.nombre} (${currentUser.username})`}>
-              <div className="w-8 h-8 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-xs font-semibold uppercase">
+              <div className="sidebar-user-avatar w-8 h-8 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-xs font-semibold uppercase">
                 {currentUser.username.slice(0, 2)}
               </div>
             </div>
@@ -238,28 +238,28 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
                   onMouseEnter={() => setHoveredModule(item.id)}
                   onMouseLeave={() => setHoveredModule(null)}
                   disabled={!hasView}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left ${
+                  className={`sidebar-nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left ${
                     isActive
-                      ? 'bg-indigo-600 text-white shadow-sm'
+                      ? 'sidebar-nav-active bg-indigo-600 text-white shadow-sm'
                       : hasView
-                      ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                      : 'text-slate-300 hover:text-slate-400 cursor-not-allowed opacity-60'
+                      ? 'sidebar-nav-link text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                      : 'sidebar-nav-disabled text-slate-300 hover:text-slate-400 cursor-not-allowed opacity-60'
                   }`}
                   aria-current={isActive ? 'page' : undefined}
                 >
                   <div className="shrink-0 relative">
                     <IconComponent
-                      className={`w-5 h-5 ${
+                      className={`sidebar-icon w-5 h-5 ${
                         isActive
-                          ? 'text-white'
+                          ? 'sidebar-icon-active text-white'
                           : hasView
-                          ? 'text-slate-500 group-hover:text-slate-900'
-                          : 'text-slate-300'
+                          ? 'sidebar-icon-link text-slate-500 group-hover:text-slate-900'
+                          : 'sidebar-icon-disabled text-slate-300'
                       }`}
                     />
                     {/* Compact badge pill */}
                     {!effectiveExpanded && item.badge !== undefined && (
-                      <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-amber-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                      <span className="sidebar-badge-compact absolute -top-1.5 -right-1.5 w-4 h-4 bg-amber-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
                         {item.badge}
                       </span>
                     )}
@@ -270,7 +270,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
                       <span className="truncate">{item.label}</span>
                       {item.badge !== undefined && (
                         <span
-                          className={`text-[11px] font-semibold px-2 py-0.5 rounded-md border shrink-0 ${
+                          className={`sidebar-badge text-[11px] font-semibold px-2 py-0.5 rounded-md border shrink-0 ${
                             isActive
                               ? 'bg-white/20 text-white border-white/30'
                               : item.badgeColor || 'bg-slate-100 text-slate-700 border-slate-200'
@@ -283,7 +283,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
                   )}
 
                   {!hasView && effectiveExpanded && (
-                    <span className="text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 shrink-0">
+                    <span className="sidebar-restricted text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 shrink-0">
                       Restringido
                     </span>
                   )}
@@ -311,26 +311,26 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
         </nav>
 
         {/* Footer Actions: Reset Demo & Chris Validation Points */}
-        <div className="p-3 border-t border-slate-100 space-y-2 bg-slate-50/70">
+        <div className="sidebar-footer p-3 border-t border-slate-100 space-y-2 bg-slate-50/70">
           <button
             onClick={onOpenValidationModal}
-            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium border border-slate-200 text-slate-700 hover:bg-slate-100 transition-colors ${
+            className={`sidebar-footer-btn-chris w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium border border-slate-200 text-slate-700 hover:bg-slate-100 transition-colors ${
               effectiveExpanded ? 'justify-start' : 'justify-center'
             }`}
             title="Puntos pendientes de validación con Chris"
           >
-            <HelpCircle className="w-4 h-4 text-indigo-600 shrink-0" />
+            <HelpCircle className="sidebar-footer-icon-chris w-4 h-4 text-indigo-600 shrink-0" />
             {effectiveExpanded && <span className="truncate">Pendientes con Chris (Sec. 13)</span>}
           </button>
 
           <button
             onClick={onOpenResetModal}
-            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium border border-rose-200 bg-rose-50/50 text-rose-700 hover:bg-rose-100/70 transition-colors ${
+            className={`sidebar-footer-btn-reset w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium border border-rose-200 bg-rose-50/50 text-rose-700 hover:bg-rose-100/70 transition-colors ${
               effectiveExpanded ? 'justify-start' : 'justify-center'
             }`}
             title="Restaurar datos de demostración a su estado inicial coherente"
           >
-            <RotateCcw className="w-4 h-4 text-rose-600 shrink-0" />
+            <RotateCcw className="sidebar-footer-icon-reset w-4 h-4 text-rose-600 shrink-0" />
             {effectiveExpanded && <span className="truncate">Restaurar datos demo</span>}
           </button>
         </div>
