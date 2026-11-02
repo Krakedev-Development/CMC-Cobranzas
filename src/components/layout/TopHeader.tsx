@@ -166,11 +166,11 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         {/* Breadcrumb and View Title with Clear Minds Logo (Opción 2) */}
         <div className="flex items-center gap-4">
           <div className="hidden sm:flex items-center shrink-0 pr-4 border-r border-slate-200 dark:border-slate-700">
-            <div className="bg-white rounded-xl px-2.5 py-1 shadow-2xs border border-slate-200/60 dark:border-white/10 flex items-center justify-center">
+            <div className="bg-white rounded-2xl px-3 py-1.5 shadow-xs border border-slate-200/60 dark:border-white/10 flex items-center justify-center">
               <img
                 src="/assets/clear-minds-horizontal-logo.png"
                 alt="Clear Minds Building Ideas"
-                className="h-8 w-auto object-contain"
+                className="h-11 w-auto object-contain"
               />
             </div>
           </div>

@@ -158,20 +158,18 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
         }`}
         aria-label="Navegación principal lateral izquierda"
       >
-        {/* Header of the Left Navbar (Opción 1: Logo Oficial en la parte superior) */}
+        {/* Header of the Left Navbar (Logo Oficial sobre fondo nativo #2C3E50) */}
         <div className="sidebar-header p-3 border-b border-slate-700/40 flex items-center justify-between gap-2">
           {effectiveExpanded ? (
             <div className="flex items-center justify-between w-full min-w-0 gap-2">
               <div className="flex items-center gap-2 min-w-0">
-                <div className="bg-white rounded-xl px-2 py-1 shadow-xs border border-white/20 shrink-0 flex items-center justify-center">
-                  <img
-                    src="/assets/clear-minds-horizontal-logo.png"
-                    alt="Clear Minds Building Ideas"
-                    className="h-8 w-auto object-contain"
-                  />
-                </div>
+                <img
+                  src="/assets/clear-minds-nav-dark-logo.png"
+                  alt="Clear Minds Building Ideas"
+                  className="h-10 w-auto max-w-[175px] object-contain shrink-0"
+                />
                 <div className="overflow-hidden whitespace-nowrap">
-                  <span className="text-[10px] font-bold text-sky-400 tracking-wider uppercase block">
+                  <span className="text-[10px] font-extrabold text-sky-400 tracking-wider uppercase block">
                     COBRANZAS
                   </span>
                 </div>

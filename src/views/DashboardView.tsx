@@ -75,11 +75,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* Opción 3: Institutional Clear Minds Welcome Banner */}
       <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-center justify-between gap-5">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
-          <div className="p-2 bg-white rounded-2xl border border-slate-200/80 dark:border-white/10 shrink-0 shadow-2xs flex items-center justify-center">
+          <div className="p-3 bg-white rounded-2xl border border-slate-200/80 dark:border-white/10 shrink-0 shadow-xs flex items-center justify-center">
             <img
               src="/assets/clear-minds-horizontal-logo.png"
               alt="Clear Minds — Building Ideas"
-              className="h-11 w-auto object-contain"
+              className="h-16 w-auto object-contain"
             />
           </div>
           <div>
