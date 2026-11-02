@@ -88,11 +88,11 @@ export const DatePickerPopover: React.FC<DatePickerPopoverProps> = ({
           const isDisabled = Boolean((minDate && dateStr < minDate) || (maxDate && dateStr > maxDate));
 
           const dayStyle = isSelected
-            ? 'bg-indigo-600 text-white font-bold shadow-xs'
+            ? 'bg-sky-500 text-white font-bold shadow-xs'
             : isDisabled
             ? 'text-slate-300 cursor-not-allowed'
             : isToday
-            ? 'border border-indigo-200 text-indigo-700 font-semibold hover:bg-indigo-50/50'
+            ? 'border border-sky-300 text-slate-900 font-bold hover:bg-sky-50'
             : 'text-slate-700 hover:bg-slate-100 font-medium';
 
           return (

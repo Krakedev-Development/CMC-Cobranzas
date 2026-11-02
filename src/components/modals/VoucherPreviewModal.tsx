@@ -27,7 +27,7 @@ export const VoucherPreviewModal: React.FC<VoucherPreviewModalProps> = ({
         {/* Header */}
         <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
               <FileText className="w-5 h-5" />
             </div>
             <div>
@@ -182,9 +182,9 @@ export const VoucherPreviewModal: React.FC<VoucherPreviewModalProps> = ({
             )}
 
             {payment && (
-              <div className="p-3 bg-indigo-50/60 border border-indigo-100 rounded-xl text-xs text-indigo-900 space-y-1">
-                <div className="font-semibold">Estado de Conciliación del Pago:</div>
-                <div className="text-[11px] text-indigo-700">
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 space-y-1">
+                <div className="font-semibold text-slate-900">Estado de Conciliación del Pago:</div>
+                <div className="text-[11px] text-slate-700">
                   {payment.estadoConciliacion === 'conciliado_auto' && 'Conciliado automáticamente con extracto bancario.'}
                   {payment.estadoConciliacion === 'conciliado_manual' && 'Conciliado manualmente con observación.'}
                   {payment.estadoConciliacion === 'pendiente' && 'Pendiente de conciliar con extracto bancario.'}

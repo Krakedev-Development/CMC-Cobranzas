@@ -930,13 +930,13 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
             onClick={() => setActiveTab('deudas')}
             className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
               activeTab === 'deudas'
-                ? 'bg-white text-indigo-900 shadow-sm'
+                ? 'bg-white text-slate-900 font-bold shadow-sm'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
             }`}
           >
-            <Receipt className="w-4 h-4 text-indigo-600" />
+            <Receipt className="w-4 h-4 text-sky-600" />
             <span>Cuentas por Cobrar (Deudas)</span>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200">
               {debts.length}
             </span>
           </button>
@@ -963,7 +963,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
           {canCreate && (
             <button
               onClick={handleOpenCreateModal}
-              className="w-full sm:w-auto px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+              className="w-full sm:w-auto px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-xs"
             >
               <Plus className="w-4 h-4" />
               <span>Nueva Venta</span>
@@ -1042,7 +1042,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
 
           {/* Informative Rule Note */}
           <div className="p-3.5 bg-slate-100 border border-slate-200 rounded-2xl text-xs text-slate-700 flex items-start gap-2.5">
-            <Receipt className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
+            <Receipt className="w-4 h-4 text-sky-600 shrink-0 mt-0.5" />
             <div>
               <strong>Regla Conceptual:</strong> Cada deuda representa una venta o adquisición de un programa educativo por un alumno.
               Desde esta misma tabla puedes registrar <strong>nuevas ventas</strong> con plazos y días de corte, pulsar <strong>Pagar</strong> para registrar abonos con comprobante,
@@ -1063,7 +1063,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                   setDebtSearchQuery(e.target.value);
                   setDebtsCurrentPage(1);
                 }}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
               />
             </div>
 
@@ -1210,7 +1210,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                                     </span>
                                   )}
                                   {dMethod === 'tarjeta' && (
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-sky-50 text-sky-700 border border-sky-200">
                                       <CreditCard className="w-3 h-3" />
                                       Tarjeta
                                     </span>
@@ -1307,7 +1307,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                               {!isPaid && debt.estado !== 'anulada' && canPay && (
                                 <button
                                   onClick={() => handleOpenPayModal(debt)}
-                                  className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold transition-colors inline-flex items-center gap-1 shadow-2xs"
+                                  className="px-2.5 py-1 bg-sky-500 hover:bg-sky-600 text-white rounded-lg text-xs font-semibold transition-colors inline-flex items-center gap-1 shadow-2xs"
                                   title="Registrar pago directo para esta deuda"
                                 >
                                   <CreditCard className="w-3 h-3" />
@@ -1397,7 +1397,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                   setPaymentSearchQuery(e.target.value);
                   setPaymentsCurrentPage(1);
                 }}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
               />
             </div>
 
@@ -1453,7 +1453,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
               {canPay && (
                 <button
                   onClick={handleOpenTopLevelPayModal}
-                  className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
+                  className="px-3.5 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Nuevo Pago</span>
@@ -1533,7 +1533,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                                 </span>
                               )}
                               {p.metodo === 'tarjeta' && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-sky-50 text-sky-700 border border-sky-200">
                                   <CreditCard className="w-3 h-3" />
                                   Tarjeta
                                 </span>
@@ -1572,7 +1572,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                             <span
                               className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
                                 p.estadoConciliacion.includes('conciliado')
-                                  ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                                  ? 'bg-sky-50 text-sky-700 border-sky-200'
                                   : 'bg-amber-50 text-amber-700 border-amber-200'
                               }`}
                             >
@@ -1635,9 +1635,9 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
           <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-slate-50 via-indigo-50/30 to-slate-50">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs">
+                <div className="w-9 h-9 rounded-xl bg-sky-500 text-white flex items-center justify-center shadow-xs">
                   <Receipt className="w-5 h-5" />
                 </div>
                 <div>
@@ -1681,7 +1681,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                         setQuickClientError('');
                         setIsQuickClientOpen(true);
                       }}
-                      className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[11px] font-semibold inline-flex items-center gap-1 transition-colors"
+                      className="px-2.5 py-1 bg-sky-500 hover:bg-sky-600 text-white rounded-lg text-[11px] font-semibold inline-flex items-center gap-1 transition-colors"
                     >
                       <Plus className="w-3 h-3" />
                       <span>Nuevo cliente</span>
@@ -1697,7 +1697,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                         setClientSearchText(e.target.value);
                         setSelectedClientId('');
                       }}
-                      className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-slate-800 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none"
+                      className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-slate-800 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
                     />
                   </div>
 
@@ -1717,14 +1717,14 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                               setClientSearchText(`${c.nombres} ${c.apellidos} (${c.cedula})`);
                             }}
                             className={`p-2.5 cursor-pointer flex items-center justify-between text-xs transition-colors ${
-                              isSelected ? 'bg-indigo-50/90 font-bold text-indigo-900' : 'hover:bg-slate-50 text-slate-700'
+                              isSelected ? 'bg-sky-50 font-bold text-slate-900' : 'hover:bg-slate-50 text-slate-700'
                             }`}
                           >
                             <div>
                               <span className="font-semibold block">{c.nombres} {c.apellidos}</span>
                               <span className="text-[10px] text-slate-400 font-mono">Cédula: {c.cedula}</span>
                             </div>
-                            {isSelected && <CheckCircle2 className="w-4 h-4 text-indigo-600" />}
+                            {isSelected && <CheckCircle2 className="w-4 h-4 text-sky-600" />}
                           </div>
                         );
                       })
@@ -1756,7 +1756,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                           setSelectedProductId('');
                         }
                       }}
-                      className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-slate-800 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none"
+                      className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-slate-800 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
                     />
                   </div>
 
@@ -1768,14 +1768,14 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                           key={p.id}
                           onClick={() => handleSelectProduct(p)}
                           className={`p-2.5 cursor-pointer flex items-center justify-between text-xs transition-colors ${
-                            isSelected ? 'bg-indigo-50/90 font-bold text-indigo-900' : 'hover:bg-slate-50 text-slate-700'
+                            isSelected ? 'bg-sky-50 font-bold text-slate-900' : 'hover:bg-slate-50 text-slate-700'
                           }`}
                         >
                           <div>
                             <span className="font-semibold block">{p.nombre}</span>
                             <span className="text-[10px] text-slate-400">Precio Lista: ${p.precioNominal.toFixed(2)}</span>
                           </div>
-                          {isSelected && <CheckCircle2 className="w-4 h-4 text-indigo-600" />}
+                          {isSelected && <CheckCircle2 className="w-4 h-4 text-sky-600" />}
                         </div>
                       );
                     })}
@@ -1783,9 +1783,9 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                     {productSearchText.trim() && productCandidates.length === 0 && (
                       <div
                         onClick={handleCreateNewProductOnTheFly}
-                        className="p-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-900 cursor-pointer flex items-center gap-2 transition-colors font-medium"
+                        className="p-2.5 bg-sky-50 hover:bg-sky-100 text-slate-900 cursor-pointer flex items-center gap-2 transition-colors font-medium"
                       >
-                        <Plus className="w-4 h-4 text-indigo-600" />
+                        <Plus className="w-4 h-4 text-sky-600" />
                         <span>
                           Crear y asociar nuevo producto: <strong>"{productSearchText.trim()}"</strong>
                         </span>
@@ -1809,7 +1809,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                   </span>
                 </div>
                 <div>
-                  <label className="block font-bold text-indigo-700 mb-1 text-xs">
+                  <label className="block font-bold text-slate-900 mb-1 text-xs">
                     Precio Acordado Final de Venta ($) *
                   </label>
                   <input
@@ -1820,7 +1820,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                     placeholder="790.00"
                     value={precioAcordado}
                     onChange={(e) => setPrecioAcordado(e.target.value)}
-                    className="w-full bg-white border border-indigo-300 rounded-lg px-3 py-2 text-slate-900 font-extrabold text-base font-mono focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 font-extrabold text-base font-mono focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
                   />
                   <span className="text-[10px] text-slate-500 mt-1 block">
                     Monto total acordado con descuento o beca aplicada.
@@ -1836,7 +1836,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                       type="checkbox"
                       checked={saleRequiresFinancing}
                       onChange={(e) => setSaleRequiresFinancing(e.target.checked)}
-                      className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300"
+                      className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 border-slate-300"
                     />
                     <div>
                       <span className="font-bold text-slate-900 text-xs block">
@@ -1849,7 +1849,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                   </div>
                   <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
                     saleRequiresFinancing
-                      ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                      ? 'bg-sky-50 text-sky-700 border-sky-200'
                       : 'bg-slate-200 text-slate-600 border-slate-300'
                   }`}>
                     {saleRequiresFinancing ? 'Financiamiento Activo' : 'Pago de Contado / Directo'}
@@ -1858,10 +1858,10 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
 
                 {/* Si está marcado el check, se habilita el apartado de plazos y cronograma */}
                 {saleRequiresFinancing && (
-                  <div className="p-4 border-t border-indigo-100 bg-gradient-to-r from-indigo-50/60 via-purple-50/30 to-indigo-50/60 space-y-4">
+                  <div className="p-4 border-t border-slate-200 bg-slate-50 space-y-4">
                     <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-indigo-700" />
-                      <h3 className="font-bold text-indigo-950 text-xs uppercase tracking-wide">
+                      <Calendar className="w-4 h-4 text-sky-700" />
+                      <h3 className="font-bold text-slate-900 text-xs uppercase tracking-wide">
                         Configuración de Cuotas, Meses a Diferir y Corte Mensual
                       </h3>
                     </div>
@@ -1888,7 +1888,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                                 onClick={() => setSalePlazoMeses(p.meses)}
                                 className={`py-2 px-1 rounded-xl text-center font-bold text-xs border transition-all ${
                                   isSelected
-                                    ? 'bg-indigo-600 text-white border-indigo-700 shadow-xs'
+                                    ? 'bg-sky-500 text-white border-sky-600 shadow-xs'
                                     : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
                                 }`}
                               >
@@ -1915,7 +1915,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                                 onClick={() => setSaleDiaCorte(dia)}
                                 className={`py-2 px-1 rounded-xl text-center font-bold text-xs border transition-all ${
                                   isSelected
-                                    ? 'bg-indigo-600 text-white border-indigo-700 shadow-xs'
+                                    ? 'bg-sky-500 text-white border-sky-600 shadow-xs'
                                     : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
                                 }`}
                               >
@@ -1936,10 +1936,10 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                       const baseDate = new Date();
 
                       return (
-                        <div className="p-3 bg-white/90 rounded-xl border border-indigo-100 space-y-2">
+                        <div className="p-3 bg-white/90 rounded-xl border border-slate-200 space-y-2">
                           <div className="flex items-center justify-between">
                             <span className="font-semibold text-slate-800 text-[11px] flex items-center gap-1.5">
-                              <Clock className="w-3.5 h-3.5 text-indigo-600" />
+                              <Clock className="w-3.5 h-3.5 text-sky-600" />
                               Cronograma Proyectado de Cuotas ({meses} cuota{meses > 1 ? 's' : ''} de ~${cuotaValor.toFixed(2)})
                             </span>
                             <span className="text-[10px] text-slate-500">
@@ -1957,7 +1957,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
 
                               return (
                                 <div key={num} className="p-2 bg-slate-50 rounded-lg border border-slate-200 text-center">
-                                  <span className="text-[10px] font-bold text-indigo-700 block">Cuota #{num}</span>
+                                  <span className="text-[10px] font-bold text-slate-900 block">Cuota #{num}</span>
                                   <span className="font-extrabold text-slate-900 font-mono text-xs block">
                                     ${installmentAmount > 0 ? installmentAmount.toFixed(2) : '0.00'}
                                   </span>
@@ -2017,11 +2017,11 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                     }}
                     className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 border transition-all ${
                       salePaymentMethod === 'tarjeta'
-                        ? 'bg-purple-50 text-purple-700 border-purple-400 ring-2 ring-purple-500/20 shadow-xs'
+                        ? 'bg-sky-50 text-sky-700 border-sky-400 ring-2 ring-sky-500/20 shadow-xs'
                         : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                     }`}
                   >
-                    <CreditCard className="w-4 h-4 text-purple-600" />
+                    <CreditCard className="w-4 h-4 text-sky-600" />
                     <span>Tarjeta</span>
                   </button>
                   <button
@@ -2099,7 +2099,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                           setSaleInitialPayAmount(suggested !== '0.00' ? suggested : '150');
                         }
                       }}
-                      className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300"
+                      className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 border-slate-300"
                     />
                     <span>¿Registrar abono o cuota inicial ahora mismo?</span>
                   </label>
@@ -2216,7 +2216,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                   placeholder="Ej: Beca aprobada por dirección académica, descuento por pronto pago, pago diferido a corte mensual..."
                   value={observaciones}
                   onChange={(e) => setObservaciones(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
                 />
               </div>
 
@@ -2235,7 +2235,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold transition-colors shadow-xs"
+                    className="px-5 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold transition-colors shadow-xs"
                   >
                     Guardar Nueva Venta
                   </button>
@@ -2281,7 +2281,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                     placeholder={placeholder}
                     value={quickClient[key]}
                     onChange={(e) => setQuickClient({ ...quickClient, [key]: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
                   />
                 </div>
               ))}
@@ -2295,7 +2295,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold"
+                  className="px-5 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold"
                 >
                   Registrar Cliente
                 </button>
@@ -2310,7 +2310,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
           <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-indigo-700 via-indigo-600 to-indigo-800 text-white">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-[#16202E] text-white">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-xs flex items-center justify-center border border-white/20 shadow-xs">
                   <CreditCard className="w-5 h-5 text-white" />
@@ -2319,7 +2319,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                   <h2 className="text-base font-bold text-white">
                     Registrar Pago de Deuda (Módulo de Cobranzas)
                   </h2>
-                  <p className="text-[11px] text-indigo-100">
+                  <p className="text-[11px] text-slate-300">
                     Registre el abono o cancelación total del alumno con conciliación bancaria inmediata
                   </p>
                 </div>
@@ -2368,7 +2368,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                               placeholder="Buscar alumno por nombre o cédula..."
                               value={payModalClientSearch}
                               onChange={(e) => setPayModalClientSearch(e.target.value)}
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:bg-white"
                             />
                           </div>
 
@@ -2388,7 +2388,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                                 }}
                                 className={`p-2 px-3 cursor-pointer flex justify-between text-xs transition-colors ${
                                   payModalClientId === c.id
-                                    ? 'bg-indigo-50 font-bold text-indigo-900'
+                                    ? 'bg-sky-50 font-bold text-slate-900'
                                     : 'hover:bg-slate-50 text-slate-700'
                                 }`}
                               >
@@ -2445,9 +2445,9 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                                 <h3 className="font-bold text-slate-900 text-sm">
                                   {cl ? `${cl.nombres} ${cl.apellidos}` : debtToPay.clienteId}
                                 </h3>
-                                <span className="font-mono text-indigo-700 text-xs">C.I: {cl?.cedula}</span>
+                                <span className="font-mono text-sky-700 text-xs">C.I: {cl?.cedula}</span>
                               </div>
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200 uppercase">
                                 ID: {debtToPay.id}
                               </span>
                             </div>
@@ -2487,16 +2487,16 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                     )}
 
                     {/* Asistente OCR Inteligente con Carga de Váucher */}
-                    <div className="p-4 bg-white border border-indigo-200 rounded-xl shadow-2xs space-y-2.5">
+                    <div className="p-4 bg-white border border-sky-200 rounded-xl shadow-2xs space-y-2.5">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
-                          <Sparkles className="w-4 h-4 text-indigo-600 shrink-0" />
-                          <span className="text-xs text-indigo-950 font-bold">
+                          <Sparkles className="w-4 h-4 text-sky-600 shrink-0" />
+                          <span className="text-xs text-slate-900 font-bold">
                             {isPayOcrScanning ? 'Escaneando comprobante...' : 'Asistente OCR de Comprobantes'}
                           </span>
                         </div>
                         <label
-                          className={`cursor-pointer px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold transition-colors shrink-0 shadow-2xs inline-flex items-center gap-1.5 ${
+                          className={`cursor-pointer px-3 py-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded-lg text-xs font-semibold transition-colors shrink-0 shadow-2xs inline-flex items-center gap-1.5 ${
                             isPayOcrScanning ? 'opacity-60 pointer-events-none' : ''
                           }`}
                         >
@@ -2518,9 +2518,9 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
 
                       {/* Estado del archivo cargado */}
                       {payUploadedFileName && (
-                        <div className="flex items-center justify-between p-2.5 bg-indigo-50/60 border border-indigo-100 rounded-lg text-xs text-slate-700">
+                        <div className="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700">
                           <div className="flex items-center gap-2 min-w-0">
-                            <FileText className="w-4 h-4 text-indigo-600 shrink-0" />
+                            <FileText className="w-4 h-4 text-sky-600 shrink-0" />
                             <span className="truncate font-medium">{payUploadedFileName}</span>
                             <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 font-semibold">Cargado</span>
                           </div>
@@ -2539,8 +2539,8 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                       )}
 
                       {isPayOcrScanning && (
-                        <div className="p-2.5 bg-indigo-50 border border-indigo-300 rounded-lg text-xs text-indigo-900 flex items-center gap-2 animate-pulse font-medium">
-                          <RefreshCw className="w-3.5 h-3.5 animate-spin text-indigo-600" />
+                        <div className="p-2.5 bg-sky-50 border border-slate-300 rounded-lg text-xs text-slate-900 flex items-center gap-2 animate-pulse font-medium">
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin text-sky-600" />
                           <span>Leyendo y reconociendo datos del comprobante...</span>
                         </div>
                       )}
@@ -2560,14 +2560,14 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                   {/* COLUMNA DERECHA: Datos del Pago, Método y Parámetros Bancarios */}
                   <div className="p-4 bg-white border border-slate-200 rounded-xl shadow-2xs space-y-4">
                     <div className="font-bold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-2.5">
-                      <Receipt className="w-4 h-4 text-indigo-600" />
+                      <Receipt className="w-4 h-4 text-sky-600" />
                       <span>Detalles Económicos y Financieros</span>
                     </div>
 
                     {/* Fila 1: Monto y Fecha */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="block font-bold text-indigo-900 mb-1 text-xs">
+                        <label className="block font-bold text-slate-900 mb-1 text-xs">
                           Monto a Pagar ($) *
                         </label>
                         <input
@@ -2577,7 +2577,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                           required
                           value={payAmount}
                           onChange={(e) => setPayAmount(e.target.value)}
-                          className="w-full bg-slate-50 border border-indigo-300 rounded-xl px-3 py-2 text-slate-900 font-extrabold text-base font-mono focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white focus:outline-none shadow-2xs"
+                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-extrabold text-base font-mono focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:bg-white focus:outline-none shadow-2xs"
                         />
                       </div>
                       <div>
@@ -2628,11 +2628,11 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                           onClick={() => handlePayMethodChange('tarjeta')}
                           className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 border transition-all ${
                             payMethod === 'tarjeta'
-                              ? 'bg-purple-50 text-purple-700 border-purple-400 ring-2 ring-purple-500/20 shadow-xs'
+                              ? 'bg-sky-50 text-sky-700 border-sky-400 ring-2 ring-sky-500/20 shadow-xs'
                               : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-white'
                           }`}
                         >
-                          <CreditCard className="w-4 h-4 text-purple-600" />
+                          <CreditCard className="w-4 h-4 text-sky-600" />
                           <span>Tarjeta</span>
                         </button>
                         <button
@@ -2716,7 +2716,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                           }
                           value={payTxNumber}
                           onChange={(e) => setPayTxNumber(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-mono text-slate-800 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white focus:outline-none"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-mono text-slate-800 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:bg-white focus:outline-none"
                         />
                       </div>
                     </div>
@@ -2731,7 +2731,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                         placeholder="Ej: Matrícula cuota 1 / Depósito referencia..."
                         value={payRef}
                         onChange={(e) => setPayRef(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white focus:outline-none"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:bg-white focus:outline-none"
                       />
                     </div>
                   </div>
@@ -2747,7 +2747,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                     placeholder="Ej: Pago realizado por ventanilla, comprobante validado y cotejado con estado de cuenta..."
                     value={payNotes}
                     onChange={(e) => setPayNotes(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white focus:outline-none"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 text-xs focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:bg-white focus:outline-none"
                   />
                 </div>
               </div>
@@ -2767,7 +2767,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold transition-colors flex items-center gap-2 shadow-xs"
+                    className="px-5 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold transition-colors flex items-center gap-2 shadow-xs"
                   >
                     <CreditCard className="w-4 h-4" />
                     <span>Confirmar y Registrar Pago</span>
@@ -2785,7 +2785,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
           <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
               <div className="flex items-center gap-2">
-                <History className="w-5 h-5 text-indigo-600" />
+                <History className="w-5 h-5 text-sky-600" />
                 <div>
                   <h2 className="text-sm font-bold text-slate-900">
                     Historial de Pagos y Trazabilidad de la Deuda
@@ -2847,14 +2847,14 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
 
                     {/* Términos de Pago & Retrasos */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px]">
-                      <div className="p-2.5 bg-indigo-50/60 border border-indigo-100 rounded-xl">
-                        <span className="text-indigo-900 font-bold block">Plazo Diferido</span>
+                      <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
+                        <span className="text-slate-900 font-bold block">Plazo Diferido</span>
                         <span className="text-slate-700 font-medium">
                           {debtForHistory.plazoMeses ? `${debtForHistory.plazoMeses} Meses diferidos` : 'No especificado (Directo)'}
                         </span>
                       </div>
-                      <div className="p-2.5 bg-indigo-50/60 border border-indigo-100 rounded-xl">
-                        <span className="text-indigo-900 font-bold block">Día de Corte Mensual</span>
+                      <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
+                        <span className="text-slate-900 font-bold block">Día de Corte Mensual</span>
                         <span className="text-slate-700 font-medium">
                           {debtForHistory.diaCorte ? `Día ${debtForHistory.diaCorte} de cada mes` : 'Fecha de vencimiento estándar'}
                         </span>
@@ -2878,7 +2878,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                             </>
                           ) : (
                             <>
-                              <Clock className="w-3.5 h-3.5 text-indigo-600" />
+                              <Clock className="w-3.5 h-3.5 text-sky-600" />
                               Al corriente / Dentro del plazo
                             </>
                           )}
@@ -2958,7 +2958,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                               setIsHistoryModalOpen(false);
                               handleOpenPayModal(debtForHistory);
                             }}
-                            className="mt-3 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 shadow-2xs"
+                            className="mt-3 px-3.5 py-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 shadow-2xs"
                           >
                             <CreditCard className="w-3.5 h-3.5" />
                             <span>Registrar Primer Pago</span>
@@ -3006,7 +3006,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                                       </span>
                                     )}
                                     {p.metodo === 'tarjeta' && (
-                                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-sky-50 text-sky-700 border border-sky-200">
                                         <CreditCard className="w-3 h-3" />
                                         Tarjeta
                                       </span>
@@ -3041,7 +3041,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                                   <span
                                     className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
                                       p.estadoConciliacion.includes('conciliado')
-                                        ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                                        ? 'bg-sky-50 text-sky-700 border-sky-200'
                                         : 'bg-amber-50 text-amber-700 border-amber-200'
                                     }`}
                                   >
@@ -3095,7 +3095,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                             setIsHistoryModalOpen(false);
                             handleOpenPayModal(debtForHistory);
                           }}
-                          className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs"
+                          className="px-3.5 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs"
                         >
                           <CreditCard className="w-3.5 h-3.5" />
                           <span>Registrar Nuevo Pago</span>
@@ -3157,7 +3157,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                     <div className="flex flex-col sm:flex-row justify-between items-start gap-4 border-b border-slate-200 pb-5">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <Receipt className="w-6 h-6 text-indigo-600" />
+                          <Receipt className="w-6 h-6 text-sky-600" />
                           <h1 className="text-base font-extrabold text-slate-900 tracking-tight">
                             INSTITUTO DE CAPACITACIÓN & COBRANZAS
                           </h1>
@@ -3174,7 +3174,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                         <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
                           Documento Contable
                         </span>
-                        <span className="text-sm font-extrabold font-mono text-indigo-700 block">
+                        <span className="text-sm font-extrabold font-mono text-slate-900 block">
                           {invoiceNumber}
                         </span>
                         <span className="text-[11px] text-slate-500 block">
@@ -3234,7 +3234,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                             <td className="p-2.5 text-right tabular-nums text-slate-400 line-through">
                               ${debtForInvoice.precioNominalAplicado.toFixed(2)}
                             </td>
-                            <td className="p-2.5 text-right tabular-nums text-indigo-600 font-semibold">
+                            <td className="p-2.5 text-right tabular-nums text-sky-600 font-semibold">
                               -${(debtForInvoice.precioNominalAplicado - debtForInvoice.precioAcordado).toFixed(2)}
                             </td>
                             <td className="p-2.5 text-right tabular-nums font-bold text-slate-900">
@@ -3408,7 +3408,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
           <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
             <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
               <div className="flex items-center gap-2">
-                <FileSpreadsheet className="w-5 h-5 text-indigo-600" />
+                <FileSpreadsheet className="w-5 h-5 text-sky-600" />
                 <h2 className="text-sm font-bold text-slate-900">
                   Flujo A: Carga Inicial de Deudas desde Excel de Alumnos
                 </h2>
@@ -3440,7 +3440,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
 
               {!importSampleLoaded ? (
                 <div className="text-center py-8 space-y-3 border-2 border-dashed border-slate-300 rounded-2xl p-6 bg-slate-50">
-                  <div className="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-700 mx-auto flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-xl bg-sky-50 text-sky-700 mx-auto flex items-center justify-center">
                     <FileSpreadsheet className="w-6 h-6" />
                   </div>
                   <div>
@@ -3453,7 +3453,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                   </div>
                   <button
                     onClick={handleLoadImportSample}
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold shadow-xs transition-colors inline-flex items-center gap-2"
+                    className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold shadow-xs transition-colors inline-flex items-center gap-2"
                   >
                     <Upload className="w-4 h-4" />
                     Cargar Archivo de Muestra: Alumnos_Móviles_1.xlsx
@@ -3491,7 +3491,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                             <td className="p-2.5 font-semibold">
                               {item.nombres} {item.apellidos}
                               {item.isExistingClient && (
-                                <span className="text-[9px] text-indigo-700 bg-indigo-50 px-1 py-0.2 rounded ml-1 font-normal">
+                                <span className="text-[9px] text-sky-700 bg-sky-50 px-1 py-0.2 rounded ml-1 font-normal">
                                   Existente
                                 </span>
                               )}
@@ -3547,7 +3547,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
               {importSampleLoaded && (
                 <button
                   onClick={handleConfirmBulkImport}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold text-xs transition-colors"
+                  className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold text-xs transition-colors"
                 >
                   Confirmar e Importar ({importPreviewList.length} Deudas)
                 </button>

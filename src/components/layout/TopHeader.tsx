@@ -163,15 +163,26 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-30 px-6 py-4 transition-all">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        {/* Breadcrumb and View Title */}
-        <div>
-          <div className="flex items-center gap-2 text-xs text-slate-500 mb-1 font-medium">
-            <span>Cobranzas & Trazabilidad</span>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-            <span className="top-header-breadcrumb text-indigo-600 capitalize">{currentModule}</span>
+        {/* Breadcrumb and View Title with Clear Minds Logo (Opción 2) */}
+        <div className="flex items-center gap-4">
+          <div className="hidden sm:flex items-center shrink-0 pr-4 border-r border-slate-200 dark:border-slate-700">
+            <div className="bg-white rounded-xl px-2.5 py-1 shadow-2xs border border-slate-200/60 dark:border-white/10 flex items-center justify-center">
+              <img
+                src="/assets/clear-minds-horizontal-logo.png"
+                alt="Clear Minds Building Ideas"
+                className="h-8 w-auto object-contain"
+              />
+            </div>
           </div>
-          <h1 className="top-header-title text-xl font-bold text-slate-900 tracking-tight">{info.title}</h1>
-          <p className="text-xs text-slate-500 mt-0.5">{info.subtitle}</p>
+          <div>
+            <div className="flex items-center gap-2 text-xs text-slate-500 mb-0.5 font-medium">
+              <span>Cobranzas & Trazabilidad</span>
+              <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+              <span className="top-header-breadcrumb text-slate-900 font-bold capitalize">{currentModule}</span>
+            </div>
+            <h1 className="top-header-title text-xl font-bold text-slate-900 tracking-tight">{info.title}</h1>
+            <p className="text-xs text-slate-500 mt-0.5">{info.subtitle}</p>
+          </div>
         </div>
 
         {/* Right zone: Overdue Notification Bell + Simulation Notice + User Badge */}
@@ -276,7 +287,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                         setIsAlertsOpen(false);
                         if (onNavigateToModule) onNavigateToModule('deudas');
                       }}
-                      className="text-xs font-bold text-indigo-600 hover:text-indigo-800 inline-flex items-center gap-1 transition-colors"
+                      className="text-xs font-bold text-slate-900 hover:text-sky-600 inline-flex items-center gap-1 transition-colors"
                     >
                       <span>Ir a Cuentas por Cobrar</span>
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -292,15 +303,15 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             <span>Modo Prototipo Interactivo</span>
           </div>
 
-          <div className="flex items-center gap-2.5 px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-xl">
-            <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs font-bold uppercase">
+          <div className="flex items-center gap-2.5 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl">
+            <div className="w-7 h-7 rounded-lg bg-sky-500 text-white flex items-center justify-center text-xs font-bold uppercase shadow-xs">
               {currentUser.username.slice(0, 2)}
             </div>
             <div className="text-left text-xs">
-              <span className="block font-semibold text-indigo-950 leading-tight">
+              <span className="block font-bold text-slate-900 leading-tight">
                 {currentUser.nombre}
               </span>
-              <span className="text-[11px] text-indigo-600 font-medium">
+              <span className="text-[11px] text-slate-700 font-medium">
                 {currentUser.cargo}
               </span>
             </div>

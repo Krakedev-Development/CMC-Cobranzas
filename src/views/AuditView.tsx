@@ -261,9 +261,9 @@ export const AuditView: React.FC = () => {
                         log.accion === 'anular' || log.accion === 'deshacer_conciliacion'
                           ? 'bg-rose-50 text-rose-700 border-rose-200'
                           : log.accion === 'conciliar'
-                          ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                          ? 'bg-sky-50 text-slate-900 border-sky-200'
                           : log.accion === 'cambiar_permisos'
-                          ? 'bg-purple-50 text-purple-700 border-purple-200'
+                          ? 'bg-slate-100 text-slate-900 border-slate-200'
                           : 'bg-slate-100 text-slate-700 border-slate-200'
                       }`}
                     >
@@ -287,7 +287,7 @@ export const AuditView: React.FC = () => {
                         e.stopPropagation();
                         setSelectedLog(log);
                       }}
-                      className="px-2 py-1 bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 rounded text-xs font-semibold inline-flex items-center gap-1 transition-colors"
+                      className="px-2 py-1 bg-slate-100 hover:bg-sky-50 text-slate-700 hover:text-slate-900 rounded text-xs font-semibold inline-flex items-center gap-1 transition-colors"
                     >
                       <Eye className="w-3.5 h-3.5" />
                       <span>Detalle</span>
@@ -319,7 +319,7 @@ export const AuditView: React.FC = () => {
             {/* Header */}
             <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
               <div className="flex items-center gap-2">
-                <History className="w-5 h-5 text-indigo-600" />
+                <History className="w-5 h-5 text-sky-600" />
                 <div>
                   <h2 className="text-sm font-bold text-slate-900">
                     Detalle del Evento de Auditoría: {selectedLog.id}
@@ -347,7 +347,7 @@ export const AuditView: React.FC = () => {
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Acción</span>
-                  <span className="font-bold text-indigo-700 capitalize">{selectedLog.accion}</span>
+                  <span className="font-bold text-slate-900 capitalize">{selectedLog.accion}</span>
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Entidad / ID</span>
@@ -370,10 +370,10 @@ export const AuditView: React.FC = () => {
               )}
 
               {selectedLog.aprobadorId && (
-                <div className="p-2.5 bg-indigo-50 border border-indigo-200 rounded-xl text-indigo-900 flex items-center justify-between text-[11px]">
+                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 flex items-center justify-between text-[11px]">
                   <span>Aprobado por: <strong>{selectedLog.aprobadorId}</strong></span>
                   {selectedLog.reglaEjecutada && (
-                    <span className="text-indigo-700 font-mono">Regla: {selectedLog.reglaEjecutada}</span>
+                    <span className="text-slate-700 font-mono">Regla: {selectedLog.reglaEjecutada}</span>
                   )}
                 </div>
               )}

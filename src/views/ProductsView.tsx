@@ -82,7 +82,7 @@ export const ProductsView: React.FC = () => {
         {canCreate && (
           <button
             onClick={handleOpenCreate}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs self-start sm:self-auto"
+            className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs self-start sm:self-auto"
           >
             <Plus className="w-4 h-4" />
             <span>Nuevo Producto</span>
@@ -103,7 +103,7 @@ export const ProductsView: React.FC = () => {
             >
               <div>
                 <div className="flex items-start justify-between gap-2 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-700 flex items-center justify-center">
                     <Package className="w-5 h-5" />
                   </div>
                   <span
@@ -135,7 +135,7 @@ export const ProductsView: React.FC = () => {
                   </div>
                   <div className="flex justify-between items-center text-xs text-slate-500">
                     <span>Total cartera acordada:</span>
-                    <span className="font-semibold text-indigo-600 tabular-nums">
+                    <span className="font-bold text-slate-900 tabular-nums">
                       ${totalAcordado.toFixed(2)}
                     </span>
                   </div>
@@ -200,7 +200,7 @@ export const ProductsView: React.FC = () => {
                   placeholder="Ej: Móviles Nivel 1"
                   value={formData.nombre}
                   onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
                 />
               </div>
 
@@ -214,7 +214,7 @@ export const ProductsView: React.FC = () => {
                   placeholder="890.00"
                   value={formData.precioNominal}
                   onChange={(e) => setFormData({ ...formData, precioNominal: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-mono focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-mono focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
                 />
                 <span className="text-[10px] text-slate-400 mt-1 block">
                   Regla de negocio: Precio base orientativo. El precio acordado final se define por cada alumno en Deudas.
@@ -228,7 +228,7 @@ export const ProductsView: React.FC = () => {
                   placeholder="Detalles sobre el contenido del curso, horas y módulos..."
                   value={formData.descripcion}
                   onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
                 />
               </div>
 
@@ -242,7 +242,7 @@ export const ProductsView: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold transition-colors"
+                  className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold transition-colors shadow-xs"
                 >
                   {editingProduct ? 'Guardar Cambios' : 'Crear Producto'}
                 </button>

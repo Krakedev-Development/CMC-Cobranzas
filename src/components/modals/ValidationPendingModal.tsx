@@ -60,7 +60,7 @@ export const ValidationPendingModal: React.FC<ValidationPendingModalProps> = ({ 
         {/* Header */}
         <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
               <HelpCircle className="w-5 h-5" />
             </div>
             <div>
@@ -101,7 +101,7 @@ export const ValidationPendingModal: React.FC<ValidationPendingModalProps> = ({ 
                   <h3 className="text-sm font-semibold text-slate-900">
                     {p.num}. {p.title}
                   </h3>
-                  <span className="text-[11px] font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md shrink-0">
+                  <span className="text-[11px] font-bold text-slate-900 bg-sky-50 border border-sky-200 px-2 py-0.5 rounded-md shrink-0">
                     {p.status}
                   </span>
                 </div>

@@ -179,10 +179,10 @@ export const UsersPermissionsView: React.FC = () => {
   const getRoleBadgeStyle = (role?: string) => {
     const normalized = (role || '').toLowerCase();
     if (normalized.includes('admin')) {
-      return 'bg-purple-50 text-purple-700 border-purple-200';
+      return 'bg-slate-900 text-white border-slate-900';
     }
     if (normalized.includes('cobranza')) {
-      return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+      return 'bg-sky-50 text-slate-900 border-sky-200';
     }
     if (normalized.includes('contab')) {
       return 'bg-emerald-50 text-emerald-700 border-emerald-200';
@@ -329,7 +329,7 @@ export const UsersPermissionsView: React.FC = () => {
       {/* Informative Header Banner with Create User Action */}
       <div className="p-4 bg-white border border-slate-200 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
         <div className="flex items-start gap-3 text-xs text-slate-700">
-          <div className="p-2 bg-indigo-50 text-indigo-700 rounded-xl shrink-0 mt-0.5">
+          <div className="p-2 bg-sky-50 text-sky-700 rounded-xl shrink-0 mt-0.5">
             <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
@@ -354,7 +354,7 @@ export const UsersPermissionsView: React.FC = () => {
               setNewUserError('');
               setIsNewUserModalOpen(true);
             }}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold inline-flex items-center gap-2 shadow-xs transition-colors shrink-0 self-start md:self-auto"
+            className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-bold inline-flex items-center gap-2 shadow-xs transition-colors shrink-0 self-start md:self-auto"
           >
             <UserPlus className="w-4 h-4" />
             <span>+ Crear Nuevo Usuario</span>
@@ -374,7 +374,7 @@ export const UsersPermissionsView: React.FC = () => {
               setUserSearchText(e.target.value);
               setUserCurrentPage(1);
             }}
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
           />
         </div>
 
@@ -404,7 +404,7 @@ export const UsersPermissionsView: React.FC = () => {
       <div className="bg-white rounded-2xl border border-slate-200 shadow-xs">
         <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-50/50 rounded-t-2xl">
           <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-indigo-600" />
+            <Users className="w-4 h-4 text-sky-600" />
             <span className="text-xs text-slate-700 font-bold">
               Directorio de Usuarios ({filteredUsers.length} de {users.length})
             </span>
@@ -445,13 +445,13 @@ export const UsersPermissionsView: React.FC = () => {
                       onClick={() => handleSelectUser(u)}
                       className={`cursor-pointer transition-colors ${
                         isSelectedToEdit
-                          ? 'bg-indigo-50/70 border-l-4 border-l-indigo-600'
+                          ? 'bg-sky-50/70 border-l-4 border-l-sky-500'
                           : 'hover:bg-slate-50/80 border-l-4 border-l-transparent'
                       }`}
                     >
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-xs shrink-0 border border-indigo-200">
+                          <div className="w-8 h-8 rounded-full bg-sky-50 text-slate-900 font-bold flex items-center justify-center text-xs shrink-0 border border-sky-200">
                             {u.nombre.charAt(0).toUpperCase()}
                           </div>
                           <div>
@@ -489,8 +489,8 @@ export const UsersPermissionsView: React.FC = () => {
 
                       <td className="py-3 px-4 text-center">
                         {isCurrentActive ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-full shadow-2xs">
-                            <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse" />
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-900 bg-sky-50 border border-sky-200 px-2.5 py-1 rounded-full shadow-2xs">
+                            <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse" />
                             Sesión Activa
                           </span>
                         ) : (
@@ -505,7 +505,7 @@ export const UsersPermissionsView: React.FC = () => {
                             onClick={() => handleSelectUser(u)}
                             className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1 border ${
                               isSelectedToEdit
-                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
+                                ? 'bg-sky-500 text-white border-sky-500 shadow-2xs'
                                 : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
                             }`}
                             title="Editar matriz de permisos de este usuario"
@@ -557,7 +557,7 @@ export const UsersPermissionsView: React.FC = () => {
         <div className="p-5 border-b border-slate-100 bg-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-t-2xl">
           <div>
             <div className="flex items-center gap-2">
-              <KeyRound className="w-4 h-4 text-indigo-600" />
+              <KeyRound className="w-4 h-4 text-sky-600" />
               <h2 className="text-sm font-bold text-slate-900">
                 Matriz de Permisos para: {selectedUserForPerms.nombre} (@{selectedUserForPerms.username})
               </h2>
@@ -663,7 +663,7 @@ export const UsersPermissionsView: React.FC = () => {
                               disabled={!canManageUsers}
                               className={`w-7 h-7 rounded-lg inline-flex items-center justify-center transition-all ${
                                 isAllowed
-                                  ? 'bg-indigo-600 text-white shadow-xs'
+                                  ? 'bg-sky-500 text-white shadow-xs'
                                   : 'bg-slate-100 text-slate-300 hover:bg-slate-200 hover:text-slate-500'
                               } ${!canManageUsers ? 'cursor-not-allowed opacity-50' : ''}`}
                               title={`${isAllowed ? 'Revocar' : 'Conceder'} permiso ${act.label} en ${moduleKey}`}
@@ -689,7 +689,7 @@ export const UsersPermissionsView: React.FC = () => {
               placeholder="Motivo del cambio de permisos para auditoría (opcional)..."
               value={justificationNote}
               onChange={(e) => setJustificationNote(e.target.value)}
-              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
             />
           </div>
 
@@ -704,7 +704,7 @@ export const UsersPermissionsView: React.FC = () => {
             <button
               onClick={handleSavePermissions}
               disabled={!canManageUsers}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl font-bold flex items-center gap-2 shadow-xs transition-colors"
+              className="px-4 py-2 bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white rounded-xl font-bold flex items-center gap-2 shadow-xs transition-colors"
             >
               <Save className="w-4 h-4" />
               <span>Guardar Permisos y Auditar</span>
@@ -717,7 +717,7 @@ export const UsersPermissionsView: React.FC = () => {
       {isNewUserModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/50 backdrop-blur-xs">
           <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-indigo-600 text-white">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-[#0B1B2B] text-white">
               <div className="flex items-center gap-2">
                 <UserPlus className="w-5 h-5" />
                 <h2 className="text-sm font-bold">

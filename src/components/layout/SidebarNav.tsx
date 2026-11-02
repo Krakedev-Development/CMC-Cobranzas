@@ -81,7 +81,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
       label: 'Conciliación Bancaria',
       icon: Scale,
       badge: unassignedMovementsCount > 0 ? unassignedMovementsCount : undefined,
-      badgeColor: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+      badgeColor: 'bg-sky-100 text-sky-900 border-sky-200',
     },
     { id: 'facturas', label: 'Facturas y Documentos', icon: FileText },
     { id: 'reportes', label: 'Reportes y Exportación', icon: BarChart3 },
@@ -128,7 +128,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
       <div className="md:hidden fixed top-3 left-3 z-50">
         <button
           onClick={() => setIsMobileOpen(!isMobileOpen)}
-          className="p-2.5 bg-slate-900 text-white rounded-xl shadow-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="p-2.5 bg-[#2C3E50] text-white rounded-xl shadow-lg border border-[#1e2b37] focus:outline-none focus:ring-2 focus:ring-sky-500"
           aria-label={isMobileOpen ? 'Cerrar menú lateral' : 'Abrir menú lateral izquierdo'}
         >
           {isMobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -147,7 +147,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
       <aside
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        className={`sidebar-aside fixed top-0 left-0 h-screen bg-white border-r border-slate-200 z-40 flex flex-col justify-between shadow-xl transition-all duration-300 ease-in-out ${
+        className={`sidebar-aside fixed top-0 left-0 h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-40 flex flex-col justify-between shadow-xl transition-all duration-300 ease-in-out ${
           // Mobile responsive drawer
           isMobileOpen
             ? 'translate-x-0 w-80'
@@ -158,37 +158,47 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
         }`}
         aria-label="Navegación principal lateral izquierda"
       >
-        {/* Header of the Left Navbar */}
-        <div className="sidebar-header p-3.5 border-b border-slate-100 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-3 overflow-hidden">
-            <div className="sidebar-logo w-10 h-10 shrink-0 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-sm">
-              C
-            </div>
-            {effectiveExpanded && (
-              <div className="overflow-hidden whitespace-nowrap">
-                <span className="sidebar-title block font-bold text-sm text-slate-900 leading-tight">
-                  Cobranzas & Trazabilidad
-                </span>
-                <span className="sidebar-subtitle text-[11px] text-slate-500 font-medium">
-                  Prototipo Operativo
-                </span>
+        {/* Header of the Left Navbar (Opción 1: Logo Oficial en la parte superior) */}
+        <div className="sidebar-header p-3 border-b border-slate-700/40 flex items-center justify-between gap-2">
+          {effectiveExpanded ? (
+            <div className="flex items-center justify-between w-full min-w-0 gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="bg-white rounded-xl px-2 py-1 shadow-xs border border-white/20 shrink-0 flex items-center justify-center">
+                  <img
+                    src="/assets/clear-minds-horizontal-logo.png"
+                    alt="Clear Minds Building Ideas"
+                    className="h-8 w-auto object-contain"
+                  />
+                </div>
+                <div className="overflow-hidden whitespace-nowrap">
+                  <span className="text-[10px] font-bold text-sky-400 tracking-wider uppercase block">
+                    COBRANZAS
+                  </span>
+                </div>
               </div>
-            )}
-          </div>
 
-          {/* Desktop Pin / Unpin Button */}
-          {effectiveExpanded && (
-            <button
-              onClick={() => setIsNavPinned(!isNavPinned)}
-              title={isNavPinned ? 'Desfijar barra lateral (se contraerá automáticamente)' : 'Fijar barra lateral abierta'}
-              className={`hidden md:flex p-1.5 rounded-lg border transition-colors ${
-                isNavPinned
-                  ? 'sidebar-pin-btn-active bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100'
-                  : 'sidebar-pin-btn-inactive bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-900'
-              }`}
-            >
-              {isNavPinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
-            </button>
+              {/* Desktop Pin / Unpin Button */}
+              <button
+                onClick={() => setIsNavPinned(!isNavPinned)}
+                title={isNavPinned ? 'Desfijar barra lateral (se contraerá automáticamente)' : 'Fijar barra lateral abierta'}
+                className={`hidden md:flex p-1.5 rounded-lg border transition-colors shrink-0 ${
+                  isNavPinned
+                    ? 'sidebar-pin-btn-active bg-sky-500 border-sky-500 text-white hover:bg-sky-600'
+                    : 'sidebar-pin-btn-inactive bg-slate-800/40 border-slate-700 text-slate-400 hover:bg-slate-700/60 hover:text-white'
+                }`}
+              >
+                {isNavPinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
+              </button>
+            </div>
+          ) : (
+            <div className="flex justify-center w-full">
+              <img
+                src="/assets/clear-minds-logo.jpg"
+                alt="Clear Minds"
+                className="sidebar-logo w-9 h-9 shrink-0 rounded-xl object-contain bg-[#2C3E50] p-0.5 border border-slate-600/50 shadow-sm"
+                title="Clear Minds — CMC Cobranzas"
+              />
+            </div>
           )}
         </div>
 
@@ -198,13 +208,13 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
             <div>
               <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium mb-1">
                 <span className="sidebar-user-label">Usuario activo (Demo):</span>
-                <span className="sidebar-user-role text-indigo-600 font-semibold">{currentUser.cargo}</span>
+                <span className="sidebar-user-role text-sky-600 font-semibold">{currentUser.cargo}</span>
               </div>
               <div className="relative">
                 <select
                   value={currentUser.id}
                   onChange={(e) => setCurrentUserId(e.target.value)}
-                  className="sidebar-user-select w-full text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer"
+                  className="sidebar-user-select w-full text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 font-medium focus:ring-2 focus:ring-sky-500 focus:outline-none cursor-pointer"
                   title="Cambiar usuario para probar permisos"
                 >
                   {users.map((u) => (
@@ -240,7 +250,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
                   disabled={!hasView}
                   className={`sidebar-nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left ${
                     isActive
-                      ? 'sidebar-nav-active bg-indigo-600 text-white shadow-sm'
+                      ? 'sidebar-nav-active bg-sky-500 text-white shadow-sm'
                       : hasView
                       ? 'sidebar-nav-link text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                       : 'sidebar-nav-disabled text-slate-300 hover:text-slate-400 cursor-not-allowed opacity-60'
@@ -319,7 +329,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
             }`}
             title="Puntos pendientes de validación con Chris"
           >
-            <HelpCircle className="sidebar-footer-icon-chris w-4 h-4 text-indigo-600 shrink-0" />
+            <HelpCircle className="sidebar-footer-icon-chris w-4 h-4 text-sky-500 shrink-0" />
             {effectiveExpanded && <span className="truncate">Pendientes con Chris (Sec. 13)</span>}
           </button>
 

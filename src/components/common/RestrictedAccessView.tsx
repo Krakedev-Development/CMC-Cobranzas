@@ -17,13 +17,13 @@ export const RestrictedAccessView: React.FC<RestrictedAccessViewProps> = ({ modu
       <h2 className="text-xl font-bold text-slate-900 tracking-tight">Acceso Restringido</h2>
       <p className="text-xs text-slate-600 mt-2 leading-relaxed">
         El perfil actual <strong>{currentUser.nombre} ({currentUser.username})</strong> con rol{' '}
-        <span className="text-indigo-600 font-semibold">{currentUser.cargo}</span> no cuenta con
+        <span className="text-slate-900 font-bold">{currentUser.cargo}</span> no cuenta con
         permiso de lectura para el módulo de <strong>{moduleName}</strong>.
       </p>
 
       <div className="mt-6 p-4 bg-slate-100 rounded-xl border border-slate-200 text-xs text-slate-700 w-full text-left">
         <div className="font-semibold text-slate-900 mb-1 flex items-center gap-1.5">
-          <UserCheck className="w-4 h-4 text-indigo-600" />
+          <UserCheck className="w-4 h-4 text-sky-600" />
           Probar con otro usuario de demostración:
         </div>
         <p className="text-[11px] text-slate-500 mb-3">
@@ -31,7 +31,7 @@ export const RestrictedAccessView: React.FC<RestrictedAccessViewProps> = ({ modu
         </p>
         <button
           onClick={() => setCurrentUserId('admin')}
-          className="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
+          className="w-full py-2 px-3 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-xs"
         >
           <span>Cambiar a Administrador (admin)</span>
           <ArrowRight className="w-4 h-4" />

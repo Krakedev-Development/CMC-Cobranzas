@@ -246,7 +246,7 @@ export const ReportsView: React.FC = () => {
           onClick={() => setActiveReport('cartera')}
           className={`px-3.5 py-2 rounded-xl transition-all ${
             activeReport === 'cartera'
-              ? 'bg-white text-indigo-700 font-bold shadow-xs'
+              ? 'bg-white text-slate-900 font-bold shadow-xs'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -256,7 +256,7 @@ export const ReportsView: React.FC = () => {
           onClick={() => setActiveReport('pagos')}
           className={`px-3.5 py-2 rounded-xl transition-all ${
             activeReport === 'pagos'
-              ? 'bg-white text-indigo-700 font-bold shadow-xs'
+              ? 'bg-white text-slate-900 font-bold shadow-xs'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -286,7 +286,7 @@ export const ReportsView: React.FC = () => {
           onClick={() => setActiveReport('facturas')}
           className={`px-3.5 py-2 rounded-xl transition-all ${
             activeReport === 'facturas'
-              ? 'bg-white text-purple-700 font-bold shadow-xs'
+              ? 'bg-white text-slate-900 font-bold shadow-xs'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -463,7 +463,7 @@ export const ReportsView: React.FC = () => {
                     <td className="py-2.5 px-4 font-bold text-emerald-700 tabular-nums">
                       ${r.montoPago.toFixed(2)}
                     </td>
-                    <td className="py-2.5 px-4 font-bold text-indigo-700 tabular-nums">
+                    <td className="py-2.5 px-4 font-bold text-slate-900 tabular-nums">
                       ${r.montoBanco.toFixed(2)}
                     </td>
                     <td className="py-2.5 px-4 font-bold text-rose-700 tabular-nums">
@@ -499,7 +499,7 @@ export const ReportsView: React.FC = () => {
                     <td className="py-2.5 px-4 font-mono font-medium text-slate-800">{r.tx}</td>
                     <td className="py-2.5 px-4 font-medium text-slate-900">{r.ordenante}</td>
                     <td className="py-2.5 px-4 text-slate-500">{r.referencia}</td>
-                    <td className="py-2.5 px-4 font-bold text-indigo-700 tabular-nums">
+                    <td className="py-2.5 px-4 font-bold text-slate-900 tabular-nums">
                       ${r.monto.toFixed(2)}
                     </td>
                   </tr>
@@ -534,7 +534,7 @@ export const ReportsView: React.FC = () => {
                     <td className="py-2.5 px-4 font-bold text-slate-900 tabular-nums">
                       ${r.monto.toFixed(2)}
                     </td>
-                    <td className="py-2.5 px-4 text-indigo-600">{r.archivo || 'Sin archivo'}</td>
+                    <td className="py-2.5 px-4 text-slate-700">{r.archivo || 'Sin archivo'}</td>
                     <td className="py-2.5 px-4">
                       <span className="text-[10px] font-semibold px-2 py-0.5 rounded border border-slate-200">
                         {r.estado}

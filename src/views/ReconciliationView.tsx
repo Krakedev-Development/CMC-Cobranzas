@@ -365,11 +365,11 @@ export const ReconciliationView: React.FC = () => {
             onClick={() => setActiveTab('manual')}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
               activeTab === 'manual'
-                ? 'bg-white text-indigo-900 shadow-sm'
+                ? 'bg-white text-slate-900 shadow-sm'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
             }`}
           >
-            <Link className="w-4 h-4 text-indigo-600" />
+            <Link className="w-4 h-4 text-sky-600" />
             <span>Conciliación Manual (No Conciliadas)</span>
             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
               {unassignedMovements.length} por conciliar
@@ -381,7 +381,7 @@ export const ReconciliationView: React.FC = () => {
             onClick={() => setActiveTab('banco')}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
               activeTab === 'banco'
-                ? 'bg-white text-indigo-900 shadow-sm'
+                ? 'bg-white text-slate-900 shadow-sm'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
             }`}
           >
@@ -396,7 +396,7 @@ export const ReconciliationView: React.FC = () => {
               setSelectedFileName('');
               setIsImportModalOpen(true);
             }}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center gap-2 transition-colors shadow-xs"
+            className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-bold flex items-center gap-2 transition-colors shadow-xs"
           >
             <Upload className="w-4 h-4" />
             <span>Subir Archivo de Extracto</span>
@@ -428,7 +428,7 @@ export const ReconciliationView: React.FC = () => {
 
           {/* Informative Rule Note */}
           <div className="p-3.5 bg-slate-100 border border-slate-200 rounded-2xl text-xs text-slate-700 flex items-start gap-2.5">
-            <Scale className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
+            <Scale className="w-4 h-4 text-sky-600 shrink-0 mt-0.5" />
             <div>
               <strong>Conciliación Manual de Transferencias:</strong> A continuación se muestran los movimientos del extracto bancario
               que <strong>no pudieron ser conciliados automáticamente</strong>.
@@ -448,7 +448,7 @@ export const ReconciliationView: React.FC = () => {
                   setTransferSearchQuery(e.target.value);
                   setManualCurrentPage(1);
                 }}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
               />
             </div>
 
@@ -525,7 +525,7 @@ export const ReconciliationView: React.FC = () => {
                           className={`transition-colors ${
                             isConciliado
                               ? 'bg-slate-50/40 text-slate-500'
-                              : 'hover:bg-indigo-50/40 cursor-pointer'
+                              : 'hover:bg-sky-50/40 cursor-pointer'
                           }`}
                         >
                           <td className="py-3 px-4 whitespace-nowrap font-medium text-slate-700">
@@ -543,7 +543,7 @@ export const ReconciliationView: React.FC = () => {
                           <td className="py-3 px-4 text-slate-500 max-w-xs truncate" title={m.referencia}>
                             {m.referencia}
                           </td>
-                          <td className="py-3 px-4 whitespace-nowrap font-mono font-extrabold text-sm text-indigo-700">
+                          <td className="py-3 px-4 whitespace-nowrap font-mono font-extrabold text-sm text-slate-900">
                             ${m.monto.toFixed(2)}
                           </td>
                           <td className="py-3 px-4 whitespace-nowrap">
@@ -552,7 +552,7 @@ export const ReconciliationView: React.FC = () => {
                                 isConciliado
                                   ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                                   : m.estado === 'revision'
-                                  ? 'bg-purple-50 text-purple-700 border-purple-200'
+                                  ? 'bg-sky-50 text-sky-700 border-sky-200'
                                   : 'bg-amber-50 text-amber-700 border-amber-200'
                               }`}
                             >
@@ -567,7 +567,7 @@ export const ReconciliationView: React.FC = () => {
                                   e.stopPropagation();
                                   handleOpenLinkModal(m);
                                 }}
-                                className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 transition-colors shadow-2xs"
+                                className="px-3 py-1 bg-sky-500 hover:bg-sky-600 text-white rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 transition-colors shadow-2xs"
                               >
                                 <Link className="w-3.5 h-3.5" />
                                 <span>Enlazar a Rubro</span>
@@ -608,7 +608,7 @@ export const ReconciliationView: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
           <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
             {/* Modal Header */}
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-indigo-600 text-white">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-[#16202E] text-white">
               <div className="flex items-center gap-2">
                 <Link className="w-5 h-5" />
                 <div>
@@ -644,8 +644,8 @@ export const ReconciliationView: React.FC = () => {
               )}
 
               {/* Tarjeta de Información de la Transferencia Bancaria */}
-              <div className="p-4 bg-indigo-50/70 border border-indigo-200 rounded-2xl space-y-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 block">
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-900 block">
                   Datos de la Transferencia Bancaria Seleccionada
                 </span>
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -656,7 +656,7 @@ export const ReconciliationView: React.FC = () => {
                   <div>
                     <span className="text-xs text-slate-500 block">Banco y Transacción:</span>
                     <span className="font-semibold text-slate-800">{movementToLink.banco}</span> ·{' '}
-                    <span className="font-mono font-bold text-indigo-900">{movementToLink.numeroTransaccion}</span>
+                    <span className="font-mono font-bold text-slate-900">{movementToLink.numeroTransaccion}</span>
                   </div>
                   <div>
                     <span className="text-xs text-slate-500 block">Fecha y Referencia:</span>
@@ -679,7 +679,7 @@ export const ReconciliationView: React.FC = () => {
                   onClick={() => setLinkTargetType('rubro')}
                   className={`px-3 py-1.5 rounded-xl font-bold text-xs transition-colors flex items-center gap-1.5 ${
                     linkTargetType === 'rubro'
-                      ? 'bg-indigo-600 text-white shadow-2xs'
+                      ? 'bg-sky-500 text-white shadow-2xs'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
                 >
@@ -692,7 +692,7 @@ export const ReconciliationView: React.FC = () => {
                   onClick={() => setLinkTargetType('pago')}
                   className={`px-3 py-1.5 rounded-xl font-bold text-xs transition-colors flex items-center gap-1.5 ${
                     linkTargetType === 'pago'
-                      ? 'bg-indigo-600 text-white shadow-2xs'
+                      ? 'bg-sky-500 text-white shadow-2xs'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
                 >
@@ -713,7 +713,7 @@ export const ReconciliationView: React.FC = () => {
                   }
                   value={rubroSearchText}
                   onChange={(e) => setRubroSearchText(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
                 />
               </div>
 
@@ -743,7 +743,7 @@ export const ReconciliationView: React.FC = () => {
                           onClick={() => setSelectedDebtIdToLink(d.id)}
                           className={`p-3 cursor-pointer flex items-center justify-between gap-3 transition-colors ${
                             isSelected
-                              ? 'bg-indigo-50 font-bold text-indigo-950 ring-1 ring-inset ring-indigo-500'
+                              ? 'bg-sky-50 font-bold text-slate-900 ring-1 ring-inset ring-sky-500'
                               : 'hover:bg-slate-50'
                           }`}
                         >
@@ -783,7 +783,7 @@ export const ReconciliationView: React.FC = () => {
                               }}
                               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                                 isSelected
-                                  ? 'bg-indigo-600 text-white'
+                                  ? 'bg-sky-500 text-white'
                                   : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                               }`}
                             >
@@ -814,7 +814,7 @@ export const ReconciliationView: React.FC = () => {
                           onClick={() => setSelectedPaymentIdToLink(p.id)}
                           className={`p-3 cursor-pointer flex items-center justify-between gap-3 transition-colors ${
                             isSelected
-                              ? 'bg-indigo-50 font-bold text-indigo-950 ring-1 ring-inset ring-indigo-500'
+                              ? 'bg-sky-50 font-bold text-slate-900 ring-1 ring-inset ring-sky-500'
                               : 'hover:bg-slate-50'
                           }`}
                         >
@@ -835,7 +835,7 @@ export const ReconciliationView: React.FC = () => {
                               type="button"
                               className={`px-3 py-1.5 rounded-lg text-xs font-bold ${
                                 isSelected
-                                  ? 'bg-indigo-600 text-white'
+                                  ? 'bg-sky-500 text-white'
                                   : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                               }`}
                             >
@@ -858,7 +858,7 @@ export const ReconciliationView: React.FC = () => {
                   type="text"
                   value={linkObservation}
                   onChange={(e) => setLinkObservation(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
                 />
               </div>
 
@@ -879,7 +879,7 @@ export const ReconciliationView: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleConfirmLink}
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold flex items-center gap-1.5 shadow-xs transition-colors"
+                    className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-bold flex items-center gap-1.5 shadow-xs transition-colors"
                   >
                     <CheckCircle2 className="w-4 h-4" />
                     <span>Confirmar Enlace a Rubro y Conciliación</span>
@@ -950,7 +950,7 @@ export const ReconciliationView: React.FC = () => {
                   setStatementSearchQuery(e.target.value);
                   setStatementCurrentPage(1);
                 }}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
               />
             </div>
 
@@ -1059,8 +1059,8 @@ export const ReconciliationView: React.FC = () => {
                               </span>
                             )}
                             {bm.estado === 'revision' && (
-                              <span className="text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full text-[11px] font-bold border border-purple-200 inline-flex items-center gap-1">
-                                <span className="w-1.5 h-1.5 rounded-full bg-purple-600" />
+                              <span className="text-sky-700 bg-sky-50 px-2.5 py-0.5 rounded-full text-[11px] font-bold border border-sky-200 inline-flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-sky-600" />
                                 En Revisión
                               </span>
                             )}
@@ -1082,7 +1082,7 @@ export const ReconciliationView: React.FC = () => {
                               <button
                                 type="button"
                                 onClick={() => handleOpenLinkModal(bm)}
-                                className="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-semibold transition-colors inline-flex items-center gap-1"
+                                className="px-2.5 py-1 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 rounded-lg text-xs font-semibold transition-colors inline-flex items-center gap-1"
                                 title="Enlazar esta transferencia al rubro del alumno en Conciliación Manual"
                               >
                                 <Link className="w-3 h-3" />
@@ -1180,7 +1180,7 @@ export const ReconciliationView: React.FC = () => {
       {isImportModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/50 backdrop-blur-xs">
           <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200 overflow-hidden flex flex-col">
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-indigo-600 text-white">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-[#16202E] text-white">
               <div className="flex items-center gap-2">
                 <Upload className="w-5 h-5" />
                 <h2 className="text-sm font-bold">Subir Archivo de Extracto Bancario</h2>
@@ -1217,8 +1217,8 @@ export const ReconciliationView: React.FC = () => {
                 <label className="block font-semibold text-slate-700 mb-1">
                   Seleccionar Archivo (Excel / CSV / TXT) *
                 </label>
-                <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-indigo-500 transition-colors bg-slate-50/50 cursor-pointer">
-                  <FileSpreadsheet className="w-8 h-8 text-indigo-500 mx-auto mb-2" />
+                <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-sky-500 transition-colors bg-slate-50/50 cursor-pointer">
+                  <FileSpreadsheet className="w-8 h-8 text-sky-500 mx-auto mb-2" />
                   <p className="text-xs font-semibold text-slate-800">
                     {selectedFileName || 'Haz clic para seleccionar o arrastra el archivo aquí'}
                   </p>
@@ -1254,10 +1254,10 @@ export const ReconciliationView: React.FC = () => {
               <button
                 type="button"
                 onClick={handleLoadSampleBankFile}
-                className="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl font-semibold transition-colors flex items-center gap-1.5"
+                className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-semibold transition-colors flex items-center gap-1.5"
                 title="Cargar automáticamente un extracto de prueba para validar el flujo"
               >
-                <Sparkles className="w-4 h-4 text-indigo-600" />
+                <Sparkles className="w-4 h-4 text-sky-600" />
                 <span>Cargar Extracto Demo (Muestra)</span>
               </button>
 
@@ -1272,7 +1272,7 @@ export const ReconciliationView: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleLoadSampleBankFile}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-colors shadow-xs"
+                  className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-bold transition-colors shadow-xs"
                 >
                   Procesar y Cargar
                 </button>

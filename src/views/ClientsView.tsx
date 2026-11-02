@@ -267,7 +267,7 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
             placeholder="Buscar por cédula, nombre o teléfono..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:bg-white transition-all"
           />
         </div>
 
@@ -327,7 +327,7 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
                   setFormError('');
                   setIsCreateModalOpen(true);
                 }}
-                className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
+                className="px-3.5 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
               >
                 <Plus className="w-4 h-4" />
                 <span>Nuevo Cliente</span>
@@ -416,7 +416,7 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => setSelectedClientDetailId(client.id)}
-                          className="px-2.5 py-1 bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+                          className="px-2.5 py-1 bg-slate-100 hover:bg-sky-50 text-slate-700 hover:text-slate-900 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
                           title="Ver Ficha Integral y Trazabilidad del Cliente"
                         >
                           <Eye className="w-3.5 h-3.5" />
@@ -506,7 +506,7 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
                   placeholder="Ej: 1718293041"
                   value={formData.cedula}
                   onChange={(e) => setFormData({ ...formData, cedula: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-mono focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-mono focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
                 />
               </div>
 
@@ -519,7 +519,7 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
                     placeholder="Carlos Andrés"
                     value={formData.nombres}
                     onChange={(e) => setFormData({ ...formData, nombres: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
                   />
                 </div>
                 <div>
@@ -530,7 +530,7 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
                     placeholder="Mendoza Viteri"
                     value={formData.apellidos}
                     onChange={(e) => setFormData({ ...formData, apellidos: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
                   />
                 </div>
               </div>
@@ -543,7 +543,7 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
                     placeholder="+593 98 412 8391"
                     value={formData.telefono}
                     onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
                   />
                 </div>
                 <div>
@@ -553,7 +553,7 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
                     placeholder="carlos.mendoza@ejemplo.ec"
                     value={formData.correo}
                     onChange={(e) => setFormData({ ...formData, correo: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
                   />
                 </div>
               </div>
@@ -565,7 +565,7 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
                   placeholder="Detalles sobre becas, convenios o requerimientos especiales..."
                   value={formData.notas}
                   onChange={(e) => setFormData({ ...formData, notas: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
                 />
               </div>
 
@@ -582,7 +582,7 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold transition-colors"
+                  className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold transition-colors shadow-xs"
                 >
                   {editingClient ? 'Guardar Cambios' : 'Registrar Cliente'}
                 </button>
@@ -720,7 +720,7 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
             {/* Drawer Header */}
             <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+                <div className="w-11 h-11 rounded-2xl bg-sky-500 text-white flex items-center justify-center font-bold text-lg shadow-sm">
                   {selectedFinancials.client.nombres[0]}
                 </div>
                 <div>
@@ -755,7 +755,7 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
               </div>
               <div>
                 <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Precio Acordado</span>
-                <span className="text-sm font-bold tabular-nums text-indigo-300">
+                <span className="text-sm font-bold tabular-nums text-sky-300">
                   ${selectedFinancials.totalPrecioAcordado.toFixed(2)}
                 </span>
               </div>
@@ -779,7 +779,7 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-bold text-slate-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
-                    <Receipt className="w-4 h-4 text-indigo-600" />
+                    <Receipt className="w-4 h-4 text-sky-600" />
                     Programas Adquiridos ({selectedFinancials.deudas.length})
                   </h3>
                   {onRegisterPaymentForClient && (
@@ -788,7 +788,7 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
                         setSelectedClientDetailId(null);
                         onRegisterPaymentForClient(selectedFinancials.client.id);
                       }}
-                      className="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg font-semibold text-[11px] border border-indigo-200 transition-colors"
+                      className="px-2.5 py-1 bg-sky-50 hover:bg-sky-100 text-slate-900 rounded-lg font-bold text-[11px] border border-sky-200 transition-colors"
                     >
                       + Registrar Pago para este alumno
                     </button>
@@ -922,7 +922,7 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
               {/* Facturas Documentales */}
               <div>
                 <h3 className="font-bold text-slate-900 uppercase tracking-wider text-[11px] mb-3 flex items-center gap-1.5">
-                  <FileText className="w-4 h-4 text-purple-600" />
+                  <FileText className="w-4 h-4 text-sky-600" />
                   Facturas Registradas ({selectedFinancials.facturas.length})
                 </h3>
 
@@ -943,15 +943,15 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
                             Fecha: {inv.fechaFactura} · Monto: ${(inv.monto || 0).toFixed(2)}
                           </div>
                           {inv.nombreArchivo && (
-                            <div className="text-[10px] text-indigo-600 flex items-center gap-1 mt-0.5">
-                              <FileText className="w-3 h-3" /> {inv.nombreArchivo}
+                            <div className="text-[10px] text-slate-700 flex items-center gap-1 mt-0.5 font-medium">
+                              <FileText className="w-3 h-3 text-sky-600" /> {inv.nombreArchivo}
                             </div>
                           )}
                         </div>
                         <span
-                          className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
                             inv.estadoDocumental === 'registrada'
-                              ? 'bg-purple-50 text-purple-700 border-purple-200'
+                              ? 'bg-slate-100 text-slate-900 border-slate-200'
                               : 'bg-slate-100 text-slate-600'
                           }`}
                         >

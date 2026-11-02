@@ -114,9 +114,9 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         type="button"
         disabled={disabled}
         onClick={handleToggle}
-        className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 transition-colors shadow-2xs hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 ${
+        className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 transition-colors shadow-2xs hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 ${
           disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-        } ${isOpen ? 'ring-2 ring-indigo-500/20 border-indigo-500' : ''}`}
+        } ${isOpen ? 'ring-2 ring-sky-500/20 border-sky-500' : ''}`}
       >
         <span className={value ? 'font-medium text-slate-800' : 'text-slate-400 font-normal'}>
           {value ? formatDisplayDate(value) : placeholder}

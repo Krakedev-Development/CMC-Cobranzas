@@ -139,7 +139,7 @@ export const InvoicesView: React.FC = () => {
     <div className="space-y-6">
       {/* Explicit SRI scope banner (RF-06 requirement) */}
       <div className="p-3.5 bg-slate-100 border border-slate-200 rounded-2xl flex items-start gap-2.5 text-xs text-slate-700">
-        <Building className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
+        <Building className="w-4 h-4 text-sky-600 shrink-0 mt-0.5" />
         <div>
           <strong>Regla Documental (RF-06):</strong> En esta versión se registra la factura y se adjunta su archivo PDF físico o externo.
           <strong> No se emite factura electrónica ni existe conexión con el SRI</strong> en este prototipo.
@@ -157,7 +157,7 @@ export const InvoicesView: React.FC = () => {
             placeholder="Buscar por número de factura o cliente..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
           />
         </div>
 
@@ -209,7 +209,7 @@ export const InvoicesView: React.FC = () => {
                 setFormError('');
                 setIsRegisterModalOpen(true);
               }}
-              className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
+              className="px-3.5 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
             >
               <Plus className="w-4 h-4" />
               <span>Registrar Factura (Flujo D)</span>
@@ -265,10 +265,10 @@ export const InvoicesView: React.FC = () => {
                     <td className="py-3 px-4 font-bold tabular-nums text-slate-900 whitespace-nowrap">
                       ${(inv.monto || 0).toFixed(2)}
                     </td>
-                    <td className="py-3 px-4 text-indigo-600 whitespace-nowrap">
+                    <td className="py-3 px-4 text-slate-700 whitespace-nowrap">
                       {inv.nombreArchivo ? (
                         <div className="flex items-center gap-1 font-medium text-[11px]">
-                          <FileText className="w-3.5 h-3.5 text-indigo-500" />
+                          <FileText className="w-3.5 h-3.5 text-sky-600" />
                           <span className="truncate max-w-[160px]">{inv.nombreArchivo}</span>
                         </div>
                       ) : (
@@ -290,7 +290,7 @@ export const InvoicesView: React.FC = () => {
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => setSelectedInvoicePreview(inv)}
-                          className="px-2.5 py-1 bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+                          className="px-2.5 py-1 bg-slate-100 hover:bg-sky-50 text-slate-700 hover:text-slate-900 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
                         >
                           <Eye className="w-3.5 h-3.5" />
                           <span>Ver</span>
@@ -359,7 +359,7 @@ export const InvoicesView: React.FC = () => {
                     setFormClientId(e.target.value);
                     setFormDebtId('');
                   }}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
                 >
                   <option value="">-- Seleccionar cliente --</option>
                   {clients.map((c) => (
@@ -378,7 +378,7 @@ export const InvoicesView: React.FC = () => {
                   <select
                     value={formDebtId}
                     onChange={(e) => setFormDebtId(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
                   >
                     <option value="">-- Sin deuda específica / General --</option>
                     {clientDebts.map((d) => {
@@ -402,7 +402,7 @@ export const InvoicesView: React.FC = () => {
                     placeholder="001-001-000004925"
                     value={formNumero}
                     onChange={(e) => setFormNumero(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-mono focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-mono focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
                   />
                 </div>
 
@@ -427,7 +427,7 @@ export const InvoicesView: React.FC = () => {
                     placeholder="Ej: 790.00"
                     value={formMonto}
                     onChange={(e) => setFormMonto(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-mono focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-mono focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
                   />
                 </div>
 
@@ -438,7 +438,7 @@ export const InvoicesView: React.FC = () => {
                     placeholder="Factura_001_DianaTorres.pdf"
                     value={formNombreArchivo}
                     onChange={(e) => setFormNombreArchivo(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
                   />
                 </div>
               </div>
@@ -450,7 +450,7 @@ export const InvoicesView: React.FC = () => {
                   placeholder="Detalles sobre emisión externa, desglose de impuestos o datos de retención..."
                   value={formObservaciones}
                   onChange={(e) => setFormObservaciones(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
                 />
               </div>
 
@@ -464,7 +464,7 @@ export const InvoicesView: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold transition-colors"
+                  className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold transition-colors shadow-xs"
                 >
                   {editingInvoice ? 'Guardar Cambios' : 'Registrar Factura'}
                 </button>
@@ -480,7 +480,7 @@ export const InvoicesView: React.FC = () => {
           <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200 overflow-hidden flex flex-col">
             <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
               <div className="flex items-center gap-2 font-bold text-sm text-slate-900">
-                <FileText className="w-5 h-5 text-purple-600" />
+                <FileText className="w-5 h-5 text-sky-600" />
                 <span>Factura {selectedInvoicePreview.numeroFactura}</span>
               </div>
               <button
@@ -492,12 +492,12 @@ export const InvoicesView: React.FC = () => {
             </div>
 
             <div className="p-6 space-y-4 text-xs">
-              <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 text-purple-900 space-y-2">
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-slate-900 space-y-2">
                 <div className="flex justify-between items-baseline">
-                  <span className="font-semibold text-sm">FACTURA ELECTRÓNICA EXTERNA</span>
-                  <span className="font-bold text-xs font-mono">{selectedInvoicePreview.numeroFactura}</span>
+                  <span className="font-bold text-sm text-slate-900">FACTURA ELECTRÓNICA EXTERNA</span>
+                  <span className="font-bold text-xs font-mono text-slate-900">{selectedInvoicePreview.numeroFactura}</span>
                 </div>
-                <div className="text-[11px] text-purple-700">
+                <div className="text-[11px] text-slate-600">
                   Registrada documentalmente en el sistema. Archivo:{' '}
                   <code>{selectedInvoicePreview.nombreArchivo || 'documento.pdf'}</code>
                 </div>
@@ -523,7 +523,7 @@ export const InvoicesView: React.FC = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Estado Documental:</span>
-                  <span className="font-semibold text-indigo-700">
+                  <span className="font-bold text-slate-900">
                     {selectedInvoicePreview.estadoDocumental}
                   </span>
                 </div>
