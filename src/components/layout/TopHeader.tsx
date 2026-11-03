@@ -163,26 +163,15 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-30 px-6 py-4 transition-all">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        {/* Breadcrumb and View Title with Clear Minds Logo (Opción 2) */}
-        <div className="flex items-center gap-4">
-          <div className="hidden sm:flex items-center shrink-0 pr-4 border-r border-slate-200 dark:border-slate-700">
-            <div className="bg-white rounded-2xl px-3 py-1.5 shadow-xs border border-slate-200/60 dark:border-white/10 flex items-center justify-center">
-              <img
-                src="/assets/clear-minds-horizontal-logo.png"
-                alt="Clear Minds Building Ideas"
-                className="h-11 w-auto object-contain"
-              />
-            </div>
+        {/* Breadcrumb and View Title */}
+        <div>
+          <div className="flex items-center gap-2 text-xs text-slate-500 mb-0.5 font-medium">
+            <span>Cobranzas & Trazabilidad</span>
+            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+            <span className="top-header-breadcrumb text-slate-900 font-bold capitalize">{currentModule}</span>
           </div>
-          <div>
-            <div className="flex items-center gap-2 text-xs text-slate-500 mb-0.5 font-medium">
-              <span>Cobranzas & Trazabilidad</span>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-              <span className="top-header-breadcrumb text-slate-900 font-bold capitalize">{currentModule}</span>
-            </div>
-            <h1 className="top-header-title text-xl font-bold text-slate-900 tracking-tight">{info.title}</h1>
-            <p className="text-xs text-slate-500 mt-0.5">{info.subtitle}</p>
-          </div>
+          <h1 className="top-header-title text-xl font-bold text-slate-900 tracking-tight">{info.title}</h1>
+          <p className="text-xs text-slate-500 mt-0.5">{info.subtitle}</p>
         </div>
 
         {/* Right zone: Overdue Notification Bell + Simulation Notice + User Badge */}

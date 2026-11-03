@@ -72,31 +72,22 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Opción 3: Institutional Clear Minds Welcome Banner */}
+      {/* Institutional Clear Minds Welcome Banner */}
       <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-center justify-between gap-5">
-        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
-          <div className="p-3 bg-white rounded-2xl border border-slate-200/80 dark:border-white/10 shrink-0 shadow-xs flex items-center justify-center">
-            <img
-              src="/assets/clear-minds-horizontal-logo.png"
-              alt="Clear Minds — Building Ideas"
-              className="h-16 w-auto object-contain"
-            />
+        <div className="text-center sm:text-left">
+          <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-50 text-sky-700 border border-sky-200">
+              Sistema Integral de Cobranzas
+            </span>
+            <span className="text-xs text-slate-400">·</span>
+            <span className="text-xs text-slate-500 font-medium">Clear Minds Consultores</span>
           </div>
-          <div>
-            <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-50 text-sky-700 border border-sky-200">
-                Sistema Integral de Cobranzas
-              </span>
-              <span className="text-xs text-slate-400">·</span>
-              <span className="text-xs text-slate-500 font-medium">Clear Minds Consultores</span>
-            </div>
-            <h2 className="text-lg font-bold text-slate-900 tracking-tight">
-              Control de Cartera Educativa, Recaudación y Trazabilidad
-            </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Gestión unificada de pagos, conciliación bancaria automatizada y emisión de comprobantes.
-            </p>
-          </div>
+          <h2 className="text-lg font-bold text-slate-900 tracking-tight">
+            Control de Cartera Educativa, Recaudación y Trazabilidad
+          </h2>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Gestión unificada de pagos, conciliación bancaria automatizada y emisión de comprobantes.
+          </p>
         </div>
 
         <div className="flex items-center gap-2.5 shrink-0">

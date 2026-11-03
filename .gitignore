@@ -6,3 +6,9 @@ coverage/
 *.log
 .env*
 !.env.example
+
+#ReglasCommits
+ReglasCommits.md
+
+#GEMINI
+GEMINI.md
