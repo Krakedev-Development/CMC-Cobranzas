@@ -28,7 +28,9 @@ import {
   INITIAL_INVOICES,
   INITIAL_USERS,
   INITIAL_AUDIT_LOGS,
+  createFullPermissionSet,
 } from '../data/mockData';
+import { api } from '../services/api';
 
 const STORAGE_KEY = 'cobranzas_conciliacion_proto_v1';
 
@@ -215,6 +217,41 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const currentUser = useMemo(() => {
     return users.find((u) => u.id === currentUserId || u.username === currentUserId) || users[0];
   }, [users, currentUserId]);
+
+  // Cargar usuarios reales desde el Backend (PostgreSQL) si está disponible
+  useEffect(() => {
+    async function syncBackendUsers() {
+      try {
+        const res = await api.getUsers({ limit: 100 });
+        if (res && res.items && res.items.length > 0) {
+          const backendMapped: DemoUser[] = res.items.map((bu) => {
+            const perfil = bu.rol === 'ADMIN' ? 'Administrador'
+              : bu.rol === 'SUPERVISOR' ? 'Supervisor'
+              : bu.rol === 'AUDITOR' ? 'Auditor'
+              : 'Cobranzas';
+
+            return {
+              id: bu.id,
+              username: bu.username,
+              nombre: bu.nombre,
+              cargo: bu.cargo,
+              estado: bu.estado.toLowerCase() as 'activo' | 'inactivo',
+              perfilBase: perfil,
+              permisos: (bu.permisos as UserPermissions) || createFullPermissionSet(),
+              createdAt: bu.createdAt,
+              createdBy: 'backend',
+              updatedAt: bu.updatedAt,
+              updatedBy: 'backend',
+            };
+          });
+          setUsers(backendMapped);
+        }
+      } catch (e) {
+        console.warn('Backend no disponible para sincronización de usuarios:', e);
+      }
+    }
+    syncBackendUsers();
+  }, []);
 
   // Sync state to LocalStorage
   useEffect(() => {
@@ -1132,12 +1169,34 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       updatedBy: currentUser.username,
     };
     setUsers((prev) => [...prev, newUser]);
+
+    // Sincronizar en PostgreSQL mediante el backend
+    const backendRole = data.perfilBase === 'Administrador' ? 'ADMIN'
+      : data.perfilBase === 'Supervisor' ? 'SUPERVISOR'
+      : data.perfilBase === 'Auditor' ? 'AUDITOR' : 'COBRADOR';
+
+    api.createUser({
+      username: data.username,
+      email: `${data.username}@clearminds.com`,
+      nombre: data.nombre,
+      cargo: data.cargo,
+      rol: backendRole,
+      permisos: data.permisos,
+      estado: data.estado === 'activo' ? 'ACTIVO' : 'INACTIVO',
+    }).then((created) => {
+      if (created?.id) {
+        setUsers((prev) => prev.map((u) => u.username === data.username ? { ...u, id: created.id } : u));
+      }
+    }).catch((err) => {
+      console.warn('No se pudo sincronizar usuario con backend:', err);
+    });
+
     logAudit('usuarios', 'crear', 'usuario', newId, undefined, {
       username: newUser.username,
       nombre: newUser.nombre,
       cargo: newUser.cargo,
       perfilBase: newUser.perfilBase,
-    }, 'Creación de nuevo usuario de demostración');
+    }, 'Creación de nuevo usuario');
     return newUser;
   };
 
@@ -1147,6 +1206,24 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const now = getNowString();
     const updated = { ...existing, ...data, updatedAt: now, updatedBy: currentUser.username };
     setUsers((prev) => prev.map((u) => (u.id === id ? updated : u)));
+
+    if (id && id.length > 15) {
+      const backendRole = data.perfilBase === 'Administrador' ? 'ADMIN'
+        : data.perfilBase === 'Supervisor' ? 'SUPERVISOR'
+        : data.perfilBase === 'Auditor' ? 'AUDITOR'
+        : data.perfilBase ? 'COBRADOR' : undefined;
+
+      api.updateUser(id, {
+        nombre: data.nombre,
+        cargo: data.cargo,
+        rol: backendRole,
+        estado: data.estado ? (data.estado === 'activo' ? 'ACTIVO' : 'INACTIVO') : undefined,
+        permisos: data.permisos,
+      }).catch((err) => {
+        console.warn('No se pudo actualizar usuario en backend:', err);
+      });
+    }
+
     logAudit('usuarios', 'modificar', 'usuario', id, existing, updated, 'Modificación de perfil de usuario');
   };
 
@@ -1162,6 +1239,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     };
 
     setUsers((prev) => prev.map((u) => (u.id === userId ? updated : u)));
+
+    if (userId && userId.length > 15) {
+      api.updateUser(userId, { permisos: newPermissions }).catch((err) => {
+        console.warn('No se pudo actualizar permisos en backend:', err);
+      });
+    }
 
     logAudit(
       'usuarios',

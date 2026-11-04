@@ -200,32 +200,25 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
           )}
         </div>
 
-        {/* Current Demo User Switcher Bar */}
-        <div className="sidebar-user-box px-3 py-2 bg-slate-50 border-b border-slate-100">
+        {/* Current User Card */}
+        <div className="sidebar-user-box px-3 py-2.5 bg-slate-50 border-b border-slate-100">
           {effectiveExpanded ? (
-            <div>
-              <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium mb-1">
-                <span className="sidebar-user-label">Usuario activo (Demo):</span>
-                <span className="sidebar-user-role text-sky-600 font-semibold">{currentUser.cargo}</span>
+            <div className="flex items-center gap-2.5">
+              <div className="sidebar-user-avatar w-8 h-8 rounded-lg bg-sky-500 text-white flex items-center justify-center text-xs font-bold uppercase shrink-0 shadow-xs">
+                {currentUser.username.slice(0, 2)}
               </div>
-              <div className="relative">
-                <select
-                  value={currentUser.id}
-                  onChange={(e) => setCurrentUserId(e.target.value)}
-                  className="sidebar-user-select w-full text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 font-medium focus:ring-2 focus:ring-sky-500 focus:outline-none cursor-pointer"
-                  title="Cambiar usuario para probar permisos"
-                >
-                  {users.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.nombre} ({u.username}) - {u.perfilBase || 'Personalizado'}
-                    </option>
-                  ))}
-                </select>
+              <div className="min-w-0 flex-1 text-left">
+                <span className="block text-xs font-bold text-slate-900 truncate">
+                  {currentUser.nombre}
+                </span>
+                <span className="block text-[11px] text-slate-500 truncate">
+                  {currentUser.cargo}
+                </span>
               </div>
             </div>
           ) : (
             <div className="flex justify-center" title={`Usuario: ${currentUser.nombre} (${currentUser.username})`}>
-              <div className="sidebar-user-avatar w-8 h-8 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-xs font-semibold uppercase">
+              <div className="sidebar-user-avatar w-8 h-8 rounded-lg bg-sky-500 text-white flex items-center justify-center text-xs font-bold uppercase shadow-xs">
                 {currentUser.username.slice(0, 2)}
               </div>
             </div>
@@ -318,7 +311,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
           })}
         </nav>
 
-        {/* Footer Actions: Reset Demo & Chris Validation Points */}
+        {/* Footer Actions: Chris Validation Points */}
         <div className="sidebar-footer p-3 border-t border-slate-100 space-y-2 bg-slate-50/70">
           <button
             onClick={onOpenValidationModal}
@@ -329,17 +322,6 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
           >
             <HelpCircle className="sidebar-footer-icon-chris w-4 h-4 text-sky-500 shrink-0" />
             {effectiveExpanded && <span className="truncate">Pendientes con Chris (Sec. 13)</span>}
-          </button>
-
-          <button
-            onClick={onOpenResetModal}
-            className={`sidebar-footer-btn-reset w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium border border-rose-200 bg-rose-50/50 text-rose-700 hover:bg-rose-100/70 transition-colors ${
-              effectiveExpanded ? 'justify-start' : 'justify-center'
-            }`}
-            title="Restaurar datos de demostración a su estado inicial coherente"
-          >
-            <RotateCcw className="sidebar-footer-icon-reset w-4 h-4 text-rose-600 shrink-0" />
-            {effectiveExpanded && <span className="truncate">Restaurar datos demo</span>}
           </button>
         </div>
       </aside>

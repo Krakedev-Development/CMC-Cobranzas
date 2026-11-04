@@ -911,7 +911,7 @@ export const UsersPermissionsView: React.FC = () => {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-colors shadow-xs flex items-center gap-1.5"
+                    className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-bold transition-colors shadow-xs flex items-center gap-1.5"
                   >
                     <UserPlus className="w-4 h-4" />
                     <span>Crear Usuario con Permisos</span>
