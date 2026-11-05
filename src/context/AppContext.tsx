@@ -18,21 +18,40 @@ import {
   PaymentMethod,
 } from '../types';
 import {
-  INITIAL_CLIENTS,
-  INITIAL_PRODUCTS,
-  INITIAL_DEBTS,
-  INITIAL_PAYMENTS,
-  INITIAL_VOUCHERS,
-  INITIAL_BANK_MOVEMENTS,
-  INITIAL_RECONCILIATIONS,
-  INITIAL_INVOICES,
-  INITIAL_USERS,
-  INITIAL_AUDIT_LOGS,
   createFullPermissionSet,
 } from '../data/mockData';
 import { api, getStoredToken, clearStoredToken } from '../services/api';
 
-const STORAGE_KEY = 'cobranzas_conciliacion_proto_v1';
+const STORAGE_KEY = 'cobranzas_cmc_app_v2';
+
+// Limpieza de datos antiguos de prueba en localStorage
+if (typeof window !== 'undefined') {
+  const OLD_STORAGE_PREFIXES = ['cobranzas_conciliacion_proto_v1', 'cobranzas_cmc_prod_v1'];
+  OLD_STORAGE_PREFIXES.forEach((prefix) => {
+    ['clients', 'products', 'debts', 'payments', 'vouchers', 'bankMovements', 'reconciliations', 'invoices', 'users', 'auditLogs', 'currentUserId'].forEach((k) => {
+      try {
+        localStorage.removeItem(`${prefix}_${k}`);
+      } catch {
+        // ignore
+      }
+    });
+  });
+}
+
+// Administrador inicial del sistema
+const DEFAULT_ADMIN: DemoUser = {
+  id: 'admin',
+  username: 'admin',
+  nombre: 'Administrador Principal',
+  cargo: 'Administrador del Sistema',
+  estado: 'activo',
+  perfilBase: 'Administrador',
+  permisos: createFullPermissionSet(),
+  createdAt: new Date().toISOString(),
+  createdBy: 'sistema',
+  updatedAt: new Date().toISOString(),
+  updatedBy: 'sistema',
+};
 
 export interface DebtFinancialSummary {
   debt: Debt;
@@ -159,52 +178,52 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // Load saved state or default
   const [clients, setClients] = useState<Client[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY}_clients`);
-    return saved ? JSON.parse(saved) : INITIAL_CLIENTS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [products, setProducts] = useState<Product[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY}_products`);
-    return saved ? JSON.parse(saved) : INITIAL_PRODUCTS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [debts, setDebts] = useState<Debt[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY}_debts`);
-    return saved ? JSON.parse(saved) : INITIAL_DEBTS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [payments, setPayments] = useState<Payment[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY}_payments`);
-    return saved ? JSON.parse(saved) : INITIAL_PAYMENTS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [vouchers, setVouchers] = useState<Voucher[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY}_vouchers`);
-    return saved ? JSON.parse(saved) : INITIAL_VOUCHERS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [bankMovements, setBankMovements] = useState<BankMovement[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY}_bankMovements`);
-    return saved ? JSON.parse(saved) : INITIAL_BANK_MOVEMENTS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [reconciliations, setReconciliations] = useState<Reconciliation[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY}_reconciliations`);
-    return saved ? JSON.parse(saved) : INITIAL_RECONCILIATIONS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [invoices, setInvoices] = useState<Invoice[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY}_invoices`);
-    return saved ? JSON.parse(saved) : INITIAL_INVOICES;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [users, setUsers] = useState<DemoUser[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY}_users`);
-    return saved ? JSON.parse(saved) : INITIAL_USERS;
+    return saved ? JSON.parse(saved) : [DEFAULT_ADMIN];
   });
 
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY}_auditLogs`);
-    return saved ? JSON.parse(saved) : INITIAL_AUDIT_LOGS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [currentUserId, setCurrentUserIdState] = useState<string>(() => {
@@ -486,17 +505,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setAuditLogs((prev) => [newLog, ...prev]);
   };
 
-  // Reset to initial demo data
+  // Limpiar y refrescar datos directamente desde PostgreSQL
   const resetToDemoData = () => {
-    setClients(INITIAL_CLIENTS);
-    setProducts(INITIAL_PRODUCTS);
-    setDebts(INITIAL_DEBTS);
-    setPayments(INITIAL_PAYMENTS);
-    setVouchers(INITIAL_VOUCHERS);
-    setBankMovements(INITIAL_BANK_MOVEMENTS);
-    setReconciliations(INITIAL_RECONCILIATIONS);
-    setInvoices(INITIAL_INVOICES);
-    setUsers(INITIAL_USERS);
+    setClients([]);
+    setProducts([]);
+    setDebts([]);
+    setPayments([]);
+    setVouchers([]);
+    setBankMovements([]);
+    setReconciliations([]);
+    setInvoices([]);
+    setUsers([DEFAULT_ADMIN]);
     setCurrentUserIdState('admin');
 
     const resetAuditLog: AuditLog = {
@@ -505,15 +524,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       usuarioId: 'admin',
       usuarioNombre: 'Administrador Principal',
       modulo: 'sistema',
-      accion: 'restaurar_demo',
+      accion: 'limpiar_cache',
       entidadTipo: 'sistema',
-      entidadId: 'demo-data-root',
+      entidadId: 'data-root',
       resultado: 'exitoso',
-      motivo: 'Restauración confirmada del escenario inicial de demostración con relaciones coherentes.',
+      motivo: 'Refresco y sincronización directa con PostgreSQL sin datos residuales.',
       origen: 'interfaz',
     };
 
-    setAuditLogs([resetAuditLog, ...INITIAL_AUDIT_LOGS]);
+    setAuditLogs([resetAuditLog]);
+    syncBackendData().catch(console.warn);
   };
 
   // Permissions check
@@ -621,6 +641,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     if (toAdd.length > 0) {
       setClients((prev) => [...toAdd, ...prev]);
+      // Sincronizar clientes con PostgreSQL
+      toAdd.forEach((cl) => {
+        api.createClient({
+          cedula: cl.cedula,
+          nombres: cl.nombres,
+          apellidos: cl.apellidos,
+          telefono: cl.telefono,
+          correo: cl.correo,
+          estado: cl.estado === 'activo' ? 'ACTIVO' : 'INACTIVO',
+          notas: cl.notas,
+        }).catch((err) => console.warn('Error sincronizando cliente importado con PostgreSQL:', err));
+      });
       logAudit(
         'clientes',
         'importar',
@@ -628,7 +660,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         `lote-${Date.now()}`,
         undefined,
         { importados: imported, duplicadosOmitidos: duplicates },
-        `Importación masiva simulada de ${imported} clientes desde Excel/CSV`,
+        `Importación de ${imported} clientes a PostgreSQL`,
         'exitoso',
         'importacion'
       );
@@ -858,6 +890,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }));
 
     setDebts((prev) => [...newDebts, ...prev]);
+    // Sincronizar deudas con PostgreSQL
+    items.forEach((item) => {
+      api.createDebt({
+        clienteId: item.clienteId,
+        productoId: item.productoId,
+        fechaAdquisicion: item.fechaAdquisicion || now.slice(0, 10),
+        precioNominalAplicado: item.precioNominal,
+        precioAcordado: item.precioAcordado,
+        observaciones: item.observaciones,
+      }).catch((e) => console.warn('Error sincronizando deuda importada con PostgreSQL:', e));
+    });
     logAudit(
       'deudas',
       'importar',
@@ -865,7 +908,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       `lote-${Date.now()}`,
       undefined,
       { cantidadDeudas: newDebts.length },
-      `Carga masiva de ${newDebts.length} deudas/adquisiciones desde Excel simulado`,
+      `Carga masiva de ${newDebts.length} deudas a PostgreSQL`,
       'exitoso',
       'importacion'
     );

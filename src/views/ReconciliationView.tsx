@@ -317,42 +317,60 @@ export const ReconciliationView: React.FC = () => {
     }
   };
 
-  const handleLoadSampleBankFile = () => {
-    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-    const newItems = [
-      {
-        fecha: new Date().toISOString().slice(0, 10),
-        monto: 300,
-        numeroTransaccion: `TX-${randomSuffix}-01`,
-        referencia: 'TRANSF PACIFICO PAGO CUOTA SOFIA PAREDES',
-        ordenante: 'SOFIA ANDREA PAREDES CARDENAS',
-        banco: uploadBankName,
-      },
-      {
-        fecha: new Date().toISOString().slice(0, 10),
-        monto: 150,
-        numeroTransaccion: `TX-${randomSuffix}-02`,
-        referencia: 'DEPOSITO CAJERO AUTOMATICO VENTANILLA NORTE',
-        ordenante: 'MATEO SEBASTIAN CEVALLOS ROMERO',
-        banco: uploadBankName,
-      },
-      {
-        fecha: new Date().toISOString().slice(0, 10),
-        monto: 85,
-        numeroTransaccion: `TX-${randomSuffix}-03`,
-        referencia: 'TRANSFERENCIA BANCA VIRTUAL PAGO MATRICULA',
-        ordenante: 'DEPOSITANTE POR IDENTIFICAR',
-        banco: uploadBankName,
-      },
-    ];
+  const [bankFileObj, setBankFileObj] = useState<File | null>(null);
 
-    importBankMovements(newItems);
-    setIsImportModalOpen(false);
-    setActiveTab('manual');
-    setBankStatusFilter('sin_asignar');
-    setImportNotification(
-      `✓ Extracto de ${uploadBankName} procesado exitosamente (${newItems.length} movimientos). Las transferencias no conciliadas se muestran a continuación en Conciliación Manual listas para enlazar a rubros.`
-    );
+  const handleProcessBankFile = () => {
+    if (!bankFileObj && !selectedFileName) {
+      alert('Por favor seleccione un archivo de extracto bancario antes de continuar.');
+      return;
+    }
+
+    if (bankFileObj) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const content = event.target?.result as string;
+        if (!content) return;
+        const lines = content.split(/\r?\n/).filter((l) => l.trim().length > 0);
+        const startIndex = lines[0].toLowerCase().includes('fecha') || lines[0].toLowerCase().includes('monto') ? 1 : 0;
+        const newItems: Array<{
+          fecha: string;
+          monto: number;
+          numeroTransaccion: string;
+          referencia: string;
+          ordenante: string;
+          banco: string;
+        }> = [];
+
+        for (let i = startIndex; i < lines.length; i++) {
+          const parts = lines[i].split(/[,;\t]/).map((p) => p.trim());
+          if (parts.length >= 2) {
+            newItems.push({
+              fecha: parts[0] || new Date().toISOString().slice(0, 10),
+              monto: Math.abs(parseFloat(parts[1] || '0')) || 0,
+              numeroTransaccion: parts[2] || `TX-${Date.now().toString().slice(-5)}-${i}`,
+              referencia: parts[3] || 'Movimiento bancario',
+              ordenante: parts[4] || 'Identificado en extracto',
+              banco: uploadBankName,
+            });
+          }
+        }
+
+        if (newItems.length > 0) {
+          importBankMovements(newItems);
+          setIsImportModalOpen(false);
+          setActiveTab('manual');
+          setBankStatusFilter('sin_asignar');
+          setImportNotification(
+            `✓ Extracto de ${uploadBankName} procesado exitosamente (${newItems.length} movimientos). Las transferencias no conciliadas se muestran en Conciliación Manual.`
+          );
+        } else {
+          alert('El archivo no contiene filas válidas de movimientos.');
+        }
+      };
+      reader.readAsText(bankFileObj);
+    } else {
+      setIsImportModalOpen(false);
+    }
   };
 
   return (
@@ -1231,6 +1249,7 @@ export const ReconciliationView: React.FC = () => {
                     onChange={(e) => {
                       if (e.target.files && e.target.files[0]) {
                         setSelectedFileName(e.target.files[0].name);
+                        setBankFileObj(e.target.files[0]);
                       }
                     }}
                     className="hidden"
@@ -1250,33 +1269,21 @@ export const ReconciliationView: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between gap-2">
+            <div className="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-2">
               <button
                 type="button"
-                onClick={handleLoadSampleBankFile}
-                className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-semibold transition-colors flex items-center gap-1.5"
-                title="Cargar automáticamente un extracto de prueba para validar el flujo"
+                onClick={() => setIsImportModalOpen(false)}
+                className="px-3.5 py-2 border border-slate-200 text-slate-700 rounded-xl font-semibold hover:bg-slate-100"
               >
-                <Sparkles className="w-4 h-4 text-sky-600" />
-                <span>Cargar Extracto Bancario de Muestra</span>
+                Cancelar
               </button>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsImportModalOpen(false)}
-                  className="px-3.5 py-2 border border-slate-200 text-slate-700 rounded-xl font-semibold hover:bg-slate-100"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="button"
-                  onClick={handleLoadSampleBankFile}
-                  className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-bold transition-colors shadow-xs"
-                >
-                  Procesar y Cargar
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={handleProcessBankFile}
+                className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-bold transition-colors shadow-xs"
+              >
+                Procesar y Cargar
+              </button>
             </div>
           </div>
         </div>

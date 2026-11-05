@@ -826,56 +826,60 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     setObservaciones('');
   };
 
-  const handleLoadImportSample = () => {
-    const selectedProd = products.find((p) => p.id === importProductId);
-    const nominal = selectedProd?.precioNominal || 890;
+  const handleDebtFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    const sample = [
-      {
-        cedula: '1718293041',
-        nombres: 'Carlos',
-        apellidos: 'Mendoza Viteri',
-        precioNominal: nominal,
-        precioAcordado: 790,
-        observaciones: 'Nueva especialización con beca previa',
-        isExistingClient: true,
-        hasError: false,
-      },
-      {
-        cedula: '1755443322',
-        nombres: 'Daniela Alejandra',
-        apellidos: 'Morales Cifuentes',
-        precioNominal: nominal,
-        precioAcordado: nominal,
-        observaciones: 'Inscripción anticipada regular',
-        isExistingClient: false,
-        hasError: false,
-      },
-      {
-        cedula: '1766778899',
-        nombres: 'Santiago Andrés',
-        apellidos: 'Gómez Játiva',
-        precioNominal: nominal,
-        precioAcordado: 750,
-        observaciones: 'Tarifa convenio universitario',
-        isExistingClient: false,
-        hasError: false,
-      },
-      {
-        cedula: '1700000000',
-        nombres: 'Alonso Error',
-        apellidos: 'Precio Invalido',
-        precioNominal: nominal,
-        precioAcordado: -50,
-        observaciones: 'Monto erróneo para validar detección',
-        isExistingClient: false,
-        hasError: true,
-        errorMsg: 'Precio acordado no puede ser negativo',
-      },
-    ];
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      if (!content) return;
 
-    setImportPreviewList(sample);
-    setImportSampleLoaded(true);
+      const lines = content.split(/\r?\n/).filter((l) => l.trim().length > 0);
+      if (lines.length === 0) return;
+
+      const selectedProd = products.find((p) => p.id === importProductId);
+      const nominal = selectedProd?.precioNominal || 890;
+      const startIndex = lines[0].toLowerCase().includes('cedula') || lines[0].toLowerCase().includes('cédula') ? 1 : 0;
+      const parsed: Array<{
+        cedula: string;
+        nombres: string;
+        apellidos: string;
+        precioNominal: number;
+        precioAcordado: number;
+        observaciones: string;
+        isExistingClient: boolean;
+        hasError: boolean;
+        errorMsg?: string;
+      }> = [];
+
+      for (let i = startIndex; i < lines.length; i++) {
+        const parts = lines[i].split(/[,;\t]/).map((p) => p.trim());
+        if (parts.length >= 2 && parts[0]) {
+          const ced = parts[0];
+          const exists = clients.some((c) => c.cedula.toLowerCase() === ced.toLowerCase());
+          const acordado = parseFloat(parts[3] || '') || nominal;
+          const hasErr = acordado < 0;
+          parsed.push({
+            cedula: ced,
+            nombres: parts[1] || '',
+            apellidos: parts[2] || '',
+            precioNominal: nominal,
+            precioAcordado: acordado,
+            observaciones: parts[4] || 'Inscripción vía archivo',
+            isExistingClient: exists,
+            hasError: hasErr,
+            errorMsg: hasErr ? 'El precio acordado no puede ser negativo' : undefined,
+          });
+        }
+      }
+
+      if (parsed.length > 0) {
+        setImportPreviewList(parsed);
+        setImportSampleLoaded(true);
+      }
+    };
+    reader.readAsText(file);
   };
 
   const handleFixPreviewItem = (index: number, newPrice: number) => {
@@ -3445,19 +3449,22 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                   </div>
                   <div>
                     <h3 className="font-bold text-slate-900 text-sm">
-                      Subir archivo Excel o cargar muestra de aspirantes
+                      Subir archivo CSV de aspirantes y matrículas
                     </h3>
                     <p className="text-slate-500 mt-1 max-w-md mx-auto">
-                      Permite importar alumnos nuevos y existentes, indicando precio nominal y precio acordado con corrección previa antes de confirmar.
+                      Permite importar alumnos, indicando precio acordado con corrección previa antes de confirmar en PostgreSQL.
                     </p>
                   </div>
-                  <button
-                    onClick={handleLoadImportSample}
-                    className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-semibold shadow-xs transition-colors inline-flex items-center gap-2"
-                  >
+                  <label className="cursor-pointer px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl font-semibold shadow-xs transition-colors inline-flex items-center gap-2">
                     <Upload className="w-4 h-4" />
-                    Cargar Archivo de Muestra: Alumnos_Móviles_1.xlsx
-                  </button>
+                    <span>Seleccionar Archivo CSV</span>
+                    <input
+                      type="file"
+                      accept=".csv,.txt"
+                      className="hidden"
+                      onChange={handleDebtFileImport}
+                    />
+                  </label>
                 </div>
               ) : (
                 <div className="space-y-3">

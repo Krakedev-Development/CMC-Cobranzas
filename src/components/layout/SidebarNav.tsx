@@ -15,7 +15,6 @@ import {
   Menu,
   X,
   RotateCcw,
-  HelpCircle,
 } from 'lucide-react';
 import { ModuleName } from '../../types';
 import { useApp } from '../../context/AppContext';
@@ -310,20 +309,6 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
             );
           })}
         </nav>
-
-        {/* Footer Actions: Chris Validation Points */}
-        <div className="sidebar-footer p-3 border-t border-slate-100 space-y-2 bg-slate-50/70">
-          <button
-            onClick={onOpenValidationModal}
-            className={`sidebar-footer-btn-chris w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium border border-slate-200 text-slate-700 hover:bg-slate-100 transition-colors ${
-              effectiveExpanded ? 'justify-start' : 'justify-center'
-            }`}
-            title="Puntos pendientes de validación con Chris"
-          >
-            <HelpCircle className="sidebar-footer-icon-chris w-4 h-4 text-sky-500 shrink-0" />
-            {effectiveExpanded && <span className="truncate">Pendientes con Chris (Sec. 13)</span>}
-          </button>
-        </div>
       </aside>
     </>
   );

@@ -189,50 +189,53 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
     setFormError('');
   };
 
-  // Sample import batch loader
-  const handleLoadSampleBatch = () => {
-    const existingCedulas = new Set(clients.map((c) => c.cedula.toLowerCase().trim()));
-    const sampleBatch = [
-      {
-        cedula: '1789401928',
-        nombres: 'Andrea Nicole',
-        apellidos: 'Vargas Albornoz',
-        telefono: '+593 99 192 8374',
-        correo: 'andrea.vargas@clearminds.com',
-        notas: 'Importado de lista de aspirantes Móviles Nivel 1',
-        isDuplicate: existingCedulas.has('1789401928'),
-      },
-      {
-        cedula: '1792837465',
-        nombres: 'Esteban Darío',
-        apellidos: 'Montenegro Rosero',
-        telefono: '+593 98 482 9102',
-        correo: 'esteban.montenegro@clearminds.com',
-        notas: 'Ex-alumno con código de referido',
-        isDuplicate: existingCedulas.has('1792837465'),
-      },
-      {
-        cedula: '1718293041',
-        nombres: 'Carlos Repetido',
-        apellidos: 'Mendoza Error',
-        telefono: '+593 98 000 0000',
-        correo: 'carlos.dup@clearminds.com',
-        notas: 'Registro repetido de prueba',
-        isDuplicate: true,
-      },
-      {
-        cedula: '1776543210',
-        nombres: 'Gabriela Belén',
-        apellidos: 'Zurita Montero',
-        telefono: '+593 96 384 7561',
-        correo: 'gabriela.zurita@clearminds.com',
-        notas: 'Interesada en beca institucional',
-        isDuplicate: existingCedulas.has('1776543210'),
-      },
-    ];
+  // Real CSV file importer
+  const handleFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    setPreviewData(sampleBatch);
-    setImportSampleLoaded(true);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      if (!content) return;
+
+      const lines = content.split(/\r?\n/).filter((l) => l.trim().length > 0);
+      if (lines.length === 0) return;
+
+      const existingCedulas = new Set(clients.map((c) => c.cedula.toLowerCase().trim()));
+      const startIndex = lines[0].toLowerCase().includes('cedula') || lines[0].toLowerCase().includes('cédula') ? 1 : 0;
+      const parsed: Array<{
+        cedula: string;
+        nombres: string;
+        apellidos: string;
+        telefono: string;
+        correo: string;
+        notas: string;
+        isDuplicate: boolean;
+      }> = [];
+
+      for (let i = startIndex; i < lines.length; i++) {
+        const parts = lines[i].split(/[,;\t]/).map((p) => p.trim());
+        if (parts.length >= 2 && parts[0]) {
+          const ced = parts[0];
+          parsed.push({
+            cedula: ced,
+            nombres: parts[1] || '',
+            apellidos: parts[2] || '',
+            telefono: parts[3] || '',
+            correo: parts[4] || '',
+            notas: parts[5] || 'Importado vía archivo',
+            isDuplicate: existingCedulas.has(ced.toLowerCase()),
+          });
+        }
+      }
+
+      if (parsed.length > 0) {
+        setPreviewData(parsed);
+        setImportSampleLoaded(true);
+      }
+    };
+    reader.readAsText(file);
   };
 
   const handleConfirmImport = () => {
@@ -627,13 +630,16 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
                     </p>
                   </div>
                   <div className="pt-2 flex justify-center gap-3">
-                    <button
-                      onClick={handleLoadSampleBatch}
-                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold shadow-xs transition-colors flex items-center gap-2"
-                    >
+                    <label className="cursor-pointer px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold shadow-xs transition-colors flex items-center gap-2">
                       <Upload className="w-4 h-4" />
-                      Cargar Archivo de Muestra (4 Alumnos)
-                    </button>
+                      <span>Seleccionar Archivo CSV de Clientes</span>
+                      <input
+                        type="file"
+                        accept=".csv,.txt"
+                        className="hidden"
+                        onChange={handleFileImport}
+                      />
+                    </label>
                   </div>
                 </div>
               ) : (
