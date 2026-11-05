@@ -432,7 +432,7 @@ export const InvoicesView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Archivo PDF Demo</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Archivo PDF Factura</label>
                   <input
                     type="text"
                     placeholder="Factura_001_DianaTorres.pdf"

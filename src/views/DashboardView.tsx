@@ -108,26 +108,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* Simulation Banner Notice */}
-      <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-sky-500 text-white flex items-center justify-center shrink-0 shadow-xs">
-            <TrendingUp className="w-4 h-4" />
-          </div>
-          <p className="text-xs text-slate-800 leading-relaxed">
-            <strong>Prototipo Funcional de Demostración:</strong> Todos los datos, clientes, pagos, comprobantes
-            y conciliaciones están precargados y se recalculan en tiempo real con persistencia local.
-          </p>
-        </div>
-        <button
-          onClick={onOpenValidationModal}
-          className="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-900 border border-slate-300 rounded-xl text-xs font-semibold shrink-0 transition-colors flex items-center gap-1.5 self-start sm:self-auto"
-        >
-          <HelpCircle className="w-3.5 h-3.5 text-sky-600" />
-          <span>Ver temas pendientes con Chris</span>
-        </button>
-      </div>
-
       {/* KPI Cards Strip */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* KPI 1: Cartera Pendiente */}
@@ -214,7 +194,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <span>{unassignedMovementsCount}</span>
               <span className="text-xs font-normal text-slate-500">movimientos</span>
             </div>
-            <p className="text-[11px] text-slate-500 mt-1">Extractos bancarios demo</p>
+            <p className="text-[11px] text-slate-500 mt-1">Extractos bancarios registrados</p>
           </div>
         </div>
 

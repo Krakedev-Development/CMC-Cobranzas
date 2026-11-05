@@ -546,7 +546,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
       return;
     }
     const created = addClient({
-      cedula: `${cedula} (Demo)`,
+      cedula: cedula,
       nombres: quickClient.nombres.trim(),
       apellidos: quickClient.apellidos.trim(),
       telefono: quickClient.telefono.trim(),
@@ -3204,7 +3204,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                           Contacto:
                         </span>
                         <span className="text-slate-700 text-xs block">
-                          Correo: {cl?.correo || 'correo@demo.edu.ec'}
+                          Correo: {cl?.correo || 'Sin correo registrado'}
                         </span>
                         <span className="text-slate-700 text-xs block">
                           Teléfono: {cl?.telefono || '+593 99 876 5432'}

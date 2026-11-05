@@ -1258,7 +1258,7 @@ export const ReconciliationView: React.FC = () => {
                 title="Cargar automáticamente un extracto de prueba para validar el flujo"
               >
                 <Sparkles className="w-4 h-4 text-sky-600" />
-                <span>Cargar Extracto Demo (Muestra)</span>
+                <span>Cargar Extracto Bancario de Muestra</span>
               </button>
 
               <div className="flex items-center gap-2">

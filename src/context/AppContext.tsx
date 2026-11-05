@@ -218,13 +218,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return users.find((u) => u.id === currentUserId || u.username === currentUserId) || users[0];
   }, [users, currentUserId]);
 
-  // Cargar usuarios reales desde el Backend (PostgreSQL) si está disponible
+  // Sincronización completa con el Backend (PostgreSQL) si está disponible
   useEffect(() => {
-    async function syncBackendUsers() {
+    async function syncBackendData() {
       try {
-        const res = await api.getUsers({ limit: 100 });
-        if (res && res.items && res.items.length > 0) {
-          const backendMapped: DemoUser[] = res.items.map((bu) => {
+        // 1. Usuarios
+        const usersRes = await api.getUsers({ limit: 100 }).catch(() => null);
+        if (usersRes?.items?.length) {
+          const backendMapped: DemoUser[] = usersRes.items.map((bu) => {
             const perfil = bu.rol === 'ADMIN' ? 'Administrador'
               : bu.rol === 'SUPERVISOR' ? 'Supervisor'
               : bu.rol === 'AUDITOR' ? 'Auditor'
@@ -246,11 +247,98 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           });
           setUsers(backendMapped);
         }
+
+        // 2. Clientes
+        const clientsRes = await api.getClients({ take: 200 }).catch(() => null);
+        if (clientsRes?.items?.length) {
+          const mappedClients: Client[] = clientsRes.items.map((c) => ({
+            id: c.id,
+            cedula: c.cedula,
+            nombres: c.nombres,
+            apellidos: c.apellidos,
+            telefono: c.telefono,
+            correo: c.correo,
+            estado: c.estado.toLowerCase() as 'activo' | 'inactivo',
+            notas: c.notas || '',
+            createdAt: c.createdAt,
+            createdBy: 'backend',
+            updatedAt: c.updatedAt,
+            updatedBy: 'backend',
+          }));
+          setClients(mappedClients);
+        }
+
+        // 3. Productos
+        const productsRes = await api.getProducts({ take: 200 }).catch(() => null);
+        if (productsRes?.items?.length) {
+          const mappedProducts: Product[] = productsRes.items.map((p) => ({
+            id: p.id,
+            nombre: p.nombre,
+            descripcion: p.descripcion,
+            precioNominal: p.precioNominal,
+            estado: p.estado.toLowerCase() as 'activo' | 'inactivo',
+            createdAt: p.createdAt,
+            createdBy: 'backend',
+            updatedAt: p.updatedAt,
+            updatedBy: 'backend',
+          }));
+          setProducts(mappedProducts);
+        }
+
+        // 4. Deudas
+        const debtsRes = await api.getDebts({ take: 200 }).catch(() => null);
+        if (debtsRes?.items?.length) {
+          const mappedDebts: Debt[] = debtsRes.items.map((d) => ({
+            id: d.id,
+            clienteId: d.clienteId,
+            productoId: d.productoId,
+            fechaAdquisicion: d.fechaAdquisicion,
+            precioNominalAplicado: d.precioNominalAplicado,
+            precioAcordado: d.precioAcordado,
+            saldoInicial: d.saldoInicial,
+            metodoPago: (d.metodoPago?.toLowerCase() as PaymentMethod) || 'transferencia',
+            plazoMeses: d.plazoMeses || 1,
+            diaCorte: d.diaCorte || 15,
+            cuotas: d.cuotas || undefined,
+            observaciones: d.observaciones || undefined,
+            estado: d.estado.toLowerCase() as 'pendiente' | 'parcial' | 'pagada' | 'anulada',
+            createdAt: d.createdAt,
+            createdBy: 'backend',
+            updatedAt: d.updatedAt,
+            updatedBy: 'backend',
+          }));
+          setDebts(mappedDebts);
+        }
+
+        // 5. Pagos
+        const paymentsRes = await api.getPayments().catch(() => null);
+        if (paymentsRes?.items?.length) {
+          const mappedPayments: Payment[] = paymentsRes.items.map((pay) => ({
+            id: pay.id,
+            deudaId: pay.deudaId,
+            clienteId: pay.clienteId,
+            monto: pay.monto,
+            fechaPago: pay.fechaPago,
+            metodo: (pay.metodo?.toLowerCase() as PaymentMethod) || 'transferencia',
+            bancoOrigen: pay.bancoOrigen || undefined,
+            numeroTransaccion: pay.numeroTransaccion || undefined,
+            referencia: pay.referencia || undefined,
+            comprobanteId: pay.comprobanteUrl || undefined,
+            estadoRegistro: (pay.estadoRegistro?.toLowerCase() as any) || 'registrado',
+            estadoConciliacion: (pay.estadoConciliacion?.toLowerCase() as any) || 'pendiente',
+            observaciones: pay.observaciones || undefined,
+            createdAt: pay.createdAt,
+            createdBy: 'backend',
+            updatedAt: pay.updatedAt,
+            updatedBy: 'backend',
+          }));
+          setPayments(mappedPayments);
+        }
       } catch (e) {
-        console.warn('Backend no disponible para sincronización de usuarios:', e);
+        console.warn('Sincronización con backend completada con advertencias:', e);
       }
     }
-    syncBackendUsers();
+    syncBackendData();
   }, []);
 
   // Sync state to LocalStorage
@@ -408,6 +496,21 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       nombres: `${newClient.nombres} ${newClient.apellidos}`,
       telefono: newClient.telefono,
     }, 'Creación individual de cliente');
+
+    api.createClient({
+      cedula: data.cedula,
+      nombres: data.nombres,
+      apellidos: data.apellidos,
+      telefono: data.telefono,
+      correo: data.correo,
+      estado: data.estado === 'activo' ? 'ACTIVO' : 'INACTIVO',
+      notas: data.notas,
+    }).then((created) => {
+      if (created?.id) {
+        setClients((prev) => prev.map((c) => (c.id === newId ? { ...c, id: created.id } : c)));
+      }
+    }).catch((e) => console.warn('Error sincronizando cliente con backend:', e));
+
     return newClient;
   };
 
@@ -419,6 +522,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     setClients((prev) => prev.map((c) => (c.id === id ? updated : c)));
     logAudit('clientes', 'modificar', 'cliente', id, existing, updated, 'Actualización de datos de cliente');
+
+    api.updateClient(id, {
+      ...(data.cedula && { cedula: data.cedula }),
+      ...(data.nombres && { nombres: data.nombres }),
+      ...(data.apellidos && { apellidos: data.apellidos }),
+      ...(data.telefono && { telefono: data.telefono }),
+      ...(data.correo && { correo: data.correo }),
+      ...(data.estado && { estado: data.estado === 'activo' ? 'ACTIVO' : 'INACTIVO' }),
+      ...(data.notas !== undefined && { notas: data.notas }),
+    }).catch((e) => console.warn('Error actualizando cliente en backend:', e));
   };
 
   const toggleClientStatus = (id: string) => {
@@ -488,6 +601,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       nombre: newProduct.nombre,
       precioNominal: newProduct.precioNominal,
     }, 'Creación de nuevo producto');
+
+    api.createProduct({
+      nombre: data.nombre,
+      descripcion: data.descripcion,
+      precioNominal: data.precioNominal,
+      estado: data.estado === 'activo' ? 'ACTIVO' : 'INACTIVO',
+    }).then((created) => {
+      if (created?.id) {
+        setProducts((prev) => prev.map((p) => (p.id === newId ? { ...p, id: created.id } : p)));
+      }
+    }).catch((e) => console.warn('Error sincronizando producto con backend:', e));
+
     return newProduct;
   };
 
@@ -498,6 +623,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const updated = { ...existing, ...data, updatedAt: now, updatedBy: currentUser.username };
     setProducts((prev) => prev.map((p) => (p.id === id ? updated : p)));
     logAudit('productos', 'modificar', 'producto', id, existing, updated, 'Modificación de producto');
+
+    api.updateProduct(id, {
+      ...(data.nombre && { nombre: data.nombre }),
+      ...(data.descripcion && { descripcion: data.descripcion }),
+      ...(data.precioNominal && { precioNominal: data.precioNominal }),
+      ...(data.estado && { estado: data.estado === 'activo' ? 'ACTIVO' : 'INACTIVO' }),
+    }).catch((e) => console.warn('Error actualizando producto en backend:', e));
   };
 
   // --- FINANCIAL CALCULATION ENGINE ---
@@ -625,6 +757,22 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       },
       'Asociación directa de producto adquirido (no genera factura contable automática)'
     );
+
+    api.createDebt({
+      clienteId: data.clienteId,
+      productoId: data.productoId,
+      fechaAdquisicion: data.fechaAdquisicion,
+      precioNominalAplicado: data.precioNominalAplicado,
+      precioAcordado: data.precioAcordado,
+      metodoPago: data.metodoPago ? data.metodoPago.toUpperCase() : undefined,
+      plazoMeses: data.plazoMeses,
+      diaCorte: data.diaCorte,
+      observaciones: data.observaciones,
+    }).then((created) => {
+      if (created?.id) {
+        setDebts((prev) => prev.map((d) => (d.id === newId ? { ...d, id: created.id } : d)));
+      }
+    }).catch((e) => console.warn('Error sincronizando deuda con backend:', e));
 
     return newDebt;
   };
@@ -773,6 +921,22 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       },
       'Registro de pago con comprobante adjunto y actualización de saldo'
     );
+
+    api.createPayment({
+      deudaId: paymentData.deudaId,
+      clienteId: paymentData.clienteId,
+      monto: paymentData.monto,
+      fechaPago: paymentData.fechaPago,
+      metodo: paymentData.metodo.toUpperCase(),
+      bancoOrigen: paymentData.bancoOrigen,
+      numeroTransaccion: paymentData.numeroTransaccion,
+      referencia: paymentData.referencia,
+      observaciones: paymentData.observaciones,
+    }).then((created) => {
+      if (created?.id) {
+        setPayments((prev) => prev.map((p) => (p.id === newPaymentId ? { ...p, id: created.id } : p)));
+      }
+    }).catch((e) => console.warn('Error sincronizando pago con backend:', e));
 
     return newPayment;
   };

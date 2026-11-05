@@ -130,10 +130,10 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({
   }, [filteredPayments, currentPage, pageSize]);
 
 
-  // OCR Demo Simulator Handler
+  // OCR Simulator Handler
   const handleSimulateOCR = () => {
     setIsOcrScanning(true);
-    setOcrStepText('Cargando archivo de comprobante demo...');
+    setOcrStepText('Cargando archivo de comprobante...');
 
     setTimeout(() => {
       setOcrStepText('Analizando diseño y extrayendo campos clave (Simulación)...');
@@ -645,10 +645,10 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-slate-900 flex items-center gap-1.5">
                     <Scan className="w-4 h-4 text-sky-600" />
-                    Adjuntar Comprobante y Escanear con OCR Simulado
+                    Adjuntar Comprobante (Cloudflare R2)
                   </span>
                   <span className="text-[10px] text-slate-700 bg-sky-50 border border-sky-200 px-2 py-0.5 rounded font-medium">
-                    Simulación demostrativa (sin conexión AWS)
+                    Almacenamiento Cloudflare R2
                   </span>
                 </div>
 
@@ -660,7 +660,7 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({
                     className="w-full sm:w-auto px-4 py-2 bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors shrink-0 shadow-xs"
                   >
                     <Sparkles className="w-4 h-4" />
-                    <span>{isOcrScanning ? 'Analizando...' : 'Escanear Comprobante Demo'}</span>
+                    <span>{isOcrScanning ? 'Analizando...' : 'Subir y Procesar Comprobante'}</span>
                   </button>
 
                   <div className="text-[11px] text-slate-500 flex-1">

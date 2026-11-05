@@ -162,7 +162,7 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
       setEditingClient(null);
     } else {
       addClient({
-        cedula: `${formData.cedula.trim()} (Demo)`,
+        cedula: formData.cedula.trim(),
         nombres: formData.nombres.trim(),
         apellidos: formData.apellidos.trim(),
         telefono: formData.telefono.trim(),
@@ -191,14 +191,14 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
 
   // Sample import batch loader
   const handleLoadSampleBatch = () => {
-    const existingCedulas = new Set(clients.map((c) => c.cedula.toLowerCase().replace(' (demo)', '').trim()));
+    const existingCedulas = new Set(clients.map((c) => c.cedula.toLowerCase().trim()));
     const sampleBatch = [
       {
         cedula: '1789401928',
         nombres: 'Andrea Nicole',
         apellidos: 'Vargas Albornoz',
         telefono: '+593 99 192 8374',
-        correo: 'andrea.vargas.demo@ejemplo.ec',
+        correo: 'andrea.vargas@clearminds.com',
         notas: 'Importado de lista de aspirantes Móviles Nivel 1',
         isDuplicate: existingCedulas.has('1789401928'),
       },
@@ -207,16 +207,16 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
         nombres: 'Esteban Darío',
         apellidos: 'Montenegro Rosero',
         telefono: '+593 98 482 9102',
-        correo: 'esteban.montenegro.demo@ejemplo.ec',
+        correo: 'esteban.montenegro@clearminds.com',
         notas: 'Ex-alumno con código de referido',
         isDuplicate: existingCedulas.has('1792837465'),
       },
       {
-        cedula: '1718293041', // Duplicado de Carlos Mendoza para demostrar validación
+        cedula: '1718293041',
         nombres: 'Carlos Repetido',
         apellidos: 'Mendoza Error',
         telefono: '+593 98 000 0000',
-        correo: 'carlos.dup@ejemplo.ec',
+        correo: 'carlos.dup@clearminds.com',
         notas: 'Registro repetido de prueba',
         isDuplicate: true,
       },
@@ -225,7 +225,7 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
         nombres: 'Gabriela Belén',
         apellidos: 'Zurita Montero',
         telefono: '+593 96 384 7561',
-        correo: 'gabriela.zurita.demo@ejemplo.ec',
+        correo: 'gabriela.zurita@clearminds.com',
         notas: 'Interesada en beca institucional',
         isDuplicate: existingCedulas.has('1776543210'),
       },
@@ -240,7 +240,7 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
     if (validToImport.length > 0) {
       importClientsBulk(
         validToImport.map((v) => ({
-          cedula: `${v.cedula} (Demo)`,
+          cedula: v.cedula,
           nombres: v.nombres,
           apellidos: v.apellidos,
           telefono: v.telefono,
@@ -344,7 +344,7 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
             Mostrando <strong>{filteredClients.length}</strong> clientes registrados
           </div>
           <span className="text-[11px] text-slate-400">
-            Cédulas ficticias etiquetadas para demostración
+            Directorio de Clientes CMC
           </span>
         </div>
 
@@ -619,7 +619,7 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
                   </div>
                   <div>
                     <h3 className="font-bold text-slate-900 text-sm">
-                      Subir archivo de clientes o usar plantilla demo
+                      Subir archivo de clientes o usar plantilla
                     </h3>
                     <p className="text-slate-500 mt-1 max-w-sm mx-auto">
                       Columnas esperadas: <code>Cédula, Nombres, Apellidos, Teléfono, Correo, Notas</code>.
