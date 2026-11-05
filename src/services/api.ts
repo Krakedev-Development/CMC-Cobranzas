@@ -135,7 +135,17 @@ export const api = {
   },
 
   async getMe() {
-    return request<any>('/auth/me');
+    return request<BackendUser>('/auth/me');
+  },
+
+  async logout() {
+    try {
+      await request('/auth/logout', { method: 'POST' });
+    } catch {
+      // Ignorar fallo de red en logout
+    } finally {
+      clearStoredToken();
+    }
   },
 
   // Gestión de Usuarios

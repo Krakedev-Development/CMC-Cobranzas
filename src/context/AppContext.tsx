@@ -30,7 +30,7 @@ import {
   INITIAL_AUDIT_LOGS,
   createFullPermissionSet,
 } from '../data/mockData';
-import { api } from '../services/api';
+import { api, getStoredToken, clearStoredToken } from '../services/api';
 
 const STORAGE_KEY = 'cobranzas_conciliacion_proto_v1';
 
@@ -70,6 +70,10 @@ interface AppContextType {
   currentUser: DemoUser;
   isNavPinned: boolean;
   setIsNavPinned: (pinned: boolean) => void;
+  isAuthenticated: boolean;
+  isLoadingAuth: boolean;
+  login: (usernameOrEmail: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
 
   // Actions
   setCurrentUserId: (id: string) => void;
@@ -218,128 +222,177 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return users.find((u) => u.id === currentUserId || u.username === currentUserId) || users[0];
   }, [users, currentUserId]);
 
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => !!getStoredToken());
+  const [isLoadingAuth, setIsLoadingAuth] = useState<boolean>(true);
+
   // Sincronización completa con el Backend (PostgreSQL) si está disponible
+  const syncBackendData = async () => {
+    try {
+      // 1. Usuarios
+      const usersRes = await api.getUsers({ limit: 100 }).catch(() => null);
+      if (usersRes?.items?.length) {
+        const backendMapped: DemoUser[] = usersRes.items.map((bu) => {
+          const perfil = bu.rol === 'ADMIN' ? 'Administrador'
+            : bu.rol === 'SUPERVISOR' ? 'Supervisor'
+            : bu.rol === 'AUDITOR' ? 'Auditor'
+            : 'Cobranzas';
+
+          return {
+            id: bu.id,
+            username: bu.username,
+            nombre: bu.nombre,
+            cargo: bu.cargo,
+            estado: bu.estado.toLowerCase() as 'activo' | 'inactivo',
+            perfilBase: perfil,
+            permisos: (bu.permisos as UserPermissions) || createFullPermissionSet(),
+            createdAt: bu.createdAt,
+            createdBy: 'backend',
+            updatedAt: bu.updatedAt,
+            updatedBy: 'backend',
+          };
+        });
+        setUsers(backendMapped);
+      }
+
+      // 2. Clientes
+      const clientsRes = await api.getClients({ take: 200 }).catch(() => null);
+      if (clientsRes?.items) {
+        const mappedClients: Client[] = clientsRes.items.map((c) => ({
+          id: c.id,
+          cedula: c.cedula,
+          nombres: c.nombres,
+          apellidos: c.apellidos,
+          telefono: c.telefono,
+          correo: c.correo,
+          estado: c.estado.toLowerCase() as 'activo' | 'inactivo',
+          notas: c.notas || '',
+          createdAt: c.createdAt,
+          createdBy: 'backend',
+          updatedAt: c.updatedAt,
+          updatedBy: 'backend',
+        }));
+        setClients(mappedClients);
+      }
+
+      // 3. Productos
+      const productsRes = await api.getProducts({ take: 200 }).catch(() => null);
+      if (productsRes?.items) {
+        const mappedProducts: Product[] = productsRes.items.map((p) => ({
+          id: p.id,
+          nombre: p.nombre,
+          descripcion: p.descripcion,
+          precioNominal: p.precioNominal,
+          estado: p.estado.toLowerCase() as 'activo' | 'inactivo',
+          createdAt: p.createdAt,
+          createdBy: 'backend',
+          updatedAt: p.updatedAt,
+          updatedBy: 'backend',
+        }));
+        setProducts(mappedProducts);
+      }
+
+      // 4. Deudas
+      const debtsRes = await api.getDebts({ take: 200 }).catch(() => null);
+      if (debtsRes?.items) {
+        const mappedDebts: Debt[] = debtsRes.items.map((d) => ({
+          id: d.id,
+          clienteId: d.clienteId,
+          productoId: d.productoId,
+          fechaAdquisicion: d.fechaAdquisicion,
+          precioNominalAplicado: d.precioNominalAplicado,
+          precioAcordado: d.precioAcordado,
+          saldoInicial: d.saldoInicial,
+          metodoPago: (d.metodoPago?.toLowerCase() as PaymentMethod) || 'transferencia',
+          plazoMeses: d.plazoMeses || 1,
+          diaCorte: d.diaCorte || 15,
+          cuotas: d.cuotas || undefined,
+          observaciones: d.observaciones || undefined,
+          estado: d.estado.toLowerCase() as 'pendiente' | 'parcial' | 'pagada' | 'anulada',
+          createdAt: d.createdAt,
+          createdBy: 'backend',
+          updatedAt: d.updatedAt,
+          updatedBy: 'backend',
+        }));
+        setDebts(mappedDebts);
+      }
+
+      // 5. Pagos
+      const paymentsRes = await api.getPayments().catch(() => null);
+      if (paymentsRes?.items) {
+        const mappedPayments: Payment[] = paymentsRes.items.map((pay) => ({
+          id: pay.id,
+          deudaId: pay.deudaId,
+          clienteId: pay.clienteId,
+          monto: pay.monto,
+          fechaPago: pay.fechaPago,
+          metodo: (pay.metodo?.toLowerCase() as PaymentMethod) || 'transferencia',
+          bancoOrigen: pay.bancoOrigen || undefined,
+          numeroTransaccion: pay.numeroTransaccion || undefined,
+          referencia: pay.referencia || undefined,
+          comprobanteId: pay.comprobanteUrl || undefined,
+          estadoRegistro: (pay.estadoRegistro?.toLowerCase() as any) || 'registrado',
+          estadoConciliacion: (pay.estadoConciliacion?.toLowerCase() as any) || 'pendiente',
+          observaciones: pay.observaciones || undefined,
+          createdAt: pay.createdAt,
+          createdBy: 'backend',
+          updatedAt: pay.updatedAt,
+          updatedBy: 'backend',
+        }));
+        setPayments(mappedPayments);
+      }
+    } catch (e) {
+      console.warn('Sincronización con backend completada con advertencias:', e);
+    }
+  };
+
+  // Verificación de sesión al montar
   useEffect(() => {
-    async function syncBackendData() {
+    async function checkSessionAndSync() {
+      const token = getStoredToken();
+      if (!token) {
+        setIsAuthenticated(false);
+        setIsLoadingAuth(false);
+        return;
+      }
+
       try {
-        // 1. Usuarios
-        const usersRes = await api.getUsers({ limit: 100 }).catch(() => null);
-        if (usersRes?.items?.length) {
-          const backendMapped: DemoUser[] = usersRes.items.map((bu) => {
-            const perfil = bu.rol === 'ADMIN' ? 'Administrador'
-              : bu.rol === 'SUPERVISOR' ? 'Supervisor'
-              : bu.rol === 'AUDITOR' ? 'Auditor'
-              : 'Cobranzas';
-
-            return {
-              id: bu.id,
-              username: bu.username,
-              nombre: bu.nombre,
-              cargo: bu.cargo,
-              estado: bu.estado.toLowerCase() as 'activo' | 'inactivo',
-              perfilBase: perfil,
-              permisos: (bu.permisos as UserPermissions) || createFullPermissionSet(),
-              createdAt: bu.createdAt,
-              createdBy: 'backend',
-              updatedAt: bu.updatedAt,
-              updatedBy: 'backend',
-            };
-          });
-          setUsers(backendMapped);
+        const me = await api.getMe();
+        if (me && (me.username || me.id)) {
+          setIsAuthenticated(true);
+          setCurrentUserIdState(me.username || me.id);
+          await syncBackendData();
+        } else {
+          clearStoredToken();
+          setIsAuthenticated(false);
         }
-
-        // 2. Clientes
-        const clientsRes = await api.getClients({ take: 200 }).catch(() => null);
-        if (clientsRes?.items?.length) {
-          const mappedClients: Client[] = clientsRes.items.map((c) => ({
-            id: c.id,
-            cedula: c.cedula,
-            nombres: c.nombres,
-            apellidos: c.apellidos,
-            telefono: c.telefono,
-            correo: c.correo,
-            estado: c.estado.toLowerCase() as 'activo' | 'inactivo',
-            notas: c.notas || '',
-            createdAt: c.createdAt,
-            createdBy: 'backend',
-            updatedAt: c.updatedAt,
-            updatedBy: 'backend',
-          }));
-          setClients(mappedClients);
-        }
-
-        // 3. Productos
-        const productsRes = await api.getProducts({ take: 200 }).catch(() => null);
-        if (productsRes?.items?.length) {
-          const mappedProducts: Product[] = productsRes.items.map((p) => ({
-            id: p.id,
-            nombre: p.nombre,
-            descripcion: p.descripcion,
-            precioNominal: p.precioNominal,
-            estado: p.estado.toLowerCase() as 'activo' | 'inactivo',
-            createdAt: p.createdAt,
-            createdBy: 'backend',
-            updatedAt: p.updatedAt,
-            updatedBy: 'backend',
-          }));
-          setProducts(mappedProducts);
-        }
-
-        // 4. Deudas
-        const debtsRes = await api.getDebts({ take: 200 }).catch(() => null);
-        if (debtsRes?.items?.length) {
-          const mappedDebts: Debt[] = debtsRes.items.map((d) => ({
-            id: d.id,
-            clienteId: d.clienteId,
-            productoId: d.productoId,
-            fechaAdquisicion: d.fechaAdquisicion,
-            precioNominalAplicado: d.precioNominalAplicado,
-            precioAcordado: d.precioAcordado,
-            saldoInicial: d.saldoInicial,
-            metodoPago: (d.metodoPago?.toLowerCase() as PaymentMethod) || 'transferencia',
-            plazoMeses: d.plazoMeses || 1,
-            diaCorte: d.diaCorte || 15,
-            cuotas: d.cuotas || undefined,
-            observaciones: d.observaciones || undefined,
-            estado: d.estado.toLowerCase() as 'pendiente' | 'parcial' | 'pagada' | 'anulada',
-            createdAt: d.createdAt,
-            createdBy: 'backend',
-            updatedAt: d.updatedAt,
-            updatedBy: 'backend',
-          }));
-          setDebts(mappedDebts);
-        }
-
-        // 5. Pagos
-        const paymentsRes = await api.getPayments().catch(() => null);
-        if (paymentsRes?.items?.length) {
-          const mappedPayments: Payment[] = paymentsRes.items.map((pay) => ({
-            id: pay.id,
-            deudaId: pay.deudaId,
-            clienteId: pay.clienteId,
-            monto: pay.monto,
-            fechaPago: pay.fechaPago,
-            metodo: (pay.metodo?.toLowerCase() as PaymentMethod) || 'transferencia',
-            bancoOrigen: pay.bancoOrigen || undefined,
-            numeroTransaccion: pay.numeroTransaccion || undefined,
-            referencia: pay.referencia || undefined,
-            comprobanteId: pay.comprobanteUrl || undefined,
-            estadoRegistro: (pay.estadoRegistro?.toLowerCase() as any) || 'registrado',
-            estadoConciliacion: (pay.estadoConciliacion?.toLowerCase() as any) || 'pendiente',
-            observaciones: pay.observaciones || undefined,
-            createdAt: pay.createdAt,
-            createdBy: 'backend',
-            updatedAt: pay.updatedAt,
-            updatedBy: 'backend',
-          }));
-          setPayments(mappedPayments);
-        }
-      } catch (e) {
-        console.warn('Sincronización con backend completada con advertencias:', e);
+      } catch {
+        clearStoredToken();
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoadingAuth(false);
       }
     }
-    syncBackendData();
+
+    checkSessionAndSync();
   }, []);
+
+  const login = async (usernameOrEmail: string, password: string) => {
+    const res = await api.login(usernameOrEmail, password);
+    if (res && res.accessToken) {
+      setIsAuthenticated(true);
+      if (res.user) {
+        setCurrentUserIdState(res.user.username || res.user.id);
+      }
+      await syncBackendData();
+    }
+  };
+
+  const logout = async () => {
+    await api.logout();
+    clearStoredToken();
+    setIsAuthenticated(false);
+    setCurrentUserIdState('admin');
+  };
 
   // Sync state to LocalStorage
   useEffect(() => {
@@ -1477,6 +1530,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         currentUser,
         isNavPinned,
         setIsNavPinned,
+        isAuthenticated,
+        isLoadingAuth,
+        login,
+        logout,
         setCurrentUserId,
         resetToDemoData,
         hasPermission,

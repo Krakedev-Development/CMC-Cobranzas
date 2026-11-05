@@ -14,12 +14,13 @@ import { ReportsView } from './views/ReportsView';
 import { UsersPermissionsView } from './views/UsersPermissionsView';
 import { AuditView } from './views/AuditView';
 import { RestrictedAccessView } from './components/common/RestrictedAccessView';
+import { LoginView } from './views/LoginView';
 import { ValidationPendingModal } from './components/modals/ValidationPendingModal';
 import { ResetDemoModal } from './components/modals/ResetDemoModal';
 import { VoucherPreviewModal } from './components/modals/VoucherPreviewModal';
 
 const AppContent: React.FC = () => {
-  const { hasPermission, getVoucherById, clients, isNavPinned } = useApp();
+  const { hasPermission, getVoucherById, clients, isNavPinned, isAuthenticated, isLoadingAuth } = useApp();
 
   const [currentModule, setCurrentModule] = useState<ModuleName>('dashboard');
   const [isNavExpanded, setIsNavExpanded] = useState<boolean>(false);
@@ -76,6 +77,21 @@ const AppContent: React.FC = () => {
 
   // Effective nav expanded state (pinned or hovered)
   const effectiveExpanded = isNavPinned || isNavExpanded;
+
+  if (isLoadingAuth) {
+    return (
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-slate-900 text-slate-100">
+        <div className="w-10 h-10 border-4 border-sky-500 border-t-transparent rounded-full animate-spin mb-4" />
+        <p className="text-xs font-semibold tracking-wider uppercase text-slate-400">
+          Verificando sesión segura CMC Cobranzas...
+        </p>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <LoginView />;
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col relative overflow-x-hidden">

@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { ModuleName } from '../../types';
 import { useApp } from '../../context/AppContext';
-import { Shield, Sparkles, ChevronRight, User, HelpCircle, RotateCcw, Bell, Clock, AlertTriangle, ArrowRight, Sun, Moon } from 'lucide-react';
+import { Shield, Sparkles, ChevronRight, User, HelpCircle, RotateCcw, Bell, Clock, AlertTriangle, ArrowRight, Sun, Moon, LogOut } from 'lucide-react';
 
 interface TopHeaderProps {
   currentModule: ModuleName;
@@ -65,7 +65,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   isDark,
   onToggleTheme,
 }) => {
-  const { currentUser, debts, clients, products, getDebtFinancials } = useApp();
+  const { currentUser, debts, clients, products, getDebtFinancials, logout } = useApp();
   const info = MODULE_TITLES[currentModule] || { title: 'Sistema de Cobranzas', subtitle: '' };
 
   const [isAlertsOpen, setIsAlertsOpen] = useState(false);
@@ -300,6 +300,14 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
               </span>
             </div>
           </div>
+
+          <button
+            onClick={logout}
+            className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition-colors cursor-pointer"
+            title="Cerrar Sesión"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </header>
