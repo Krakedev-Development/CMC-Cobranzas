@@ -5,8 +5,6 @@ import { Shield, Sparkles, ChevronRight, User, HelpCircle, RotateCcw, Bell, Cloc
 
 interface TopHeaderProps {
   currentModule: ModuleName;
-  onOpenValidationModal: () => void;
-  onOpenResetModal: () => void;
   onNavigateToModule?: (module: ModuleName) => void;
   isExpanded: boolean;
   isDark: boolean;
@@ -58,8 +56,6 @@ const MODULE_TITLES: Record<ModuleName, { title: string; subtitle: string }> = {
 
 export const TopHeader: React.FC<TopHeaderProps> = ({
   currentModule,
-  onOpenValidationModal,
-  onOpenResetModal,
   onNavigateToModule,
   isExpanded,
   isDark,

@@ -22,8 +22,6 @@ import { useApp } from '../../context/AppContext';
 interface SidebarNavProps {
   currentModule: ModuleName;
   onSelectModule: (module: ModuleName) => void;
-  onOpenValidationModal: () => void;
-  onOpenResetModal: () => void;
   isExpanded: boolean;
   setIsExpanded: (expanded: boolean) => void;
 }
@@ -31,8 +29,6 @@ interface SidebarNavProps {
 export const SidebarNav: React.FC<SidebarNavProps> = ({
   currentModule,
   onSelectModule,
-  onOpenValidationModal,
-  onOpenResetModal,
   isExpanded,
   setIsExpanded,
 }) => {

@@ -562,7 +562,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
       return;
     }
 
-    if (clients.some((c) => c.cedula.toLowerCase().replace(' (demo)', '').trim() === cedula.toLowerCase())) {
+    if (clients.some((c) => c.cedula.toLowerCase().trim() === cedula.toLowerCase())) {
       setQuickClientError('Ya existe un cliente con esa cédula.');
       return;
     }
@@ -617,35 +617,6 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     e.target.value = '';
   };
 
-  const handleSimulateInlineOCR = () => {
-    const targetDebt = debtToPay || debts.find((d) => d.id === payModalDebtId);
-    if (!targetDebt) return;
-    setPayUploadedFileName('Comprobante_Transferencia_Pichincha.pdf');
-    setIsPayOcrScanning(true);
-    setTimeout(() => {
-      const fin = getDebtFinancials(targetDebt.id);
-      const remaining = fin?.saldoPendiente || 100;
-      const simulatedAmount = Math.min(remaining, remaining > 200 ? 200 : remaining);
-      const randomTx = `TX-${Math.floor(100000 + Math.random() * 900000)}`;
-      const client = clients.find((c) => c.id === targetDebt.clienteId);
-
-      const ocr: ExtractedData = {
-        banco: payBank,
-        numeroTransaccion: randomTx,
-        monto: simulatedAmount,
-        fecha: new Date().toISOString().slice(0, 10),
-        ordenante: client ? `${client.nombres} ${client.apellidos}`.toUpperCase() : 'ORDENANTE ALUMNO',
-        referencia: `Matrícula educación ${client?.apellidos || ''}`,
-        confianza: 98,
-      };
-
-      setPayOcrExtracted(ocr);
-      setPayAmount(simulatedAmount.toFixed(2));
-      setPayTxNumber(randomTx);
-      setPayRef(ocr.referencia || '');
-      setIsPayOcrScanning(false);
-    }, 600);
-  };
 
   const handleRegisterPaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -192,7 +192,7 @@ export const AuditView: React.FC = () => {
               { value: 'deshacer_conciliacion', label: 'Deshacer Conciliación' },
               { value: 'cambiar_permisos', label: 'Cambio de Permisos' },
               { value: 'importar', label: 'Importación' },
-              { value: 'restaurar_demo', label: 'Restablecer Datos' },
+              { value: 'limpiar_cache', label: 'Sincronización del Sistema' },
             ]}
             value={selectedActionFilter}
             onChange={(val) => {

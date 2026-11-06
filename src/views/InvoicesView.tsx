@@ -141,9 +141,8 @@ export const InvoicesView: React.FC = () => {
       <div className="p-3.5 bg-slate-100 border border-slate-200 rounded-2xl flex items-start gap-2.5 text-xs text-slate-700">
         <Building className="w-4 h-4 text-sky-600 shrink-0 mt-0.5" />
         <div>
-          <strong>Regla Documental (RF-06):</strong> En esta versión se registra la factura y se adjunta su archivo PDF físico o externo.
-          <strong> No se emite factura electrónica ni existe conexión con el SRI</strong> en este prototipo.
-          No se presenta ninguna factura como emitida automáticamente por el sistema.
+          <strong>Control Documental:</strong> En este módulo se registran y archivan las facturas vinculadas a las cuentas por cobrar.
+          La emisión tributaria oficial se gestiona a través del sistema de facturación electrónica de la empresa.
         </div>
       </div>
 

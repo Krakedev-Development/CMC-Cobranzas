@@ -15,8 +15,6 @@ import { UsersPermissionsView } from './views/UsersPermissionsView';
 import { AuditView } from './views/AuditView';
 import { RestrictedAccessView } from './components/common/RestrictedAccessView';
 import { LoginView } from './views/LoginView';
-import { ValidationPendingModal } from './components/modals/ValidationPendingModal';
-import { ResetDemoModal } from './components/modals/ResetDemoModal';
 import { VoucherPreviewModal } from './components/modals/VoucherPreviewModal';
 
 const AppContent: React.FC = () => {
@@ -36,10 +34,6 @@ const AppContent: React.FC = () => {
       // almacenamiento no disponible: el tema solo dura la sesion
     }
   }, [isDark]);
-
-  // Modals state
-  const [isValidationModalOpen, setIsValidationModalOpen] = useState<boolean>(false);
-  const [isResetModalOpen, setIsResetModalOpen] = useState<boolean>(false);
 
   // Cross-module voucher preview modal
   const [activeVoucherPayment, setActiveVoucherPayment] = useState<Payment | null>(null);
@@ -102,8 +96,6 @@ const AppContent: React.FC = () => {
       <SidebarNav
         currentModule={currentModule}
         onSelectModule={(mod) => setCurrentModule(mod)}
-        onOpenValidationModal={() => setIsValidationModalOpen(true)}
-        onOpenResetModal={() => setIsResetModalOpen(true)}
         isExpanded={isNavExpanded}
         setIsExpanded={setIsNavExpanded}
       />
@@ -120,8 +112,6 @@ const AppContent: React.FC = () => {
         {/* Contextual Top Header */}
         <TopHeader
           currentModule={currentModule}
-          onOpenValidationModal={() => setIsValidationModalOpen(true)}
-          onOpenResetModal={() => setIsResetModalOpen(true)}
           onNavigateToModule={(mod) => setCurrentModule(mod)}
           isExpanded={effectiveExpanded}
           isDark={isDark}
@@ -141,7 +131,6 @@ const AppContent: React.FC = () => {
                 <DashboardView
                   onNavigate={(mod) => setCurrentModule(mod)}
                   onViewVoucher={handleOpenVoucherModal}
-                  onOpenValidationModal={() => setIsValidationModalOpen(true)}
                 />
               )}
 
@@ -179,19 +168,7 @@ const AppContent: React.FC = () => {
       </div>
 
       {/* --- GLOBAL APPLICATION MODALS --- */}
-      {/* 1. Chris Business Decisions Modal (Section 13) */}
-      <ValidationPendingModal
-        isOpen={isValidationModalOpen}
-        onClose={() => setIsValidationModalOpen(false)}
-      />
-
-      {/* 2. Reset Demo Data Confirmation Modal */}
-      <ResetDemoModal
-        isOpen={isResetModalOpen}
-        onClose={() => setIsResetModalOpen(false)}
-      />
-
-      {/* 3. Voucher & OCR Document Preview Modal */}
+      {/* Voucher Document & Digital Receipt Preview Modal */}
       <VoucherPreviewModal
         isOpen={Boolean(activeVoucherPayment)}
         onClose={() => setActiveVoucherPayment(null)}

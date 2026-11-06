@@ -198,7 +198,7 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
   const handleOpenEdit = (c: Client) => {
     setEditingClient(c);
     setFormData({
-      cedula: c.cedula.replace(' (Demo)', ''),
+      cedula: c.cedula,
       nombres: c.nombres,
       apellidos: c.apellidos,
       telefono: c.telefono,
