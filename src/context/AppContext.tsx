@@ -184,7 +184,10 @@ interface AppContextType {
   runAutoReconciliation: () => { autoReconciled: number; diffFound: number; manualPending: number };
   reconcileManually: (paymentId: string, bankMovementId: string, observacion?: string) => void;
   undoReconciliation: (reconciliationId: string, motivo: string) => void;
-  importBankMovements: (movements: Array<Omit<BankMovement, 'id' | 'estado' | 'archivoImportacionId'>>) => number;
+  importBankMovements: (movements: Array<Omit<BankMovement, 'id' | 'estado' | 'archivoImportacionId'>>) => {
+    inserted: number;
+    duplicates: number;
+  };
 
   // Invoices
   registerInvoice: (data: { clienteId: string; deudaId?: string; numeroFactura: string; fechaFactura: string; monto?: number; nombreArchivo?: string; observaciones?: string }) => Invoice;
@@ -1229,11 +1232,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
 
       const pTx = cleanStr(payment.numeroTransaccion);
+      const pBank = cleanStr(payment.bancoOrigen);
 
-      // Search exact transaction match in available movements
-      const matchedMovement = availableMovements.find(
-        (bm) => cleanStr(bm.numeroTransaccion) === pTx && !currentReconciledMovements.has(bm.id)
-      );
+      // Search match in available movements by: Entidad + N° Transacción
+      const matchedMovement = availableMovements.find((bm) => {
+        if (currentReconciledMovements.has(bm.id)) return false;
+        const txMatches = cleanStr(bm.numeroTransaccion) === pTx;
+        const bmBank = cleanStr(bm.banco);
+        const bankMatches = !pBank || !bmBank || bmBank === pBank || bmBank.includes(pBank) || pBank.includes(bmBank);
+        return txMatches && bankMatches;
+      });
 
       if (matchedMovement) {
         // Strict check: Transaction exact AND Amount coherent
@@ -1455,34 +1463,51 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     );
   };
 
-  const importBankMovements = (movements: Array<Omit<BankMovement, 'id' | 'estado' | 'archivoImportacionId'>>): number => {
+  const importBankMovements = (
+    movements: Array<Omit<BankMovement, 'id' | 'estado' | 'archivoImportacionId'>>
+  ): { inserted: number; duplicates: number } => {
     const importId = `imp-${Date.now().toString().slice(-4)}`;
-    const existingTx = new Set(bankMovements.map((bm) => bm.numeroTransaccion.trim().toUpperCase()));
+    const existingTx = new Set(
+      bankMovements.map((bm) => `${bm.banco.trim().toLowerCase()}_${bm.numeroTransaccion.trim().toUpperCase()}`)
+    );
 
-    const newItems: BankMovement[] = movements.map((m, idx) => {
-      const isDup = existingTx.has(m.numeroTransaccion.trim().toUpperCase());
-      if (!isDup) existingTx.add(m.numeroTransaccion.trim().toUpperCase());
-      return {
-        ...m,
-        id: `bm-${Date.now().toString().slice(-4)}-${idx}`,
-        archivoImportacionId: importId,
-        estado: isDup ? 'duplicado' : 'sin_asignar',
-      };
+    let inserted = 0;
+    let duplicates = 0;
+    const itemsToAdd: BankMovement[] = [];
+
+    movements.forEach((m, idx) => {
+      const key = `${m.banco.trim().toLowerCase()}_${m.numeroTransaccion.trim().toUpperCase()}`;
+      if (existingTx.has(key)) {
+        duplicates++;
+      } else {
+        existingTx.add(key);
+        inserted++;
+        itemsToAdd.push({
+          ...m,
+          id: `bm-${Date.now().toString().slice(-4)}-${idx}`,
+          archivoImportacionId: importId,
+          estado: 'sin_asignar',
+        });
+      }
     });
 
-    setBankMovements((prev) => [...prev, ...newItems]);
+    if (itemsToAdd.length > 0) {
+      setBankMovements((prev) => [...prev, ...itemsToAdd]);
+    }
+
     logAudit(
       'conciliacion',
       'importar',
       'archivo_bancario',
       importId,
       undefined,
-      { totalMovimientos: newItems.length },
-      `Importación de extracto bancario con ${newItems.length} registros`,
+      { inserted, duplicates, total: movements.length },
+      `Importación de extracto bancario: ${inserted} registros nuevos insertados, ${duplicates} duplicados ignorados`,
       'exitoso',
       'importacion'
     );
-    return newItems.length;
+
+    return { inserted, duplicates };
   };
 
   // --- INVOICE OPERATIONS ---

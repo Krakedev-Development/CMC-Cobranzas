@@ -8,7 +8,7 @@ import { ClientsView } from './views/ClientsView';
 import { ProductsView } from './views/ProductsView';
 import { DebtsView } from './views/DebtsView';
 import { CashFlowView } from './views/CashFlowView';
-import { ReconciliationView } from './views/ReconciliationView';
+import { BankReconciliationView } from './views/BankReconciliationView';
 import { InvoicesView } from './views/InvoicesView';
 import { ReportsView } from './views/ReportsView';
 import { UsersPermissionsView } from './views/UsersPermissionsView';
@@ -172,7 +172,7 @@ const AppContent: React.FC = () => {
                 <CashFlowView onRegisterPaymentForDebt={handleNavigateToPaymentWithTarget} />
               )}
 
-              {currentModule === 'conciliacion' && <ReconciliationView />}
+              {currentModule === 'conciliacion' && <BankReconciliationView />}
 
               {currentModule === 'facturas' && <InvoicesView />}
 
