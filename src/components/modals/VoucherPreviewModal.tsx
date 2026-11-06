@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, FileText, CheckCircle2, Download, Printer, ExternalLink, ShieldCheck, Image as ImageIcon } from 'lucide-react';
 import { Voucher, Payment, Client } from '../../types';
+import { API_BASE_URL } from '../../services/api';
 
 interface VoucherPreviewModalProps {
   isOpen: boolean;
@@ -34,22 +35,34 @@ export const VoucherPreviewModal: React.FC<VoucherPreviewModalProps> = ({
   const displayTx = datos?.numeroTransaccion || payment?.numeroTransaccion || 'S/N';
   const displayDate = datos?.fecha || payment?.fechaPago?.slice(0, 10) || new Date().toISOString().slice(0, 10);
   const displayRef = datos?.referencia || payment?.referencia || 'Abono a Cartera Educativa';
-  const fileUrl = voucher?.archivoUrl || (payment as any)?.comprobanteUrl || voucher?.archivoDemoUrl;
+  const rawUrl = voucher?.archivoUrl || (payment as any)?.comprobanteUrl || voucher?.archivoDemoUrl;
+
+  const resolvedUrl =
+    (rawUrl?.startsWith('data:') || rawUrl?.startsWith('blob:'))
+      ? rawUrl
+      : (payment?.id && (payment as any)?.comprobanteUrl)
+      ? `${API_BASE_URL}/payments/${payment.id}/comprobante`
+      : rawUrl;
+
+  const fileUrl = resolvedUrl;
+
+  const isPdf =
+    Boolean(rawUrl) &&
+    !rawUrl?.startsWith('demo://') &&
+    (rawUrl?.startsWith('data:application/pdf') ||
+      rawUrl?.match(/\.pdf($|\?)/i) ||
+      voucher?.tipoArchivo === 'application/pdf');
 
   const isImage =
+    !isPdf &&
     Boolean(fileUrl) &&
     !fileUrl?.startsWith('demo://') &&
     (fileUrl?.startsWith('data:image/') ||
       fileUrl?.startsWith('blob:') ||
-      fileUrl?.match(/\.(png|jpe?g|webp|gif)($|\?)/i) ||
-      voucher?.tipoArchivo?.startsWith('image/'));
-
-  const isPdf =
-    Boolean(fileUrl) &&
-    !fileUrl?.startsWith('demo://') &&
-    (fileUrl?.startsWith('data:application/pdf') ||
-      fileUrl?.match(/\.pdf($|\?)/i) ||
-      voucher?.tipoArchivo === 'application/pdf');
+      rawUrl?.match(/\.(png|jpe?g|webp|gif|bmp|svg)($|\?)/i) ||
+      fileUrl?.includes('/comprobante') ||
+      voucher?.tipoArchivo?.startsWith('image/') ||
+      Boolean((payment as any)?.comprobanteUrl));
 
   const handlePrint = () => {
     window.print();
