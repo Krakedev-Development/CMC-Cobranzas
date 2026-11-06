@@ -18,6 +18,16 @@ import {
   PaymentMethod,
 } from '../types';
 import {
+  INITIAL_CLIENTS,
+  INITIAL_PRODUCTS,
+  INITIAL_DEBTS,
+  INITIAL_PAYMENTS,
+  INITIAL_VOUCHERS,
+  INITIAL_BANK_MOVEMENTS,
+  INITIAL_RECONCILIATIONS,
+  INITIAL_INVOICES,
+  INITIAL_USERS,
+  INITIAL_AUDIT_LOGS,
   createFullPermissionSet,
 } from '../data/mockData';
 import { api, getStoredToken, clearStoredToken } from '../services/api';
@@ -181,52 +191,52 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // Load saved state or default
   const [clients, setClients] = useState<Client[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY}_clients`);
-    return saved ? JSON.parse(saved) : [];
+    return saved ? JSON.parse(saved) : INITIAL_CLIENTS;
   });
 
   const [products, setProducts] = useState<Product[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY}_products`);
-    return saved ? JSON.parse(saved) : [];
+    return saved ? JSON.parse(saved) : INITIAL_PRODUCTS;
   });
 
   const [debts, setDebts] = useState<Debt[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY}_debts`);
-    return saved ? JSON.parse(saved) : [];
+    return saved ? JSON.parse(saved) : INITIAL_DEBTS;
   });
 
   const [payments, setPayments] = useState<Payment[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY}_payments`);
-    return saved ? JSON.parse(saved) : [];
+    return saved ? JSON.parse(saved) : INITIAL_PAYMENTS;
   });
 
   const [vouchers, setVouchers] = useState<Voucher[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY}_vouchers`);
-    return saved ? JSON.parse(saved) : [];
+    return saved ? JSON.parse(saved) : INITIAL_VOUCHERS;
   });
 
   const [bankMovements, setBankMovements] = useState<BankMovement[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY}_bankMovements`);
-    return saved ? JSON.parse(saved) : [];
+    return saved ? JSON.parse(saved) : INITIAL_BANK_MOVEMENTS;
   });
 
   const [reconciliations, setReconciliations] = useState<Reconciliation[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY}_reconciliations`);
-    return saved ? JSON.parse(saved) : [];
+    return saved ? JSON.parse(saved) : INITIAL_RECONCILIATIONS;
   });
 
   const [invoices, setInvoices] = useState<Invoice[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY}_invoices`);
-    return saved ? JSON.parse(saved) : [];
+    return saved ? JSON.parse(saved) : INITIAL_INVOICES;
   });
 
   const [users, setUsers] = useState<DemoUser[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY}_users`);
-    return saved ? JSON.parse(saved) : [DEFAULT_ADMIN];
+    return saved ? JSON.parse(saved) : INITIAL_USERS;
   });
 
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY}_auditLogs`);
-    return saved ? JSON.parse(saved) : [];
+    return saved ? JSON.parse(saved) : INITIAL_AUDIT_LOGS;
   });
 
   const [currentUserId, setCurrentUserIdState] = useState<string>(() => {
@@ -508,35 +518,34 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setAuditLogs((prev) => [newLog, ...prev]);
   };
 
-  // Limpiar y refrescar datos directamente desde PostgreSQL
+  // Restaurar datos completos
   const resetToDemoData = () => {
-    setClients([]);
-    setProducts([]);
-    setDebts([]);
-    setPayments([]);
-    setVouchers([]);
-    setBankMovements([]);
-    setReconciliations([]);
-    setInvoices([]);
-    setUsers([DEFAULT_ADMIN]);
+    setClients(INITIAL_CLIENTS);
+    setProducts(INITIAL_PRODUCTS);
+    setDebts(INITIAL_DEBTS);
+    setPayments(INITIAL_PAYMENTS);
+    setVouchers(INITIAL_VOUCHERS);
+    setBankMovements(INITIAL_BANK_MOVEMENTS);
+    setReconciliations(INITIAL_RECONCILIATIONS);
+    setInvoices(INITIAL_INVOICES);
+    setUsers(INITIAL_USERS);
     setCurrentUserIdState('admin');
 
     const resetAuditLog: AuditLog = {
       id: `aud-${Date.now()}`,
       fechaHora: getNowString(),
       usuarioId: 'admin',
-      usuarioNombre: 'Administrador Principal',
+      usuarioNombre: 'Administrador CMC',
       modulo: 'sistema',
-      accion: 'limpiar_cache',
+      accion: 'restaurar_demo',
       entidadTipo: 'sistema',
       entidadId: 'data-root',
       resultado: 'exitoso',
-      motivo: 'Refresco y sincronización directa con PostgreSQL sin datos residuales.',
+      motivo: 'Restauración confirmada de datos con relaciones coherentes.',
       origen: 'interfaz',
     };
 
-    setAuditLogs([resetAuditLog]);
-    syncBackendData().catch(console.warn);
+    setAuditLogs([resetAuditLog, ...INITIAL_AUDIT_LOGS]);
   };
 
   // Permissions check
