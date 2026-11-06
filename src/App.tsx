@@ -58,8 +58,23 @@ const AppContent: React.FC = () => {
     setActiveVoucherPayment(payment);
   };
 
-  const activeVoucher = activeVoucherPayment?.comprobanteId
-    ? getVoucherById(activeVoucherPayment.comprobanteId)
+  const activeVoucher = activeVoucherPayment
+    ? (activeVoucherPayment.comprobanteId ? getVoucherById(activeVoucherPayment.comprobanteId) : undefined) ||
+      (activeVoucherPayment.comprobanteUrl
+        ? ({
+            id: `vouch-${activeVoucherPayment.id}`,
+            tipo: 'comprobante_pago',
+            nombreArchivo: `Comprobante_${activeVoucherPayment.numeroTransaccion || 'pago'}.png`,
+            tipoArchivo: 'image/png',
+            fechaCarga: activeVoucherPayment.fechaPago,
+            entidadRelacionadaTipo: 'pago',
+            entidadRelacionadaId: activeVoucherPayment.id,
+            archivoUrl: activeVoucherPayment.comprobanteUrl,
+            archivoDemoUrl: activeVoucherPayment.comprobanteUrl,
+            estadoAnalisis: 'analizado',
+            createdBy: 'sistema',
+          } as Voucher)
+        : undefined)
     : undefined;
 
   const activeVoucherClient = activeVoucherPayment

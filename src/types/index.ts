@@ -79,6 +79,7 @@ export interface Payment {
   numeroTransaccion?: string;
   referencia?: string;
   comprobanteId?: string;
+  comprobanteUrl?: string;
   estadoRegistro: PaymentRegisterStatus;
   estadoConciliacion: ReconciliationStatus;
   observaciones?: string;
@@ -114,6 +115,7 @@ export interface Voucher {
   entidadRelacionadaTipo: 'pago' | 'factura' | 'cliente';
   entidadRelacionadaId: string;
   archivoDemoUrl?: string;
+  archivoUrl?: string;
   datosExtraidos?: ExtractedData;
   estadoAnalisis: AnalysisStatus;
   createdBy: string;

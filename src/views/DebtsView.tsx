@@ -151,6 +151,8 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
   const [isPayOcrScanning, setIsPayOcrScanning] = useState(false);
   const [payOcrExtracted, setPayOcrExtracted] = useState<ExtractedData | null>(null);
   const [payUploadedFileName, setPayUploadedFileName] = useState<string | null>(null);
+  const [payUploadedFile, setPayUploadedFile] = useState<File | null>(null);
+  const [payFilePreviewUrl, setPayFilePreviewUrl] = useState<string | null>(null);
 
   // --- PAYMENT HISTORY MODAL STATE ---
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
@@ -483,6 +485,8 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     setPayError('');
     setPayOcrExtracted(null);
     setPayUploadedFileName(null);
+    setPayUploadedFile(null);
+    setPayFilePreviewUrl(null);
     setIsPayModalOpen(true);
   };
 
@@ -490,8 +494,19 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    setPayUploadedFile(file);
     setPayUploadedFileName(file.name);
     setIsPayOcrScanning(true);
+
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setPayFilePreviewUrl(ev.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setPayFilePreviewUrl(null);
+    }
 
     const targetDebt = debtToPay || debts.find((d) => d.id === payModalDebtId);
 
@@ -655,15 +670,16 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
           referencia: payRef.trim() || undefined,
           observaciones: payNotes.trim() || undefined,
         },
-        payOcrExtracted
+        payUploadedFileName
           ? {
-              nombreArchivo: payUploadedFileName || `Comprobante_${payTxNumber || 'TX'}.pdf`,
-              tipoArchivo: payUploadedFileName?.endsWith('.png') || payUploadedFileName?.endsWith('.jpg') || payUploadedFileName?.endsWith('.jpeg')
-                ? 'image/jpeg'
-                : 'application/pdf',
-              datosExtraidos: payOcrExtracted,
+              nombreArchivo: payUploadedFileName,
+              tipoArchivo: payUploadedFile?.type || 'image/jpeg',
+              archivoUrl: payFilePreviewUrl || undefined,
+              datosExtraidos: payOcrExtracted || undefined,
             }
-          : undefined
+          : undefined,
+        targetDebt,
+        payUploadedFile || undefined
       );
 
       logAudit(
@@ -2540,23 +2556,40 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
 
                       {/* Estado del archivo cargado */}
                       {payUploadedFileName && (
-                        <div className="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <FileText className="w-4 h-4 text-sky-600 shrink-0" />
-                            <span className="truncate font-medium">{payUploadedFileName}</span>
-                            <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 font-semibold">Cargado</span>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <FileText className="w-4 h-4 text-sky-600 shrink-0" />
+                              <span className="truncate font-medium">{payUploadedFileName}</span>
+                              <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 font-semibold">Cargado</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPayUploadedFileName(null);
+                                setPayUploadedFile(null);
+                                setPayFilePreviewUrl(null);
+                                setPayOcrExtracted(null);
+                              }}
+                              className="text-slate-400 hover:text-red-500 text-xs ml-2 p-1 rounded-md transition-colors inline-flex items-center"
+                              title="Quitar archivo"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setPayUploadedFileName(null);
-                              setPayOcrExtracted(null);
-                            }}
-                            className="text-slate-400 hover:text-red-500 text-xs ml-2 p-1 rounded-md transition-colors inline-flex items-center"
-                            title="Quitar archivo"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
+
+                          {payFilePreviewUrl && (
+                            <div className="p-2 bg-slate-100 rounded-xl border border-slate-200 flex flex-col items-center">
+                              <img
+                                src={payFilePreviewUrl}
+                                alt="Vista previa de la transferencia"
+                                className="max-h-36 w-auto object-contain rounded-lg shadow-xs"
+                              />
+                              <span className="text-[10px] text-slate-500 mt-1">
+                                Vista previa de la transferencia bancaria
+                              </span>
+                            </div>
+                          )}
                         </div>
                       )}
 

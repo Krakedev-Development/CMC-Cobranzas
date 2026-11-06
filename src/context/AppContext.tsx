@@ -144,9 +144,11 @@ interface AppContextType {
     voucherData?: {
       nombreArchivo: string;
       tipoArchivo?: string;
+      archivoUrl?: string;
       datosExtraidos?: ExtractedData;
     },
-    initialDebt?: Debt
+    initialDebt?: Debt,
+    file?: File
   ) => Promise<Payment>;
   cancelPayment: (paymentId: string, motivo: string) => void;
 
@@ -947,9 +949,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     voucherData?: {
       nombreArchivo: string;
       tipoArchivo?: string;
+      archivoUrl?: string;
       datosExtraidos?: ExtractedData;
     },
-    initialDebt?: Debt
+    initialDebt?: Debt,
+    file?: File
   ): Promise<Payment> => {
     // 1. Strict validation against debt balance
     let fin = getDebtFinancials(paymentData.deudaId);
@@ -978,6 +982,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     let paymentId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `pay-${Date.now().toString().slice(-5)}`;
     const now = getNowString();
     let voucherId: string | undefined = undefined;
+    let finalComprobanteUrl: string | undefined = voucherData?.archivoUrl;
 
     // Create Voucher record if provided
     if (voucherData) {
@@ -990,7 +995,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         fechaCarga: now,
         entidadRelacionadaTipo: 'pago',
         entidadRelacionadaId: paymentId,
-        archivoDemoUrl: `demo://vouchers/${voucherData.nombreArchivo}`,
+        archivoUrl: voucherData.archivoUrl,
+        archivoDemoUrl: voucherData.archivoUrl,
         datosExtraidos: voucherData.datosExtraidos,
         estadoAnalisis: voucherData.datosExtraidos ? 'analizado' : 'no_analizado',
         createdBy: currentUser.username,
@@ -999,19 +1005,40 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
 
     try {
-      const created = await api.createPayment({
-        deudaId: paymentData.deudaId,
-        clienteId: paymentData.clienteId,
-        monto: paymentData.monto,
-        fechaPago: new Date(paymentData.fechaPago).toISOString(),
-        metodo: paymentData.metodo.toUpperCase(),
-        bancoOrigen: paymentData.bancoOrigen,
-        numeroTransaccion: paymentData.numeroTransaccion,
-        referencia: paymentData.referencia,
-        observaciones: paymentData.observaciones,
-      });
+      const created = await api.createPayment(
+        {
+          deudaId: paymentData.deudaId,
+          clienteId: paymentData.clienteId,
+          monto: paymentData.monto,
+          fechaPago: new Date(paymentData.fechaPago).toISOString(),
+          metodo: paymentData.metodo.toUpperCase(),
+          bancoOrigen: paymentData.bancoOrigen,
+          numeroTransaccion: paymentData.numeroTransaccion,
+          referencia: paymentData.referencia,
+          observaciones: paymentData.observaciones,
+        },
+        file
+      );
+
       if (created?.id) {
         paymentId = created.id;
+      }
+      if (created?.comprobanteUrl) {
+        finalComprobanteUrl = created.comprobanteUrl;
+        if (voucherId) {
+          setVouchers((prev) =>
+            prev.map((v) =>
+              v.id === voucherId
+                ? {
+                    ...v,
+                    entidadRelacionadaId: created.id,
+                    archivoUrl: created.comprobanteUrl,
+                    archivoDemoUrl: created.comprobanteUrl,
+                  }
+                : v
+            )
+          );
+        }
       }
     } catch (e) {
       console.warn('Error sincronizando pago con backend PostgreSQL:', e);
@@ -1027,7 +1054,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       bancoOrigen: paymentData.bancoOrigen,
       numeroTransaccion: paymentData.numeroTransaccion,
       referencia: paymentData.referencia,
-      comprobanteId: voucherId,
+      comprobanteId: voucherId || finalComprobanteUrl,
+      comprobanteUrl: finalComprobanteUrl,
       estadoRegistro: 'registrado',
       estadoConciliacion: 'pendiente', // Independent reconciliation state
       observaciones: paymentData.observaciones,
