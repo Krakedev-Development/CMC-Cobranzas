@@ -534,29 +534,56 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     }, 700);
   };
 
-  const handleQuickClientSubmit = (e: React.FormEvent) => {
+  const handleQuickClientSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setQuickClientError('');
+
     const cedula = quickClient.cedula.trim();
-    if (!cedula || !quickClient.nombres.trim() || !quickClient.apellidos.trim()) {
-      setQuickClientError('Cédula, nombres y apellidos son obligatorios.');
+    if (!/^\d{10}$/.test(cedula)) {
+      setQuickClientError('La cédula debe contener exactamente 10 dígitos numéricos.');
       return;
     }
+
+    const nombres = quickClient.nombres.trim();
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{2,}$/.test(nombres)) {
+      setQuickClientError('Los nombres solo deben contener letras (mínimo 2 caracteres).');
+      return;
+    }
+
+    const apellidos = quickClient.apellidos.trim();
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{2,}$/.test(apellidos)) {
+      setQuickClientError('Los apellidos solo deben contener letras (mínimo 2 caracteres).');
+      return;
+    }
+
+    const correo = quickClient.correo.trim();
+    if (correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
+      setQuickClientError('Ingrese un formato de correo electrónico válido.');
+      return;
+    }
+
     if (clients.some((c) => c.cedula.toLowerCase().replace(' (demo)', '').trim() === cedula.toLowerCase())) {
       setQuickClientError('Ya existe un cliente con esa cédula.');
       return;
     }
-    const created = addClient({
-      cedula: cedula,
-      nombres: quickClient.nombres.trim(),
-      apellidos: quickClient.apellidos.trim(),
-      telefono: quickClient.telefono.trim(),
-      correo: quickClient.correo.trim(),
-      estado: 'activo',
-      notas: '',
-    });
-    setSelectedClientId(created.id);
-    setClientSearchText(`${created.nombres} ${created.apellidos} (${created.cedula})`);
-    setIsQuickClientOpen(false);
+
+    try {
+      const created = await addClient({
+        cedula: cedula,
+        nombres: nombres,
+        apellidos: apellidos,
+        telefono: quickClient.telefono.trim(),
+        correo: correo,
+        estado: 'activo',
+        notas: '',
+      });
+      setSelectedClientId(created.id);
+      setClientSearchText(`${created.nombres} ${created.apellidos} (${created.cedula})`);
+      setIsQuickClientOpen(false);
+      setQuickClient({ cedula: '', nombres: '', apellidos: '', telefono: '', correo: '' });
+    } catch (err: any) {
+      setQuickClientError(err.message || 'Error al registrar cliente');
+    }
   };
 
   const handleSaleVoucherUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -620,7 +647,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     }, 600);
   };
 
-  const handleRegisterPaymentSubmit = (e: React.FormEvent) => {
+  const handleRegisterPaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setPayError('');
 
@@ -644,51 +671,55 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
       return;
     }
 
-    const payment = registerPayment(
-      {
-        deudaId: targetDebt.id,
-        clienteId: targetDebt.clienteId,
-        monto: montoVal,
-        fechaPago: payDate,
-        metodo: payMethod,
-        bancoOrigen: payBank,
-        numeroTransaccion: payTxNumber.trim() || undefined,
-        referencia: payRef.trim() || undefined,
-        observaciones: payNotes.trim() || undefined,
-      },
-      payOcrExtracted
-        ? {
-            nombreArchivo: payUploadedFileName || `Comprobante_${payTxNumber || 'TX'}.pdf`,
-            tipoArchivo: payUploadedFileName?.endsWith('.png') || payUploadedFileName?.endsWith('.jpg') || payUploadedFileName?.endsWith('.jpeg')
-              ? 'image/jpeg'
-              : 'application/pdf',
-            datosExtraidos: payOcrExtracted,
-          }
-        : undefined
-    );
+    try {
+      const payment = await registerPayment(
+        {
+          deudaId: targetDebt.id,
+          clienteId: targetDebt.clienteId,
+          monto: montoVal,
+          fechaPago: payDate,
+          metodo: payMethod,
+          bancoOrigen: payBank,
+          numeroTransaccion: payTxNumber.trim() || undefined,
+          referencia: payRef.trim() || undefined,
+          observaciones: payNotes.trim() || undefined,
+        },
+        payOcrExtracted
+          ? {
+              nombreArchivo: payUploadedFileName || `Comprobante_${payTxNumber || 'TX'}.pdf`,
+              tipoArchivo: payUploadedFileName?.endsWith('.png') || payUploadedFileName?.endsWith('.jpg') || payUploadedFileName?.endsWith('.jpeg')
+                ? 'image/jpeg'
+                : 'application/pdf',
+              datosExtraidos: payOcrExtracted,
+            }
+          : undefined
+      );
 
-    logAudit(
-      'pagos',
-      'crear',
-      'pago',
-      payment.id,
-      undefined,
-      {
-        deudaId: targetDebt.id,
-        monto: montoVal,
-        metodo: payMethod,
-        bancoOrigen: payBank,
-        numeroTransaccion: payTxNumber,
-      },
-      `Pago de $${montoVal.toFixed(2)} registrado dentro de Deudas y Cobranzas`
-    );
+      logAudit(
+        'pagos',
+        'crear',
+        'pago',
+        payment.id,
+        undefined,
+        {
+          deudaId: targetDebt.id,
+          monto: montoVal,
+          metodo: payMethod,
+          bancoOrigen: payBank,
+          numeroTransaccion: payTxNumber,
+        },
+        `Pago de $${montoVal.toFixed(2)} registrado dentro de Deudas y Cobranzas`
+      );
 
-    setPaySuccessMsg(`✓ Pago de $${montoVal.toFixed(2)} registrado exitosamente y reflejado en el historial y bitácora.`);
-    setTimeout(() => {
-      setIsPayModalOpen(false);
-      setDebtToPay(null);
-      setPaySuccessMsg('');
-    }, 1200);
+      setPaySuccessMsg(`✓ Pago de $${montoVal.toFixed(2)} registrado exitosamente.`);
+      setTimeout(() => {
+        setIsPayModalOpen(false);
+        setDebtToPay(null);
+        setPaySuccessMsg('');
+      }, 800);
+    } catch (err: any) {
+      setPayError(err.message || 'Error al procesar el pago');
+    }
   };
 
   const handleCancelPaymentSubmit = (e: React.FormEvent) => {
@@ -705,7 +736,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     setCancelReason('');
   };
 
-  const handleCreateSubmit = (e: React.FormEvent) => {
+  const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
 
@@ -714,7 +745,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
       return;
     }
     if (!selectedProductId) {
-      setFormError('Debe digitar o seleccionar un programa / producto.');
+      setFormError('Debe seleccionar un programa o curso.');
       return;
     }
 
@@ -758,72 +789,77 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
       diaCorteGuardado = saleDiaCorte;
     }
 
-    const newDebt = addDebt({
-      clienteId: selectedClientId,
-      productoId: selectedProductId,
-      fechaAdquisicion: new Date().toISOString().slice(0, 10),
-      precioNominalAplicado: precioNominal,
-      precioAcordado: acordado,
-      metodoPago: salePaymentMethod,
-      plazoMeses: plazoGuardado,
-      diaCorte: diaCorteGuardado,
-      cuotas: cuotasGeneradas,
-      observaciones: observaciones.trim() || undefined,
-    });
+    try {
+      const newDebt = await addDebt({
+        clienteId: selectedClientId,
+        productoId: selectedProductId,
+        fechaAdquisicion: new Date().toISOString().slice(0, 10),
+        precioNominalAplicado: precioNominal,
+        precioAcordado: acordado,
+        metodoPago: salePaymentMethod,
+        plazoMeses: plazoGuardado,
+        diaCorte: diaCorteGuardado,
+        cuotas: cuotasGeneradas,
+        observaciones: observaciones.trim() || undefined,
+      });
 
-    // Si se activó registrar pago inicial inmediato:
-    if (saleRegisterInitialPayment) {
-      const initAmount = parseFloat(saleInitialPayAmount);
-      if (!isNaN(initAmount) && initAmount > 0) {
-        const finalInitAmount = Math.min(initAmount, acordado);
-        registerPayment(
-          {
-            deudaId: newDebt.id,
-            clienteId: selectedClientId,
-            monto: finalInitAmount,
-            fechaPago: new Date().toISOString().slice(0, 10),
-            metodo: salePaymentMethod,
-            bancoOrigen: saleBankOrEntity,
-            numeroTransaccion: saleInitialTxNumber.trim() || undefined,
-            referencia: `Abono inicial venta ${newDebt.id}`,
-            observaciones: `Abono inicial registrado en conjunto con la nueva venta (${salePaymentMethod})`,
-          },
-          saleVoucherFileName && saleVoucherOcr
-            ? {
-                nombreArchivo: saleVoucherFileName,
-                tipoArchivo: /\.(png|jpe?g)$/i.test(saleVoucherFileName) ? 'image/jpeg' : 'application/pdf',
-                datosExtraidos: saleVoucherOcr,
-              }
-            : undefined
-        );
-        logAudit(
-          'pagos',
-          'crear',
-          'pago',
-          `pay-init-${newDebt.id}`,
-          undefined,
-          {
-            deudaId: newDebt.id,
-            monto: finalInitAmount,
-            metodo: salePaymentMethod,
-          },
-          `Abono inicial de $${finalInitAmount.toFixed(2)} registrado al crear la venta`
-        );
+      // Si se activó registrar pago inicial inmediato:
+      if (saleRegisterInitialPayment) {
+        const initAmount = parseFloat(saleInitialPayAmount);
+        if (!isNaN(initAmount) && initAmount > 0) {
+          const finalInitAmount = Math.min(initAmount, acordado);
+          await registerPayment(
+            {
+              deudaId: newDebt.id,
+              clienteId: selectedClientId,
+              monto: finalInitAmount,
+              fechaPago: new Date().toISOString().slice(0, 10),
+              metodo: salePaymentMethod,
+              bancoOrigen: saleBankOrEntity,
+              numeroTransaccion: saleInitialTxNumber.trim() || undefined,
+              referencia: `Abono inicial venta ${newDebt.id}`,
+              observaciones: `Abono inicial registrado en conjunto con la nueva venta (${salePaymentMethod})`,
+            },
+            saleVoucherFileName && saleVoucherOcr
+              ? {
+                  nombreArchivo: saleVoucherFileName,
+                  tipoArchivo: /\.(png|jpe?g)$/i.test(saleVoucherFileName) ? 'image/jpeg' : 'application/pdf',
+                  datosExtraidos: saleVoucherOcr,
+                }
+              : undefined,
+            newDebt
+          );
+          logAudit(
+            'pagos',
+            'crear',
+            'pago',
+            `pay-init-${newDebt.id}`,
+            undefined,
+            {
+              deudaId: newDebt.id,
+              monto: finalInitAmount,
+              metodo: salePaymentMethod,
+            },
+            `Abono inicial de $${finalInitAmount.toFixed(2)} registrado al crear la venta en PostgreSQL`
+          );
+        }
       }
-    }
 
-    setIsCreateModalOpen(false);
-    setSelectedClientId('');
-    setClientSearchText('');
-    setSelectedProductId('');
-    setProductSearchText('');
-    setPrecioAcordado('');
-    setSaleRegisterInitialPayment(false);
-    setSaleInitialPayAmount('');
-    setSaleInitialTxNumber('');
-    setSaleVoucherFileName(null);
-    setSaleVoucherOcr(null);
-    setObservaciones('');
+      setIsCreateModalOpen(false);
+      setSelectedClientId('');
+      setClientSearchText('');
+      setSelectedProductId('');
+      setProductSearchText('');
+      setPrecioAcordado('');
+      setSaleRegisterInitialPayment(false);
+      setSaleInitialPayAmount('');
+      setSaleInitialTxNumber('');
+      setSaleVoucherFileName(null);
+      setSaleVoucherOcr(null);
+      setObservaciones('');
+    } catch (err: any) {
+      setFormError(err.message || 'Error al registrar la venta en la base de datos');
+    }
   };
 
   const handleDebtFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -2272,9 +2308,9 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                 </div>
               )}
               {([
-                ['cedula', 'Cédula / Identificación *', 'Ej: 1712345678'],
-                ['nombres', 'Nombres *', 'Ej: María José'],
-                ['apellidos', 'Apellidos *', 'Ej: Pérez Andrade'],
+                ['cedula', 'Cédula / Identificación * (10 dígitos)', 'Ej: 1712345678'],
+                ['nombres', 'Nombres * (solo letras)', 'Ej: María José'],
+                ['apellidos', 'Apellidos * (solo letras)', 'Ej: Pérez Andrade'],
                 ['telefono', 'Teléfono', 'Ej: +593 99 123 4567'],
                 ['correo', 'Correo electrónico', 'Ej: alumno@correo.com'],
               ] as const).map(([key, label, placeholder]) => (
@@ -2282,9 +2318,20 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                   <label className="block font-semibold text-slate-700 mb-1">{label}</label>
                   <input
                     type="text"
+                    maxLength={key === 'cedula' ? 10 : key === 'telefono' ? 15 : undefined}
                     placeholder={placeholder}
                     value={quickClient[key]}
-                    onChange={(e) => setQuickClient({ ...quickClient, [key]: e.target.value })}
+                    onChange={(e) => {
+                      let val = e.target.value;
+                      if (key === 'cedula') {
+                        val = val.replace(/\D/g, '').slice(0, 10);
+                      } else if (key === 'nombres' || key === 'apellidos') {
+                        val = val.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+                      } else if (key === 'telefono') {
+                        val = val.replace(/[^\d+\s-]/g, '').slice(0, 15);
+                      }
+                      setQuickClient({ ...quickClient, [key]: val });
+                    }}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
                   />
                 </div>

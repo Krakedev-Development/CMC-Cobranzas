@@ -125,24 +125,39 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
     );
   }, [selectedClientDetailId, auditLogs, selectedFinancials]);
 
-  // Form submit
-  const handleSaveClient = (e: React.FormEvent) => {
+  // Form submit con validaciones estrictas
+  const handleSaveClient = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
 
-    if (!formData.cedula.trim()) {
-      setFormError('La cédula es obligatoria (regla de negocio RF-01).');
+    const cleanCedula = formData.cedula.trim();
+    if (!/^\d{10}$/.test(cleanCedula)) {
+      setFormError('La cédula debe contener exactamente 10 dígitos numéricos (sin letras ni espacios).');
       return;
     }
-    if (!formData.nombres.trim() || !formData.apellidos.trim()) {
-      setFormError('Nombres y apellidos son requeridos.');
+
+    const cleanNombres = formData.nombres.trim();
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{2,}$/.test(cleanNombres)) {
+      setFormError('Los nombres solo deben contener letras (mínimo 2 caracteres).');
+      return;
+    }
+
+    const cleanApellidos = formData.apellidos.trim();
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{2,}$/.test(cleanApellidos)) {
+      setFormError('Los apellidos solo deben contener letras (mínimo 2 caracteres).');
+      return;
+    }
+
+    const cleanCorreo = formData.correo.trim();
+    if (cleanCorreo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanCorreo)) {
+      setFormError('Ingrese un formato de correo electrónico válido (ej: usuario@correo.com).');
       return;
     }
 
     // Duplicate check
     const isDup = clients.some(
       (c) =>
-        c.cedula.trim().toLowerCase() === formData.cedula.trim().toLowerCase() &&
+        c.cedula.trim().toLowerCase() === cleanCedula.toLowerCase() &&
         (!editingClient || c.id !== editingClient.id)
     );
     if (isDup) {
@@ -150,30 +165,34 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
       return;
     }
 
-    if (editingClient) {
-      updateClient(editingClient.id, {
-        cedula: formData.cedula.trim(),
-        nombres: formData.nombres.trim(),
-        apellidos: formData.apellidos.trim(),
-        telefono: formData.telefono.trim(),
-        correo: formData.correo.trim(),
-        notas: formData.notas.trim(),
-      });
-      setEditingClient(null);
-    } else {
-      addClient({
-        cedula: formData.cedula.trim(),
-        nombres: formData.nombres.trim(),
-        apellidos: formData.apellidos.trim(),
-        telefono: formData.telefono.trim(),
-        correo: formData.correo.trim(),
-        estado: 'activo',
-        notas: formData.notas.trim(),
-      });
-      setIsCreateModalOpen(false);
-    }
+    try {
+      if (editingClient) {
+        updateClient(editingClient.id, {
+          cedula: cleanCedula,
+          nombres: cleanNombres,
+          apellidos: cleanApellidos,
+          telefono: formData.telefono.trim(),
+          correo: cleanCorreo,
+          notas: formData.notas.trim(),
+        });
+        setEditingClient(null);
+      } else {
+        await addClient({
+          cedula: cleanCedula,
+          nombres: cleanNombres,
+          apellidos: cleanApellidos,
+          telefono: formData.telefono.trim(),
+          correo: cleanCorreo,
+          estado: 'activo',
+          notas: formData.notas.trim(),
+        });
+        setIsCreateModalOpen(false);
+      }
 
-    setFormData({ cedula: '', nombres: '', apellidos: '', telefono: '', correo: '', notas: '' });
+      setFormData({ cedula: '', nombres: '', apellidos: '', telefono: '', correo: '', notas: '' });
+    } catch (err: any) {
+      setFormError(err.message || 'Error al guardar el cliente');
+    }
   };
 
   const handleOpenEdit = (c: Client) => {
@@ -501,38 +520,39 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
 
               <div>
                 <label className="block font-semibold text-slate-700 mb-1">
-                  Cédula / Identificación <span className="text-rose-500">* (Obligatoria)</span>
+                  Cédula / Identificación <span className="text-rose-500">* (10 dígitos numéricos)</span>
                 </label>
                 <input
                   type="text"
                   required
+                  maxLength={10}
                   placeholder="Ej: 1718293041"
                   value={formData.cedula}
-                  onChange={(e) => setFormData({ ...formData, cedula: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, cedula: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-mono focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Nombres *</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Nombres * (solo letras)</label>
                   <input
                     type="text"
                     required
                     placeholder="Carlos Andrés"
                     value={formData.nombres}
-                    onChange={(e) => setFormData({ ...formData, nombres: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, nombres: e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '') })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Apellidos *</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Apellidos * (solo letras)</label>
                   <input
                     type="text"
                     required
                     placeholder="Mendoza Viteri"
                     value={formData.apellidos}
-                    onChange={(e) => setFormData({ ...formData, apellidos: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, apellidos: e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '') })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
                   />
                 </div>
@@ -544,8 +564,9 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
                   <input
                     type="text"
                     placeholder="+593 98 412 8391"
+                    maxLength={15}
                     value={formData.telefono}
-                    onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, telefono: e.target.value.replace(/[^\d+\s-]/g, '').slice(0, 15) })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
                   />
                 </div>
@@ -555,7 +576,7 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
                     type="email"
                     placeholder="carlos.mendoza@ejemplo.ec"
                     value={formData.correo}
-                    onChange={(e) => setFormData({ ...formData, correo: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, correo: e.target.value.trim() })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
                   />
                 </div>

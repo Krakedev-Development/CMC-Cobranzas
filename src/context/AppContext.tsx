@@ -113,7 +113,7 @@ interface AppContextType {
   ) => void;
 
   // Clients
-  addClient: (data: Omit<Client, 'id' | 'createdAt' | 'createdBy' | 'updatedAt' | 'updatedBy'>) => Client;
+  addClient: (data: Omit<Client, 'id' | 'createdAt' | 'createdBy' | 'updatedAt' | 'updatedBy'>) => Promise<Client>;
   updateClient: (id: string, data: Partial<Client>) => void;
   toggleClientStatus: (id: string) => void;
   importClientsBulk: (newClients: Array<Omit<Client, 'id' | 'createdAt' | 'createdBy' | 'updatedAt' | 'updatedBy'>>) => { imported: number; duplicates: number };
@@ -123,7 +123,7 @@ interface AppContextType {
   updateProduct: (id: string, data: Partial<Product>) => void;
 
   // Debts
-  addDebt: (data: { clienteId: string; productoId: string; fechaAdquisicion: string; precioNominalAplicado: number; precioAcordado: number; metodoPago?: PaymentMethod; plazoMeses?: number; diaCorte?: number; cuotas?: Array<{ numero: number; monto: number; fechaVencimiento: string; estado: 'pendiente' | 'pagada' | 'vencida' }>; observaciones?: string }) => Debt;
+  addDebt: (data: { clienteId: string; productoId: string; fechaAdquisicion: string; precioNominalAplicado: number; precioAcordado: number; metodoPago?: PaymentMethod; plazoMeses?: number; diaCorte?: number; cuotas?: Array<{ numero: number; monto: number; fechaVencimiento: string; estado: 'pendiente' | 'pagada' | 'vencida' }>; observaciones?: string }) => Promise<Debt>;
   importDebtsBulk: (items: Array<{ clienteId: string; productoId: string; fechaAdquisicion: string; precioNominal: number; precioAcordado: number; observaciones?: string }>) => number;
   getDebtFinancials: (debtId: string) => DebtFinancialSummary | null;
   getClientFinancials: (clientId: string) => ClientFinancialSummary | null;
@@ -145,8 +145,9 @@ interface AppContextType {
       nombreArchivo: string;
       tipoArchivo?: string;
       datosExtraidos?: ExtractedData;
-    }
-  ) => Payment;
+    },
+    initialDebt?: Debt
+  ) => Promise<Payment>;
   cancelPayment: (paymentId: string, motivo: string) => void;
 
   // Vouchers
@@ -552,37 +553,42 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   // --- CLIENT OPERATIONS ---
-  const addClient = (data: Omit<Client, 'id' | 'createdAt' | 'createdBy' | 'updatedAt' | 'updatedBy'>): Client => {
-    const newId = `cli-${Date.now().toString().slice(-4)}`;
+  const addClient = async (data: Omit<Client, 'id' | 'createdAt' | 'createdBy' | 'updatedAt' | 'updatedBy'>): Promise<Client> => {
     const now = getNowString();
+    let realId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `cli-${Date.now().toString().slice(-4)}`;
+
+    try {
+      const created = await api.createClient({
+        cedula: data.cedula,
+        nombres: data.nombres,
+        apellidos: data.apellidos,
+        telefono: data.telefono,
+        correo: data.correo,
+        estado: data.estado === 'activo' ? 'ACTIVO' : 'INACTIVO',
+        notas: data.notas,
+      });
+      if (created?.id) {
+        realId = created.id;
+      }
+    } catch (e) {
+      console.warn('Error sincronizando cliente con backend PostgreSQL:', e);
+    }
+
     const newClient: Client = {
       ...data,
-      id: newId,
+      id: realId,
       createdAt: now,
       createdBy: currentUser.username,
       updatedAt: now,
       updatedBy: currentUser.username,
     };
-    setClients((prev) => [newClient, ...prev]);
-    logAudit('clientes', 'crear', 'cliente', newId, undefined, {
+
+    setClients((prev) => [newClient, ...prev.filter((c) => c.id !== realId)]);
+    logAudit('clientes', 'crear', 'cliente', realId, undefined, {
       cedula: newClient.cedula,
       nombres: `${newClient.nombres} ${newClient.apellidos}`,
       telefono: newClient.telefono,
-    }, 'Creación individual de cliente');
-
-    api.createClient({
-      cedula: data.cedula,
-      nombres: data.nombres,
-      apellidos: data.apellidos,
-      telefono: data.telefono,
-      correo: data.correo,
-      estado: data.estado === 'activo' ? 'ACTIVO' : 'INACTIVO',
-      notas: data.notas,
-    }).then((created) => {
-      if (created?.id) {
-        setClients((prev) => prev.map((c) => (c.id === newId ? { ...c, id: created.id } : c)));
-      }
-    }).catch((e) => console.warn('Error sincronizando cliente con backend:', e));
+    }, 'Creación individual de cliente registrada en PostgreSQL');
 
     return newClient;
   };
@@ -789,7 +795,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   // --- DEBT OPERATIONS ---
-  const addDebt = (data: {
+  const addDebt = async (data: {
     clienteId: string;
     productoId: string;
     fechaAdquisicion: string;
@@ -800,11 +806,31 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     diaCorte?: number;
     cuotas?: Array<{ numero: number; monto: number; fechaVencimiento: string; estado: 'pendiente' | 'pagada' | 'vencida' }>;
     observaciones?: string;
-  }): Debt => {
-    const newId = `deb-${Date.now().toString().slice(-4)}`;
+  }): Promise<Debt> => {
     const now = getNowString();
+    let debtId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `deb-${Date.now().toString().slice(-4)}`;
+
+    try {
+      const created = await api.createDebt({
+        clienteId: data.clienteId,
+        productoId: data.productoId,
+        fechaAdquisicion: new Date(data.fechaAdquisicion).toISOString(),
+        precioNominalAplicado: data.precioNominalAplicado,
+        precioAcordado: data.precioAcordado,
+        metodoPago: data.metodoPago ? data.metodoPago.toUpperCase() : undefined,
+        plazoMeses: data.plazoMeses,
+        diaCorte: data.diaCorte,
+        observaciones: data.observaciones,
+      });
+      if (created?.id) {
+        debtId = created.id;
+      }
+    } catch (e) {
+      console.warn('Error sincronizando deuda con backend PostgreSQL:', e);
+    }
+
     const newDebt: Debt = {
-      id: newId,
+      id: debtId,
       clienteId: data.clienteId,
       productoId: data.productoId,
       fechaAdquisicion: data.fechaAdquisicion,
@@ -823,7 +849,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       updatedBy: currentUser.username,
     };
 
-    setDebts((prev) => [newDebt, ...prev]);
+    setDebts((prev) => [newDebt, ...prev.filter((d) => d.id !== debtId)]);
 
     const client = clients.find((c) => c.id === data.clienteId);
     const product = products.find((p) => p.id === data.productoId);
@@ -832,7 +858,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       'deudas',
       'crear',
       'deuda',
-      newId,
+      debtId,
       undefined,
       {
         cliente: client ? `${client.nombres} ${client.apellidos}` : data.clienteId,
@@ -840,24 +866,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         precioNominal: data.precioNominalAplicado,
         precioAcordado: data.precioAcordado,
       },
-      'Asociación directa de producto adquirido (no genera factura contable automática)'
+      'Asociación directa de producto adquirido registrada en PostgreSQL'
     );
-
-    api.createDebt({
-      clienteId: data.clienteId,
-      productoId: data.productoId,
-      fechaAdquisicion: data.fechaAdquisicion,
-      precioNominalAplicado: data.precioNominalAplicado,
-      precioAcordado: data.precioAcordado,
-      metodoPago: data.metodoPago ? data.metodoPago.toUpperCase() : undefined,
-      plazoMeses: data.plazoMeses,
-      diaCorte: data.diaCorte,
-      observaciones: data.observaciones,
-    }).then((created) => {
-      if (created?.id) {
-        setDebts((prev) => prev.map((d) => (d.id === newId ? { ...d, id: created.id } : d)));
-      }
-    }).catch((e) => console.warn('Error sincronizando deuda con backend:', e));
 
     return newDebt;
   };
@@ -916,7 +926,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   // --- PAYMENT OPERATIONS ---
-  const registerPayment = (
+  const registerPayment = async (
     paymentData: {
       deudaId: string;
       clienteId: string;
@@ -932,10 +942,21 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       nombreArchivo: string;
       tipoArchivo?: string;
       datosExtraidos?: ExtractedData;
-    }
-  ): Payment => {
+    },
+    initialDebt?: Debt
+  ): Promise<Payment> => {
     // 1. Strict validation against debt balance
-    const fin = getDebtFinancials(paymentData.deudaId);
+    let fin = getDebtFinancials(paymentData.deudaId);
+    if (!fin && initialDebt && initialDebt.id === paymentData.deudaId) {
+      fin = {
+        debt: initialDebt,
+        client: clients.find((c) => c.id === initialDebt.clienteId),
+        product: products.find((p) => p.id === initialDebt.productoId),
+        validPaymentsTotal: 0,
+        saldoPendiente: initialDebt.precioAcordado,
+        calculatedStatus: 'pendiente',
+      };
+    }
     if (!fin) {
       throw new Error('La deuda seleccionada no existe en el sistema.');
     }
@@ -948,13 +969,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       );
     }
 
-    const newPaymentId = `pay-${Date.now().toString().slice(-5)}`;
+    let paymentId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `pay-${Date.now().toString().slice(-5)}`;
     const now = getNowString();
     let voucherId: string | undefined = undefined;
 
     // Create Voucher record if provided
     if (voucherData) {
-      voucherId = `vouch-${Date.now().toString().slice(-5)}`;
+      voucherId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `vouch-${Date.now().toString().slice(-5)}`;
       const newVoucher: Voucher = {
         id: voucherId,
         tipo: 'comprobante_pago',
@@ -962,7 +983,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         tipoArchivo: voucherData.tipoArchivo || 'image/png',
         fechaCarga: now,
         entidadRelacionadaTipo: 'pago',
-        entidadRelacionadaId: newPaymentId,
+        entidadRelacionadaId: paymentId,
         archivoDemoUrl: `demo://vouchers/${voucherData.nombreArchivo}`,
         datosExtraidos: voucherData.datosExtraidos,
         estadoAnalisis: voucherData.datosExtraidos ? 'analizado' : 'no_analizado',
@@ -971,8 +992,27 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setVouchers((prev) => [newVoucher, ...prev]);
     }
 
+    try {
+      const created = await api.createPayment({
+        deudaId: paymentData.deudaId,
+        clienteId: paymentData.clienteId,
+        monto: paymentData.monto,
+        fechaPago: new Date(paymentData.fechaPago).toISOString(),
+        metodo: paymentData.metodo.toUpperCase(),
+        bancoOrigen: paymentData.bancoOrigen,
+        numeroTransaccion: paymentData.numeroTransaccion,
+        referencia: paymentData.referencia,
+        observaciones: paymentData.observaciones,
+      });
+      if (created?.id) {
+        paymentId = created.id;
+      }
+    } catch (e) {
+      console.warn('Error sincronizando pago con backend PostgreSQL:', e);
+    }
+
     const newPayment: Payment = {
-      id: newPaymentId,
+      id: paymentId,
       deudaId: paymentData.deudaId,
       clienteId: paymentData.clienteId,
       monto: paymentData.monto,
@@ -991,7 +1031,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       updatedBy: currentUser.username,
     };
 
-    setPayments((prev) => [newPayment, ...prev]);
+    setPayments((prev) => [newPayment, ...prev.filter((p) => p.id !== paymentId)]);
 
     // Recalculate debt status
     const newRemaining = fin.saldoPendiente - paymentData.monto;
@@ -1004,7 +1044,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       'pagos',
       'crear',
       'pago',
-      newPaymentId,
+      paymentId,
       undefined,
       {
         deudaId: paymentData.deudaId,
@@ -1015,24 +1055,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         comprobanteId: voucherId,
         nuevoSaldoDeuda: newRemaining,
       },
-      'Registro de pago con comprobante adjunto y actualización de saldo'
+      'Registro de pago con comprobante adjunto y actualización de saldo en PostgreSQL'
     );
-
-    api.createPayment({
-      deudaId: paymentData.deudaId,
-      clienteId: paymentData.clienteId,
-      monto: paymentData.monto,
-      fechaPago: paymentData.fechaPago,
-      metodo: paymentData.metodo.toUpperCase(),
-      bancoOrigen: paymentData.bancoOrigen,
-      numeroTransaccion: paymentData.numeroTransaccion,
-      referencia: paymentData.referencia,
-      observaciones: paymentData.observaciones,
-    }).then((created) => {
-      if (created?.id) {
-        setPayments((prev) => prev.map((p) => (p.id === newPaymentId ? { ...p, id: created.id } : p)));
-      }
-    }).catch((e) => console.warn('Error sincronizando pago con backend:', e));
 
     return newPayment;
   };

@@ -168,7 +168,7 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({
     }, 1300);
   };
 
-  const handleRegisterSubmit = (e: React.FormEvent) => {
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
 
@@ -191,7 +191,7 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({
     }
 
     try {
-      registerPayment(
+      await registerPayment(
         {
           deudaId: formDebtId,
           clienteId: formClientId,
