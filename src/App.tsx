@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
-import { ModuleName, Payment } from './types';
+import { ModuleName, Payment, Voucher } from './types';
 import { SidebarNav } from './components/layout/SidebarNav';
 import { TopHeader } from './components/layout/TopHeader';
 import { DashboardView } from './views/DashboardView';
 import { ClientsView } from './views/ClientsView';
 import { ProductsView } from './views/ProductsView';
 import { DebtsView } from './views/DebtsView';
-import { PaymentsView } from './views/PaymentsView';
+import { CashFlowView } from './views/CashFlowView';
 import { ReconciliationView } from './views/ReconciliationView';
 import { InvoicesView } from './views/InvoicesView';
 import { ReportsView } from './views/ReportsView';
@@ -166,6 +166,10 @@ const AppContent: React.FC = () => {
                   preselectedDebtId={preselectedDebtId}
                   initialTab={currentModule === 'pagos' ? 'pagos' : 'deudas'}
                 />
+              )}
+
+              {currentModule === 'flujo_efectivo' && (
+                <CashFlowView onRegisterPaymentForDebt={handleNavigateToPaymentWithTarget} />
               )}
 
               {currentModule === 'conciliacion' && <ReconciliationView />}

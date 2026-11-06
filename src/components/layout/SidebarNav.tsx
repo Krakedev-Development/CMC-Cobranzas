@@ -10,6 +10,7 @@ import {
   BarChart3,
   ShieldCheck,
   History,
+  TrendingUp,
   Pin,
   PinOff,
   Menu,
@@ -70,6 +71,11 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
       icon: Receipt,
       badge: pendingPaymentsCount > 0 ? pendingPaymentsCount : undefined,
       badgeColor: 'bg-amber-100 text-amber-800 border-amber-200',
+    },
+    {
+      id: 'flujo_efectivo',
+      label: 'Flujo de Efectivo',
+      icon: TrendingUp,
     },
     {
       id: 'conciliacion',
@@ -222,27 +228,26 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
 
         {/* Main Navigation Modules */}
         <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-1">
-          {navItems.map((item) => {
-            const hasView = hasPermission(item.id, 'ver');
-            const isActive = currentModule === item.id;
-            const IconComponent = item.icon;
+          {navItems
+            .filter((item) => hasPermission(item.id, 'ver'))
+            .map((item) => {
+              const hasView = hasPermission(item.id, 'ver');
+              const isActive = currentModule === item.id;
+              const IconComponent = item.icon;
 
-            return (
-              <div key={item.id} className="relative group">
-                <button
-                  onClick={() => handleItemClick(item.id)}
-                  onMouseEnter={() => setHoveredModule(item.id)}
-                  onMouseLeave={() => setHoveredModule(null)}
-                  disabled={!hasView}
-                  className={`sidebar-nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left ${
-                    isActive
-                      ? 'sidebar-nav-active bg-sky-500 text-white shadow-sm'
-                      : hasView
-                      ? 'sidebar-nav-link text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                      : 'sidebar-nav-disabled text-slate-300 hover:text-slate-400 cursor-not-allowed opacity-60'
-                  }`}
-                  aria-current={isActive ? 'page' : undefined}
-                >
+              return (
+                <div key={item.id} className="relative group">
+                  <button
+                    onClick={() => handleItemClick(item.id)}
+                    onMouseEnter={() => setHoveredModule(item.id)}
+                    onMouseLeave={() => setHoveredModule(null)}
+                    className={`sidebar-nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left ${
+                      isActive
+                        ? 'sidebar-nav-active bg-sky-500 text-white shadow-sm'
+                        : 'sidebar-nav-link text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    }`}
+                    aria-current={isActive ? 'page' : undefined}
+                  >
                   <div className="shrink-0 relative">
                     <IconComponent
                       className={`sidebar-icon w-5 h-5 ${

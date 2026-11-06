@@ -3,6 +3,7 @@ import {
   Client,
   Product,
   Debt,
+  DebtStatus,
   Payment,
   Voucher,
   BankMovement,
@@ -69,7 +70,7 @@ export interface DebtFinancialSummary {
   product?: Product;
   validPaymentsTotal: number;
   saldoPendiente: number;
-  calculatedStatus: 'pendiente' | 'parcial' | 'pagada' | 'anulada';
+  calculatedStatus: DebtStatus;
 }
 
 export interface ClientFinancialSummary {

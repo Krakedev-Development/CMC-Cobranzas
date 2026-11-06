@@ -31,11 +31,12 @@ const MODULE_LABELS: Record<ModuleName, string> = {
   productos: '3. Productos',
   deudas: '4. Deudas / Adquisiciones',
   pagos: '5. Pagos',
-  conciliacion: '6. Conciliación Bancaria',
-  facturas: '7. Facturas y Documentos',
-  reportes: '8. Reportes',
-  usuarios: '9. Usuarios y Permisos',
-  auditoria: '10. Auditoría (Solo lectura)',
+  flujo_efectivo: '6. Flujo de Efectivo',
+  conciliacion: '7. Conciliación Bancaria',
+  facturas: '8. Facturas y Documentos',
+  reportes: '9. Reportes',
+  usuarios: '10. Usuarios y Permisos',
+  auditoria: '11. Auditoría (Solo lectura)',
 };
 
 const ACTION_LABELS: Array<{ key: keyof PermissionSet; label: string; desc: string }> = [
@@ -53,6 +54,7 @@ const ALL_MODULES: ModuleName[] = [
   'productos',
   'deudas',
   'pagos',
+  'flujo_efectivo',
   'conciliacion',
   'facturas',
   'reportes',

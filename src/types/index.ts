@@ -118,8 +118,12 @@ export interface Voucher {
   entidadRelacionadaId: string;
   archivoDemoUrl?: string;
   archivoUrl?: string;
+  tamanioBytes?: number;
+  estadoOCR?: string;
+  confianzaOCR?: number;
+  createdAt?: string;
   datosExtraidos?: ExtractedData;
-  estadoAnalisis: AnalysisStatus;
+  estadoAnalisis?: AnalysisStatus;
   createdBy: string;
 }
 
@@ -185,6 +189,7 @@ export type ModuleName =
   | 'productos'
   | 'deudas'
   | 'pagos'
+  | 'flujo_efectivo'
   | 'conciliacion'
   | 'facturas'
   | 'reportes'

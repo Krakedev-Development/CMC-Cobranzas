@@ -32,6 +32,10 @@ const MODULE_TITLES: Record<ModuleName, { title: string; subtitle: string }> = {
     title: 'Deudas, Adquisiciones y Registro de Pagos',
     subtitle: 'Gestión unificada de cartera: asociación de productos, registro directo de pagos, facturas e historial de abonos',
   },
+  flujo_efectivo: {
+    title: 'Flujo de Efectivo y Proyección de Cobranza',
+    subtitle: 'Comparativa mensual y semanal de cobranza proyectada vs. ejecutada y control de compromisos incumplidos',
+  },
   conciliacion: {
     title: 'Conciliación Bancaria',
     subtitle: 'Cruce unívoco de extractos bancarios con pagos y resolución de casos dudosos',

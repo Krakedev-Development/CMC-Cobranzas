@@ -230,7 +230,7 @@ export const ReconciliationView: React.FC = () => {
   }, [payments, clients, rubroSearchText]);
 
   // Execute manual link
-  const handleConfirmLink = () => {
+  const handleConfirmLink = async () => {
     setLinkError('');
     if (!movementToLink) return;
 
@@ -248,7 +248,7 @@ export const ReconciliationView: React.FC = () => {
 
       try {
         // 1. Create and register the payment for this debt using the transfer's exact details
-        const payment = registerPayment(
+        const payment = await registerPayment(
           {
             deudaId: targetDebt.id,
             clienteId: targetDebt.clienteId,
