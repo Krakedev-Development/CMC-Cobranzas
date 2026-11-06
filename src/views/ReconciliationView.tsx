@@ -269,7 +269,7 @@ export const ReconciliationView: React.FC = () => {
           linkObservation || `Enlazado y liquidado contra rubro de programa educativo ${targetDebt.id}`
         );
 
-        setLinkSuccessMsg(`✓ Transferencia ${movementToLink.numeroTransaccion} enlazada exitosamente con el rubro del alumno.`);
+        setLinkSuccessMsg(`Transferencia ${movementToLink.numeroTransaccion} enlazada exitosamente con el rubro del alumno.`);
         setTimeout(() => {
           setMovementToLink(null);
           setLinkSuccessMsg('');
@@ -286,7 +286,7 @@ export const ReconciliationView: React.FC = () => {
 
       try {
         reconcileManually(selectedPaymentIdToLink, movementToLink.id, linkObservation);
-        setLinkSuccessMsg(`✓ Transferencia ${movementToLink.numeroTransaccion} conciliada con el pago registrado.`);
+        setLinkSuccessMsg(`Transferencia ${movementToLink.numeroTransaccion} conciliada con el pago registrado.`);
         setTimeout(() => {
           setMovementToLink(null);
           setLinkSuccessMsg('');
@@ -361,7 +361,7 @@ export const ReconciliationView: React.FC = () => {
           setActiveTab('manual');
           setBankStatusFilter('sin_asignar');
           setImportNotification(
-            `✓ Extracto de ${uploadBankName} procesado exitosamente (${newItems.length} movimientos). Las transferencias no conciliadas se muestran en Conciliación Manual.`
+            `Extracto de ${uploadBankName} procesado exitosamente (${newItems.length} movimientos). Las transferencias no conciliadas se muestran en Conciliación Manual.`
           );
         } else {
           alert('El archivo no contiene filas válidas de movimientos.');

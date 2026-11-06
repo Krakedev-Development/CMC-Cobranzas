@@ -133,7 +133,20 @@ interface AppContextType {
   updateProduct: (id: string, data: Partial<Product>) => void;
 
   // Debts
-  addDebt: (data: { clienteId: string; productoId: string; fechaAdquisicion: string; precioNominalAplicado: number; precioAcordado: number; metodoPago?: PaymentMethod; plazoMeses?: number; diaCorte?: number; cuotas?: Array<{ numero: number; monto: number; fechaVencimiento: string; estado: 'pendiente' | 'pagada' | 'vencida' }>; observaciones?: string }) => Promise<Debt>;
+  addDebt: (data: {
+    clienteId: string;
+    productoId: string;
+    fechaAdquisicion: string;
+    fechaCompromisoPago?: string;
+    diasMora?: number;
+    precioNominalAplicado: number;
+    precioAcordado: number;
+    metodoPago?: PaymentMethod;
+    plazoMeses?: number;
+    diaCorte?: number;
+    cuotas?: Array<{ numero: number; monto: number; fechaVencimiento: string; estado: 'pendiente' | 'pagada' | 'vencida' }>;
+    observaciones?: string;
+  }) => Promise<Debt>;
   importDebtsBulk: (items: Array<{ clienteId: string; productoId: string; fechaAdquisicion: string; precioNominal: number; precioAcordado: number; observaciones?: string }>) => number;
   getDebtFinancials: (debtId: string) => DebtFinancialSummary | null;
   getClientFinancials: (clientId: string) => ClientFinancialSummary | null;
@@ -755,9 +768,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     // Strict rule: Saldo pendiente = precio acordado - suma de pagos válidos
     const saldoPendiente = Math.max(0, debt.precioAcordado - validPaymentsTotal);
 
+    // Verificar si existen pagos pendientes de cruce bancario (en comprobación)
+    const hasPendingVerificationPayment = validPayments.some(
+      (p) => p.estadoConciliacion === 'pendiente' || p.estadoConciliacion === 'revision_manual' || p.estadoConciliacion === 'con_diferencias'
+    );
+
     let calculatedStatus: Debt['estado'] = debt.estado;
     if (debt.estado !== 'anulada') {
-      if (saldoPendiente <= 0.001) {
+      if (debt.estado === 'en_comprobacion' || (hasPendingVerificationPayment && debt.estado !== 'pagada')) {
+        calculatedStatus = 'en_comprobacion';
+      } else if (saldoPendiente <= 0.001 || debt.estado === 'pagada') {
         calculatedStatus = 'pagada';
       } else if (validPaymentsTotal > 0) {
         calculatedStatus = 'parcial';
@@ -816,6 +836,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     clienteId: string;
     productoId: string;
     fechaAdquisicion: string;
+    fechaCompromisoPago?: string;
+    diasMora?: number;
     precioNominalAplicado: number;
     precioAcordado: number;
     metodoPago?: PaymentMethod;
@@ -851,6 +873,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       clienteId: data.clienteId,
       productoId: data.productoId,
       fechaAdquisicion: data.fechaAdquisicion,
+      fechaCompromisoPago: data.fechaCompromisoPago,
+      diasMora: data.diasMora || 0,
       precioNominalAplicado: data.precioNominalAplicado,
       precioAcordado: data.precioAcordado,
       saldoInicial: data.precioAcordado,
@@ -1076,9 +1100,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     setPayments((prev) => [newPayment, ...prev.filter((p) => p.id !== paymentId)]);
 
-    // Recalculate debt status
+    // Recalcular estado de la deuda:
+    // Al registrar el pago con comprobante, pasa a estado 'en_comprobacion'
+    // La deuda no se extingue formalmente hasta la confirmación y conciliación bancaria
     const newRemaining = fin.saldoPendiente - paymentData.monto;
-    const newStatus: Debt['estado'] = newRemaining <= 0.001 ? 'pagada' : 'parcial';
+    const newStatus: Debt['estado'] = 'en_comprobacion';
     setDebts((prev) =>
       prev.map((d) => (d.id === paymentData.deudaId ? { ...d, estado: newStatus, updatedAt: now, updatedBy: currentUser.username } : d))
     );
@@ -1277,6 +1303,23 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     if (newReconciliations.length > 0) {
       setReconciliations((prev) => [...newReconciliations, ...prev]);
+      // Actualizar el estado de las deudas cruzadas: pasan a pagadas o amortizadas
+      const reconciledPaymentIds = new Set(newReconciliations.map((r) => r.pagoId));
+      setDebts((prevDebts) =>
+        prevDebts.map((debt) => {
+          const debtPayments = updatedPayments.filter((p) => p.deudaId === debt.id && p.estadoRegistro !== 'anulado');
+          const touchesDebt = debtPayments.some((p) => reconciledPaymentIds.has(p.id));
+          if (!touchesDebt) return debt;
+
+          const totalRec = debtPayments
+            .filter((p) => p.estadoConciliacion === 'conciliado_auto' || p.estadoConciliacion === 'conciliado_manual')
+            .reduce((sum, p) => sum + p.monto, 0);
+          const hasPending = debtPayments.some((p) => p.estadoConciliacion === 'pendiente');
+          const isFullyPaid = debt.precioAcordado - totalRec <= 0.001;
+          const newStatus: Debt['estado'] = isFullyPaid ? 'pagada' : hasPending ? 'en_comprobacion' : 'parcial';
+          return { ...debt, estado: newStatus, updatedAt: now, updatedBy: 'sistema_auto' };
+        })
+      );
     }
     setPayments(updatedPayments);
     setBankMovements(updatedMovements);
@@ -1336,6 +1379,23 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     setBankMovements((prev) =>
       prev.map((bm) => (bm.id === bankMovementId ? { ...bm, estado: 'conciliado', pagoRelacionadoId: paymentId } : bm))
+    );
+
+    // Actualizar estado de la deuda al conciliar manualmente: se marca como pagada o amortizada
+    setDebts((prevDebts) =>
+      prevDebts.map((debt) => {
+        if (debt.id !== payment.deudaId) return debt;
+        const otherPayments = payments.filter((p) => p.deudaId === debt.id && p.id !== paymentId && p.estadoRegistro !== 'anulado');
+        const totalRec =
+          payment.monto +
+          otherPayments
+            .filter((p) => p.estadoConciliacion === 'conciliado_auto' || p.estadoConciliacion === 'conciliado_manual')
+            .reduce((sum, p) => sum + p.monto, 0);
+        const hasPending = otherPayments.some((p) => p.estadoConciliacion === 'pendiente');
+        const isFullyPaid = debt.precioAcordado - totalRec <= 0.001;
+        const newStatus: Debt['estado'] = isFullyPaid ? 'pagada' : hasPending ? 'en_comprobacion' : 'parcial';
+        return { ...debt, estado: newStatus, updatedAt: now, updatedBy: currentUser.username };
+      })
     );
 
     logAudit(

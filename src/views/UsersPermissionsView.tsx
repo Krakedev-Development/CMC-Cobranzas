@@ -300,7 +300,7 @@ export const UsersPermissionsView: React.FC = () => {
     }));
 
     setSaveSuccessMessage(
-      `✓ Permisos y rol (${targetRole}) guardados exitosamente en la base de datos para @${selectedUserForPerms.username}.`
+      `Permisos y rol (${targetRole}) guardados exitosamente en la base de datos para @${selectedUserForPerms.username}.`
     );
     setJustificationNote('');
   };
@@ -332,7 +332,7 @@ export const UsersPermissionsView: React.FC = () => {
     setSelectedUserForPerms(created);
     setEditingPermissions(created.permisos);
     setSaveSuccessMessage(
-      `✓ Usuario @${created.username} (${created.nombre}) creado exitosamente con sus permisos personalizados. Puedes hacer clic en "Usar rol" para iniciar sesión con su perfil.`
+      `Usuario @${created.username} (${created.nombre}) creado exitosamente con sus permisos personalizados. Puedes hacer clic en "Usar rol" para iniciar sesión con su perfil.`
     );
 
     setNewUsername('');

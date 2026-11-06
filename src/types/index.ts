@@ -31,13 +31,15 @@ export interface Product {
   updatedBy: string;
 }
 
-export type DebtStatus = 'pendiente' | 'parcial' | 'pagada' | 'anulada';
+export type DebtStatus = 'pendiente' | 'parcial' | 'en_comprobacion' | 'pagada' | 'anulada';
 
 export interface Debt {
   id: string;
   clienteId: string;
   productoId: string;
   fechaAdquisicion: string;
+  fechaCompromisoPago?: string; // Fecha acordada de compromiso de pago
+  diasMora?: number; // Días de mora acumulados
   precioNominalAplicado: number;
   precioAcordado: number; // Valor final acordado
   saldoInicial: number;

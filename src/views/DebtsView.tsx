@@ -39,6 +39,8 @@ import { CustomSelect } from '../components/common/CustomSelect';
 import { Pagination } from '../components/common/Pagination';
 import { DatePicker } from '../components/common/DatePicker';
 
+export type DebtStatusTab = 'todas' | 'al_dia' | 'vencidos' | 'en_comprobacion' | 'conciliados';
+
 interface DebtsViewProps {
   onRegisterPaymentForDebt?: (debtId: string, clientId: string) => void;
   onViewVoucher?: (payment: Payment) => void;
@@ -73,6 +75,9 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
   // Active Sub-Tab: "deudas" or "pagos"
   const [activeTab, setActiveTab] = useState<'deudas' | 'pagos'>(initialTab);
 
+  // --- SUB-PESTAÑAS DE ESTADO DE DEUDAS ---
+  const [debtStatusTab, setDebtStatusTab] = useState<DebtStatusTab>('todas');
+
   // --- TAB 1 (DEUDAS) FILTERS & PAGINATION ---
   const [debtSearchQuery, setDebtSearchQuery] = useState('');
   const [productFilter, setProductFilter] = useState('all');
@@ -97,6 +102,8 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
   const [productSearchText, setProductSearchText] = useState('');
   const [precioNominal, setPrecioNominal] = useState<number>(0);
   const [precioAcordado, setPrecioAcordado] = useState<string>('');
+  const [saleFechaAdquisicion, setSaleFechaAdquisicion] = useState<string>(new Date().toISOString().slice(0, 10));
+  const [saleFechaCompromisoPago, setSaleFechaCompromisoPago] = useState<string>('');
   const [salePaymentMethod, setSalePaymentMethod] = useState<PaymentMethod>('transferencia');
   const [saleBankOrEntity, setSaleBankOrEntity] = useState<string>('Banco Pichincha');
   const [saleRequiresFinancing, setSaleRequiresFinancing] = useState<boolean>(false);
@@ -109,8 +116,8 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
   const [quickClient, setQuickClient] = useState({ cedula: '', nombres: '', apellidos: '', telefono: '', correo: '' });
   const [quickClientError, setQuickClientError] = useState('');
   const [saleVoucherFileName, setSaleVoucherFileName] = useState<string | null>(null);
-  const [saleVoucherOcr, setSaleVoucherOcr] = useState<ExtractedData | null>(null);
-  const [isSaleOcrScanning, setIsSaleOcrScanning] = useState<boolean>(false);
+  const [saleVoucherFile, setSaleVoucherFile] = useState<File | null>(null);
+  const [saleVoucherPreviewUrl, setSaleVoucherPreviewUrl] = useState<string | null>(null);
   const [observaciones, setObservaciones] = useState('');
   const [formError, setFormError] = useState('');
   const [showOverdueOnly, setShowOverdueOnly] = useState<boolean>(false);
@@ -218,6 +225,33 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
 
     const totalAbonado = fin?.validPaymentsTotal ?? 0;
 
+    // 0. Si tiene fecha de compromiso de pago estructurada:
+    if (debt.fechaCompromisoPago) {
+      if (debt.fechaCompromisoPago < todayStr) {
+        const compDate = new Date(debt.fechaCompromisoPago);
+        const diffTime = Math.max(0, today.getTime() - compDate.getTime());
+        const daysDelayed = Math.max(1, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
+        return {
+          isOverdue: true,
+          daysDelayed: debt.diasMora ? Math.max(debt.diasMora, daysDelayed) : daysDelayed,
+          overdueReason: `Compromiso de pago vencido (${debt.fechaCompromisoPago})`,
+          vencimiento: debt.fechaCompromisoPago,
+          cuotaNumero: null,
+        };
+      }
+    }
+
+    // 0.1 Si tiene días de mora explícitos:
+    if (debt.diasMora && debt.diasMora > 0) {
+      return {
+        isOverdue: true,
+        daysDelayed: debt.diasMora,
+        overdueReason: `Mora acumulada: ${debt.diasMora} días`,
+        vencimiento: debt.fechaAdquisicion,
+        cuotaNumero: null,
+      };
+    }
+
     // 1. Si la deuda tiene cuotas configuradas:
     if (debt.cuotas && debt.cuotas.length > 0) {
       let acumuladoEsperado = 0;
@@ -293,6 +327,46 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     }, 0);
   }, [overdueDebtsList, getDebtFinancials]);
 
+  // Conteo dinámico para las 4 pestañas de estado de deudas
+  const debtCountsByTab = useMemo(() => {
+    let alDia = 0;
+    let vencidos = 0;
+    let enComprobacion = 0;
+    let conciliados = 0;
+
+    debts.forEach((debt) => {
+      if (debt.estado === 'anulada') return;
+      const fin = getDebtFinancials(debt.id);
+      const isPaid = (fin?.saldoPendiente || 0) <= 0.001 || debt.estado === 'pagada';
+      const delay = getDebtDelayInfo(debt);
+      const hasPendingPayment = payments.some(
+        (p) =>
+          p.deudaId === debt.id &&
+          p.estadoRegistro !== 'anulado' &&
+          (p.estadoConciliacion === 'pendiente' || p.estadoConciliacion === 'revision_manual' || p.estadoConciliacion === 'con_diferencias')
+      );
+      const isEnComp = debt.estado === 'en_comprobacion' || (hasPendingPayment && !isPaid);
+
+      if (isPaid) {
+        conciliados++;
+      } else if (isEnComp) {
+        enComprobacion++;
+      } else if (delay.isOverdue) {
+        vencidos++;
+      } else {
+        alDia++;
+      }
+    });
+
+    return {
+      todas: debts.length,
+      al_dia: alDia,
+      vencidos,
+      en_comprobacion: enComprobacion,
+      conciliados,
+    };
+  }, [debts, payments, todayStr, today, getDebtFinancials]);
+
   // --- FILTERED DEBTS ---
   const filteredDebts = useMemo(() => {
     return debts.filter((debt) => {
@@ -312,11 +386,47 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
         debt.metodoPago || payments.find((p) => p.deudaId === debt.id)?.metodo || 'transferencia';
       const matchesMethod = debtMethodFilter === 'all' || debtMethod === debtMethodFilter;
 
-      const matchesOverdue = !showOverdueOnly || getDebtDelayInfo(debt).isOverdue;
+      const delay = getDebtDelayInfo(debt);
+      const fin = getDebtFinancials(debt.id);
+      const isPaid = (fin?.saldoPendiente || 0) <= 0.001 || debt.estado === 'pagada';
+      const hasPendingPayment = payments.some(
+        (p) =>
+          p.deudaId === debt.id &&
+          p.estadoRegistro !== 'anulado' &&
+          (p.estadoConciliacion === 'pendiente' || p.estadoConciliacion === 'revision_manual' || p.estadoConciliacion === 'con_diferencias')
+      );
+      const isEnComp = debt.estado === 'en_comprobacion' || (hasPendingPayment && !isPaid);
 
-      return matchesSearch && matchesProduct && matchesStatus && matchesMethod && matchesOverdue;
+      let matchesTab = true;
+      if (debtStatusTab === 'al_dia') {
+        matchesTab = !isPaid && debt.estado !== 'anulada' && !isEnComp && !delay.isOverdue;
+      } else if (debtStatusTab === 'vencidos') {
+        matchesTab = !isPaid && debt.estado !== 'anulada' && delay.isOverdue;
+      } else if (debtStatusTab === 'en_comprobacion') {
+        matchesTab = isEnComp && debt.estado !== 'anulada';
+      } else if (debtStatusTab === 'conciliados') {
+        matchesTab = isPaid && debt.estado !== 'anulada';
+      }
+
+      const matchesOverdue = !showOverdueOnly || delay.isOverdue;
+
+      return matchesSearch && matchesProduct && matchesStatus && matchesMethod && matchesTab && matchesOverdue;
     });
-  }, [debts, clients, products, payments, debtSearchQuery, productFilter, statusFilter, debtMethodFilter, showOverdueOnly, todayStr]);
+  }, [
+    debts,
+    clients,
+    products,
+    payments,
+    debtSearchQuery,
+    productFilter,
+    statusFilter,
+    debtMethodFilter,
+    debtStatusTab,
+    showOverdueOnly,
+    todayStr,
+    today,
+    getDebtFinancials,
+  ]);
 
   const debtsTotalPages = Math.ceil(filteredDebts.length / debtsPageSize) || 1;
   const paginatedDebts = useMemo(() => {
@@ -406,6 +516,8 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     setProductSearchText('');
     setPrecioNominal(products[0]?.precioNominal || 890);
     setPrecioAcordado((products[0]?.precioNominal || 890).toString());
+    setSaleFechaAdquisicion(new Date().toISOString().slice(0, 10));
+    setSaleFechaCompromisoPago('');
     setSaleRequiresFinancing(false);
     setSalePlazoMeses(3);
     setSaleDiaCorte(15);
@@ -415,7 +527,8 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     setSaleInitialPayAmount('');
     setSaleInitialTxNumber('');
     setSaleVoucherFileName(null);
-    setSaleVoucherOcr(null);
+    setSaleVoucherFile(null);
+    setSaleVoucherPreviewUrl(null);
     setObservaciones('');
     setFormError('');
     setIsCreateModalOpen(true);
@@ -431,12 +544,14 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     setPayDate(new Date().toISOString().slice(0, 10));
     setPayMethod('transferencia');
     setPayBank('Banco Pichincha');
-    setPayTxNumber(`TX-${Math.floor(100000 + Math.random() * 900000)}`);
+    setPayTxNumber('');
     setPayRef(`Abono a deuda ${debt.id}`);
     setPayNotes('');
     setPayError('');
     setPayOcrExtracted(null);
     setPayUploadedFileName(null);
+    setPayUploadedFile(null);
+    setPayFilePreviewUrl(null);
     setIsPayModalOpen(true);
   };
 
@@ -444,24 +559,12 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     setPayMethod(method);
     if (method === 'efectivo') {
       setPayBank('Caja Principal');
-      if (!payTxNumber || payTxNumber.startsWith('TX-') || payTxNumber.startsWith('AUTH-')) {
-        setPayTxNumber(`REC-${Math.floor(10000 + Math.random() * 90000)}`);
-      }
     } else if (method === 'tarjeta') {
       setPayBank('Visa (Datafast)');
-      if (!payTxNumber || payTxNumber.startsWith('TX-') || payTxNumber.startsWith('REC-')) {
-        setPayTxNumber(`AUTH-${Math.floor(100000 + Math.random() * 900000)}`);
-      }
     } else if (method === 'transferencia') {
       setPayBank('Banco Pichincha');
-      if (!payTxNumber || payTxNumber.startsWith('REC-') || payTxNumber.startsWith('AUTH-') || payTxNumber.startsWith('DEP-')) {
-        setPayTxNumber(`TX-${Math.floor(100000 + Math.random() * 900000)}`);
-      }
     } else if (method === 'deposito') {
       setPayBank('Banco Pichincha');
-      if (!payTxNumber || payTxNumber.startsWith('TX-') || payTxNumber.startsWith('REC-') || payTxNumber.startsWith('AUTH-')) {
-        setPayTxNumber(`DEP-${Math.floor(100000 + Math.random() * 900000)}`);
-      }
     }
   };
 
@@ -479,7 +582,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     setPayDate(new Date().toISOString().slice(0, 10));
     setPayMethod('transferencia');
     setPayBank('Banco Pichincha');
-    setPayTxNumber(`TX-${Math.floor(100000 + Math.random() * 900000)}`);
+    setPayTxNumber('');
     setPayRef('Abono educativo cuota directa');
     setPayNotes('');
     setPayError('');
@@ -490,13 +593,12 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     setIsPayModalOpen(true);
   };
 
-  const handleOcrFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleVoucherFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setPayUploadedFile(file);
     setPayUploadedFileName(file.name);
-    setIsPayOcrScanning(true);
 
     if (file.type.startsWith('image/')) {
       const reader = new FileReader();
@@ -507,46 +609,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     } else {
       setPayFilePreviewUrl(null);
     }
-
-    const targetDebt = debtToPay || debts.find((d) => d.id === payModalDebtId);
-
-    setTimeout(() => {
-      const fin = targetDebt ? getDebtFinancials(targetDebt.id) : null;
-      const remaining = fin?.saldoPendiente || 150;
-      const simulatedAmount = Math.min(remaining, remaining > 250 ? 250 : remaining);
-      const randomTx = `TX-${Math.floor(100000 + Math.random() * 900000)}`;
-      const client = targetDebt ? clients.find((c) => c.id === targetDebt.clienteId) : null;
-
-      // Detectar banco tentativo por el nombre del archivo
-      let detectedBank = payBank;
-      const lowerName = file.name.toLowerCase();
-      if (lowerName.includes('guayaquil') || lowerName.includes('bg')) {
-        detectedBank = 'Banco Guayaquil';
-      } else if (lowerName.includes('produbanco')) {
-        detectedBank = 'Produbanco';
-      } else if (lowerName.includes('pacifico') || lowerName.includes('bp')) {
-        detectedBank = 'Banco del Pacífico';
-      } else if (lowerName.includes('pichincha')) {
-        detectedBank = 'Banco Pichincha';
-      }
-
-      const ocr: ExtractedData = {
-        banco: detectedBank,
-        numeroTransaccion: randomTx,
-        monto: simulatedAmount,
-        fecha: new Date().toISOString().slice(0, 10),
-        ordenante: client ? `${client.nombres} ${client.apellidos}`.toUpperCase() : 'ORDENANTE COMPROBANTE',
-        referencia: `Depósito ${file.name.slice(0, 20)}`,
-        confianza: Math.floor(95 + Math.random() * 4), // 95 - 99%
-      };
-
-      setPayOcrExtracted(ocr);
-      setPayAmount(simulatedAmount.toFixed(2));
-      setPayTxNumber(randomTx);
-      setPayBank(detectedBank);
-      setPayRef(ocr.referencia || `Váucher: ${file.name}`);
-      setIsPayOcrScanning(false);
-    }, 700);
+    e.target.value = '';
   };
 
   const handleQuickClientSubmit = async (e: React.FormEvent) => {
@@ -605,30 +668,18 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    setSaleVoucherFile(file);
     setSaleVoucherFileName(file.name);
-    setIsSaleOcrScanning(true);
 
-    setTimeout(() => {
-      const typedAmount = parseFloat(saleInitialPayAmount);
-      const amount = !isNaN(typedAmount) && typedAmount > 0 ? typedAmount : 150;
-      const randomTx = `TX-${Math.floor(100000 + Math.random() * 900000)}`;
-      const client = clients.find((c) => c.id === selectedClientId);
-
-      const ocr: ExtractedData = {
-        banco: saleBankOrEntity,
-        numeroTransaccion: randomTx,
-        monto: amount,
-        fecha: new Date().toISOString().slice(0, 10),
-        ordenante: client ? `${client.nombres} ${client.apellidos}`.toUpperCase() : 'ORDENANTE COMPROBANTE',
-        referencia: `Abono inicial ${file.name.slice(0, 20)}`,
-        confianza: Math.floor(95 + Math.random() * 4),
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setSaleVoucherPreviewUrl(ev.target?.result as string);
       };
-
-      setSaleVoucherOcr(ocr);
-      setSaleInitialPayAmount(amount.toFixed(2));
-      setSaleInitialTxNumber(randomTx);
-      setIsSaleOcrScanning(false);
-    }, 700);
+      reader.readAsDataURL(file);
+    } else {
+      setSaleVoucherPreviewUrl(null);
+    }
     e.target.value = '';
   };
 
@@ -675,7 +726,6 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
               nombreArchivo: payUploadedFileName,
               tipoArchivo: payUploadedFile?.type || 'image/jpeg',
               archivoUrl: payFilePreviewUrl || undefined,
-              datosExtraidos: payOcrExtracted || undefined,
             }
           : undefined,
         targetDebt,
@@ -694,16 +744,17 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
           metodo: payMethod,
           bancoOrigen: payBank,
           numeroTransaccion: payTxNumber,
+          estado: 'en_comprobacion',
         },
-        `Pago de $${montoVal.toFixed(2)} registrado dentro de Deudas y Cobranzas`
+        `Pago manual de $${montoVal.toFixed(2)} registrado en estado En Comprobación`
       );
 
-      setPaySuccessMsg(`✓ Pago de $${montoVal.toFixed(2)} registrado exitosamente.`);
+      setPaySuccessMsg(`Pago de $${montoVal.toFixed(2)} registrado en estado "En Comprobación" (pendiente de validación bancaria).`);
       setTimeout(() => {
         setIsPayModalOpen(false);
         setDebtToPay(null);
         setPaySuccessMsg('');
-      }, 800);
+      }, 1000);
     } catch (err: any) {
       setPayError(err.message || 'Error al procesar el pago');
     }
@@ -780,7 +831,8 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
       const newDebt = await addDebt({
         clienteId: selectedClientId,
         productoId: selectedProductId,
-        fechaAdquisicion: new Date().toISOString().slice(0, 10),
+        fechaAdquisicion: saleFechaAdquisicion || new Date().toISOString().slice(0, 10),
+        fechaCompromisoPago: saleFechaCompromisoPago || undefined,
         precioNominalAplicado: precioNominal,
         precioAcordado: acordado,
         metodoPago: salePaymentMethod,
@@ -807,14 +859,15 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
               referencia: `Abono inicial venta ${newDebt.id}`,
               observaciones: `Abono inicial registrado en conjunto con la nueva venta (${salePaymentMethod})`,
             },
-            saleVoucherFileName && saleVoucherOcr
+            saleVoucherFileName
               ? {
                   nombreArchivo: saleVoucherFileName,
-                  tipoArchivo: /\.(png|jpe?g)$/i.test(saleVoucherFileName) ? 'image/jpeg' : 'application/pdf',
-                  datosExtraidos: saleVoucherOcr,
+                  tipoArchivo: saleVoucherFile?.type || (/\.(png|jpe?g)$/i.test(saleVoucherFileName) ? 'image/jpeg' : 'application/pdf'),
+                  archivoUrl: saleVoucherPreviewUrl || undefined,
                 }
               : undefined,
-            newDebt
+            newDebt,
+            saleVoucherFile || undefined
           );
           logAudit(
             'pagos',
@@ -838,11 +891,14 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
       setSelectedProductId('');
       setProductSearchText('');
       setPrecioAcordado('');
+      setSaleFechaAdquisicion(new Date().toISOString().slice(0, 10));
+      setSaleFechaCompromisoPago('');
       setSaleRegisterInitialPayment(false);
       setSaleInitialPayAmount('');
       setSaleInitialTxNumber('');
       setSaleVoucherFileName(null);
-      setSaleVoucherOcr(null);
+      setSaleVoucherFile(null);
+      setSaleVoucherPreviewUrl(null);
       setObservaciones('');
     } catch (err: any) {
       setFormError(err.message || 'Error al registrar la venta en la base de datos');
@@ -1077,6 +1133,103 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
             </div>
           </div>
 
+          {/* PESTAÑAS DE ESTADO DE DEUDAS (4 PESTAÑAS CLAVE + TODAS) */}
+          <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-200/70 rounded-2xl border border-slate-300/70 shadow-2xs">
+            <button
+              type="button"
+              onClick={() => {
+                setDebtStatusTab('todas');
+                setDebtsCurrentPage(1);
+              }}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                debtStatusTab === 'todas'
+                  ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+              }`}
+            >
+              <span>Todas las Cuentas</span>
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-slate-200 text-slate-700 font-mono">
+                {debtCountsByTab.todas}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setDebtStatusTab('al_dia');
+                setDebtsCurrentPage(1);
+              }}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                debtStatusTab === 'al_dia'
+                  ? 'bg-sky-50 text-sky-900 border border-sky-300 shadow-sm ring-1 ring-sky-400/20'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+              }`}
+            >
+              <CheckCircle2 className="w-3.5 h-3.5 text-sky-600" />
+              <span>Al Día / Próximos a Cobrar</span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 font-mono">
+                {debtCountsByTab.al_dia}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setDebtStatusTab('vencidos');
+                setDebtsCurrentPage(1);
+              }}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                debtStatusTab === 'vencidos'
+                  ? 'bg-rose-50 text-rose-900 border border-rose-300 shadow-sm ring-1 ring-rose-400/20'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+              }`}
+            >
+              <Clock className="w-3.5 h-3.5 text-rose-600" />
+              <span>Vencidos (En Mora)</span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 font-mono">
+                {debtCountsByTab.vencidos}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setDebtStatusTab('en_comprobacion');
+                setDebtsCurrentPage(1);
+              }}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                debtStatusTab === 'en_comprobacion'
+                  ? 'bg-amber-50 text-amber-950 border border-amber-300 shadow-sm ring-1 ring-amber-400/20'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+              }`}
+            >
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+              <span>En Comprobación</span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 font-mono">
+                {debtCountsByTab.en_comprobacion}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setDebtStatusTab('conciliados');
+                setDebtsCurrentPage(1);
+              }}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                debtStatusTab === 'conciliados'
+                  ? 'bg-teal-50 text-teal-950 border border-teal-300 shadow-sm ring-1 ring-teal-400/20'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+              }`}
+            >
+              <Check className="w-3.5 h-3.5 text-teal-700" />
+              <span>Conciliados / Pagados</span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-teal-900 font-mono">
+                {debtCountsByTab.conciliados}
+              </span>
+            </button>
+          </div>
+
           {/* Filter and Action Bar */}
           <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
             {/* Search */}
@@ -1214,7 +1367,14 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                           </td>
                           <td className="py-3 px-4 font-medium text-slate-800 whitespace-nowrap">
                             <span>{product?.nombre || debt.productoId}</span>
-                            <span className="text-[10px] text-slate-400 block font-normal">{debt.fechaAdquisicion}</span>
+                            <div className="flex flex-col gap-0.5 mt-0.5">
+                              <span className="text-[10px] text-slate-400 font-normal">Inscripción: {debt.fechaAdquisicion}</span>
+                              {debt.fechaCompromisoPago && (
+                                <span className="text-[10px] text-sky-700 bg-sky-50 px-1.5 py-0.5 rounded font-semibold border border-sky-200 w-fit">
+                                  Compromiso: {debt.fechaCompromisoPago}
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td className="py-3 px-4 whitespace-nowrap">
                             {(() => {
@@ -1297,33 +1457,48 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                           <td className="py-3 px-4 whitespace-nowrap">
                             {(() => {
                               const delay = getDebtDelayInfo(debt);
-                              if (!isPaid && delay.isOverdue) {
+                              const hasPendingPayment = payments.some(
+                                (p) =>
+                                  p.deudaId === debt.id &&
+                                  p.estadoRegistro !== 'anulado' &&
+                                  (p.estadoConciliacion === 'pendiente' || p.estadoConciliacion === 'revision_manual' || p.estadoConciliacion === 'con_diferencias')
+                              );
+                              const isEnComp = debt.estado === 'en_comprobacion' || (hasPendingPayment && !isPaid);
+
+                              if (debt.estado === 'anulada') {
                                 return (
-                                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full border bg-rose-50 text-rose-700 border-rose-300 flex items-center gap-1 w-fit">
+                                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full border bg-rose-50 text-rose-700 border-rose-200">
+                                    Anulada
+                                  </span>
+                                );
+                              }
+                              if (isPaid || debt.estado === 'pagada') {
+                                return (
+                                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full border bg-teal-50 text-teal-800 border-teal-300 flex items-center gap-1 w-fit">
+                                    <CheckCircle2 className="w-3 h-3 text-teal-700" />
+                                    Conciliado / Pagado
+                                  </span>
+                                );
+                              }
+                              if (isEnComp) {
+                                return (
+                                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full border bg-amber-50 text-amber-900 border-amber-300 flex items-center gap-1 w-fit">
+                                    <AlertTriangle className="w-3 h-3 text-amber-600" />
+                                    En Comprobación
+                                  </span>
+                                );
+                              }
+                              if (delay.isOverdue) {
+                                return (
+                                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full border bg-rose-50 text-rose-800 border-rose-300 flex items-center gap-1 w-fit">
                                     <Clock className="w-3 h-3 text-rose-600" />
-                                    En Mora
+                                    Vencido ({delay.daysDelayed}d retraso)
                                   </span>
                                 );
                               }
                               return (
-                                <span
-                                  className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${
-                                    isPaid
-                                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                      : debt.estado === 'parcial'
-                                      ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                      : debt.estado === 'anulada'
-                                      ? 'bg-rose-50 text-rose-700 border-rose-200'
-                                      : 'bg-slate-100 text-slate-700 border-slate-200'
-                                  }`}
-                                >
-                                  {isPaid
-                                    ? 'Pagada'
-                                    : debt.estado === 'parcial'
-                                    ? 'Parcial'
-                                    : debt.estado === 'anulada'
-                                    ? 'Anulada'
-                                    : 'Pendiente'}
+                                <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full border bg-sky-50 text-sky-800 border-sky-200">
+                                  Al Día
                                 </span>
                               );
                             })()}
@@ -1855,6 +2030,37 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                 </div>
               </div>
 
+              {/* Fechas Estructuradas: Adquisición y Fecha de Compromiso de Pago */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <div>
+                  <label className="block font-bold text-slate-900 mb-1 text-xs">
+                    Fecha de Adquisición / Inscripción *
+                  </label>
+                  <DatePicker
+                    required
+                    value={saleFechaAdquisicion}
+                    onChange={(val) => setSaleFechaAdquisicion(val)}
+                    className="w-full"
+                  />
+                  <span className="text-[10px] text-slate-500 mt-1 block">
+                    Fecha formal de inicio o emisión del compromiso educativo.
+                  </span>
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-900 mb-1 text-xs">
+                    Fecha de Compromiso de Pago (Cobranza)
+                  </label>
+                  <DatePicker
+                    value={saleFechaCompromisoPago}
+                    onChange={(val) => setSaleFechaCompromisoPago(val)}
+                    className="w-full"
+                  />
+                  <span className="text-[10px] text-slate-500 mt-1 block">
+                    Fecha pactada con el alumno para el cumplimiento de su cuota.
+                  </span>
+                </div>
+              </div>
+
               {/* SECCIÓN CONDICIONAL: ¿REQUIERE FINANCIAMIENTO / PLAZOS DE PAGO? */}
               <div className="rounded-xl border border-slate-200 overflow-hidden bg-white shadow-2xs">
                 <label className="flex items-center justify-between p-3.5 bg-slate-50 hover:bg-slate-100/80 cursor-pointer transition-colors">
@@ -2184,9 +2390,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                     </label>
                     <div className="flex items-center gap-2 flex-wrap">
                       <label
-                        className={`cursor-pointer px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition-colors inline-flex items-center gap-1.5 ${
-                          isSaleOcrScanning ? 'opacity-60 pointer-events-none' : ''
-                        }`}
+                        className="cursor-pointer px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition-colors inline-flex items-center gap-1.5 shadow-2xs"
                       >
                         <Upload className="w-3.5 h-3.5" />
                         <span>{saleVoucherFileName ? 'Cambiar comprobante' : 'Subir comprobante'}</span>
@@ -2194,40 +2398,53 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                           type="file"
                           accept="image/*,.pdf"
                           className="hidden"
-                          disabled={isSaleOcrScanning}
                           onChange={handleSaleVoucherUpload}
                         />
                       </label>
-                      {isSaleOcrScanning && (
-                        <span className="text-emerald-800 text-xs font-medium flex items-center gap-1.5">
-                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                          Leyendo comprobante...
-                        </span>
-                      )}
                     </div>
 
-                    {saleVoucherFileName && !isSaleOcrScanning && (
-                      <div className="flex items-center justify-between p-2.5 bg-white border border-emerald-200 rounded-lg text-xs text-slate-700">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <FileText className="w-4 h-4 text-emerald-600 shrink-0" />
-                          <span className="truncate font-medium">{saleVoucherFileName}</span>
-                          {saleVoucherOcr && (
-                            <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 font-semibold">
-                              Confianza {saleVoucherOcr.confianza}%
+                    {saleVoucherFileName && (
+                      <div className="space-y-2 mt-2">
+                        <div className="flex items-center justify-between p-2.5 bg-white border border-emerald-200 rounded-lg text-xs text-slate-700 shadow-2xs">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <FileText className="w-4 h-4 text-emerald-600 shrink-0" />
+                            <span className="truncate font-medium">{saleVoucherFileName}</span>
+                            <span className="text-[10px] text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-bold">
+                              Adjunto
                             </span>
-                          )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSaleVoucherFileName(null);
+                              setSaleVoucherFile(null);
+                              setSaleVoucherPreviewUrl(null);
+                            }}
+                            className="text-slate-400 hover:text-rose-600 text-xs ml-2 p-1 rounded-md transition-colors inline-flex items-center"
+                            title="Quitar archivo"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSaleVoucherFileName(null);
-                            setSaleVoucherOcr(null);
-                          }}
-                          className="text-slate-400 hover:text-red-500 text-xs ml-2 px-1"
-                          title="Quitar archivo"
-                        >
-                          ✕
-                        </button>
+
+                        {saleVoucherPreviewUrl ? (
+                          <div className="p-2.5 bg-slate-900/5 rounded-xl border border-emerald-200 flex flex-col items-center">
+                            <img
+                              src={saleVoucherPreviewUrl}
+                              alt="Vista previa del comprobante inicial"
+                              className="max-h-44 w-auto object-contain rounded-lg shadow-xs border border-emerald-300/40 bg-white"
+                            />
+                            <span className="text-[10px] text-emerald-800 font-medium mt-1.5 flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                              Vista previa del comprobante cargado
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="p-3 bg-white border border-emerald-200 rounded-lg text-center text-xs text-emerald-800 font-medium flex items-center justify-center gap-2">
+                            <FileText className="w-4 h-4 text-emerald-600" />
+                            <span>Documento PDF adjunto y listo para validación</span>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -2524,44 +2741,43 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                       })()
                     )}
 
-                    {/* Asistente OCR Inteligente con Carga de Váucher */}
-                    <div className="p-4 bg-white border border-sky-200 rounded-xl shadow-2xs space-y-2.5">
-                      <div className="flex items-center justify-between gap-2">
+                    {/* Adjuntar Comprobante de Pago (Manual, SIN OCR) */}
+                    <div className="p-4 bg-white border border-slate-200 rounded-xl shadow-2xs space-y-3">
+                      <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
                         <div className="flex items-center gap-2">
-                          <Sparkles className="w-4 h-4 text-sky-600 shrink-0" />
+                          <FileText className="w-4 h-4 text-sky-600 shrink-0" />
                           <span className="text-xs text-slate-900 font-bold">
-                            {isPayOcrScanning ? 'Escaneando comprobante...' : 'Asistente OCR de Comprobantes'}
+                            Comprobante de Pago (Voucher / Recibo)
                           </span>
                         </div>
                         <label
-                          className={`cursor-pointer px-3 py-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded-lg text-xs font-semibold transition-colors shrink-0 shadow-2xs inline-flex items-center gap-1.5 ${
-                            isPayOcrScanning ? 'opacity-60 pointer-events-none' : ''
-                          }`}
+                          className="cursor-pointer px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-semibold transition-colors shrink-0 shadow-2xs inline-flex items-center gap-1.5"
                         >
                           <Upload className="w-3.5 h-3.5" />
-                          <span>{payUploadedFileName ? 'Cambiar Váucher' : 'Subir Váucher'}</span>
+                          <span>{payUploadedFileName ? 'Cambiar Archivo' : 'Adjuntar Voucher (PDF / Img)'}</span>
                           <input
                             type="file"
                             accept="image/*,.pdf"
                             className="hidden"
-                            disabled={isPayOcrScanning}
-                            onChange={handleOcrFileUpload}
+                            onChange={handleVoucherFileUpload}
                           />
                         </label>
                       </div>
 
                       <p className="text-[11px] text-slate-500">
-                        Sube una imagen o PDF del váucher de pago para autocompletar el monto, banco y código de transacción.
+                        Adjunte el comprobante digital de la transacción. Los datos del banco, transacción, monto y fecha se capturan de forma manual a continuación.
                       </p>
 
                       {/* Estado del archivo cargado */}
-                      {payUploadedFileName && (
+                      {payUploadedFileName ? (
                         <div className="space-y-2">
                           <div className="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700">
                             <div className="flex items-center gap-2 min-w-0">
                               <FileText className="w-4 h-4 text-sky-600 shrink-0" />
                               <span className="truncate font-medium">{payUploadedFileName}</span>
-                              <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 font-semibold">Cargado</span>
+                              <span className="text-[10px] text-teal-800 bg-teal-50 px-2 py-0.5 rounded border border-teal-200 font-bold">
+                                Adjunto
+                              </span>
                             </div>
                             <button
                               type="button"
@@ -2569,46 +2785,43 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                                 setPayUploadedFileName(null);
                                 setPayUploadedFile(null);
                                 setPayFilePreviewUrl(null);
-                                setPayOcrExtracted(null);
                               }}
-                              className="text-slate-400 hover:text-red-500 text-xs ml-2 p-1 rounded-md transition-colors inline-flex items-center"
+                              className="text-slate-400 hover:text-rose-600 text-xs ml-2 p-1 rounded-md transition-colors inline-flex items-center"
                               title="Quitar archivo"
                             >
                               <X className="w-3.5 h-3.5" />
                             </button>
                           </div>
 
-                          {payFilePreviewUrl && (
+                          {payFilePreviewUrl ? (
                             <div className="p-2 bg-slate-100 rounded-xl border border-slate-200 flex flex-col items-center">
                               <img
                                 src={payFilePreviewUrl}
-                                alt="Vista previa de la transferencia"
+                                alt="Vista previa del comprobante"
                                 className="max-h-36 w-auto object-contain rounded-lg shadow-xs"
                               />
                               <span className="text-[10px] text-slate-500 mt-1">
-                                Vista previa de la transferencia bancaria
+                                Vista previa del váucher adjunto
                               </span>
+                            </div>
+                          ) : (
+                            <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-center text-xs text-slate-600">
+                              Documento PDF adjunto correctamente listo para auditoría.
                             </div>
                           )}
                         </div>
-                      )}
-
-                      {isPayOcrScanning && (
-                        <div className="p-2.5 bg-sky-50 border border-slate-300 rounded-lg text-xs text-slate-900 flex items-center gap-2 animate-pulse font-medium">
-                          <RefreshCw className="w-3.5 h-3.5 animate-spin text-sky-600" />
-                          <span>Leyendo y reconociendo datos del comprobante...</span>
+                      ) : (
+                        <div className="p-3 bg-slate-50 border border-dashed border-slate-200 rounded-xl text-center text-slate-400 text-xs">
+                          Ningún archivo seleccionado.
                         </div>
                       )}
 
-                      {payOcrExtracted && !isPayOcrScanning && (
-                        <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-800 flex items-center justify-between font-medium">
-                          <div className="flex items-center gap-1.5">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                            <span>Confianza {payOcrExtracted.confianza}% ({payOcrExtracted.banco})</span>
-                          </div>
-                          <span className="font-mono font-bold text-emerald-900">${payOcrExtracted.monto?.toFixed(2)}</span>
+                      <div className="p-2.5 bg-amber-50/80 border border-amber-200 rounded-lg text-[11px] text-amber-900 flex items-start gap-2">
+                        <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                        <div>
+                          <strong>Control de Conciliación:</strong> Al guardar, este registro pasa a estado <strong>En Comprobación</strong>. La deuda no se extingue hasta la validación con el extracto bancario.
                         </div>
-                      )}
+                      </div>
                     </div>
                   </div>
 
@@ -2741,6 +2954,8 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                                   { value: 'Produbanco', label: 'Produbanco' },
                                   { value: 'Banco Internacional', label: 'Banco Internacional' },
                                   { value: 'Cooperativa JEP', label: 'Cooperativa JEP' },
+                                  { value: 'PayPal', label: 'PayPal' },
+                                  { value: 'PayPhone', label: 'PayPhone' },
                                 ]
                           }
                           value={payBank}
