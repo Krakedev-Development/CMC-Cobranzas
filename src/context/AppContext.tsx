@@ -541,7 +541,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const hasPermission = (module: ModuleName, action: keyof PermissionSet): boolean => {
     if (!currentUser || currentUser.estado === 'inactivo') return false;
     // Admin has verified full permissions
-    if (currentUser.username === 'admin') {
+    const isAdmin =
+      currentUser.username === 'admin' ||
+      currentUser.perfilBase === 'Administrador' ||
+      currentUser.cargo?.toLowerCase().includes('administrador') ||
+      (currentUser as any).rol === 'ADMIN';
+
+    if (isAdmin) {
       if (module === 'auditoria' && (action === 'modificar' || action === 'eliminar' || action === 'crear')) {
         return false; // Audit is strictly read-only for everyone!
       }

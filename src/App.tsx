@@ -131,7 +131,10 @@ const AppContent: React.FC = () => {
         {/* Dynamic View Body */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
           {!hasViewPermission ? (
-            <RestrictedAccessView moduleName={currentModule} />
+            <RestrictedAccessView
+              moduleName={currentModule}
+              onNavigateToDashboard={() => setCurrentModule('dashboard')}
+            />
           ) : (
             <>
               {currentModule === 'dashboard' && (

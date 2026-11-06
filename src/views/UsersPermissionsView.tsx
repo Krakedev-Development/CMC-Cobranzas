@@ -208,12 +208,16 @@ export const UsersPermissionsView: React.FC = () => {
     generatePresetPermissions('Cobranzas')
   );
   const [newUserError, setNewUserError] = useState('');
+  const [editingPerfilBase, setEditingPerfilBase] = useState<string>(
+    users[0]?.perfilBase || 'Administrador'
+  );
 
   const canManageUsers = hasPermission('usuarios', 'modificar');
 
   // When selected user changes, reload their permissions
   const handleSelectUser = (user: DemoUser) => {
     setSelectedUserForPerms(user);
+    setEditingPerfilBase(user.perfilBase || 'Cobranzas');
     setEditingPermissions(user.permisos);
     setSaveSuccessMessage('');
   };
@@ -251,6 +255,12 @@ export const UsersPermissionsView: React.FC = () => {
   const handleApplyPreset = (presetName: string) => {
     const updated = generatePresetPermissions(presetName);
     setEditingPermissions(updated);
+    setEditingPerfilBase(
+      presetName === 'Administrador Total' ? 'Administrador'
+      : presetName === 'Contabilidad' ? 'Supervisor'
+      : presetName === 'Auditor / Solo Lectura' ? 'Auditor'
+      : 'Cobranzas'
+    );
   };
 
   const handleApplyPresetToNewUser = (presetName: string) => {
@@ -272,19 +282,25 @@ export const UsersPermissionsView: React.FC = () => {
   };
 
   const handleSavePermissions = () => {
+    const targetRole = editingPerfilBase || selectedUserForPerms.perfilBase;
+    updateUser(selectedUserForPerms.id, {
+      perfilBase: targetRole,
+      permisos: editingPermissions,
+    });
     updateUserPermissions(
       selectedUserForPerms.id,
       editingPermissions,
-      justificationNote.trim() || `Actualización de permisos personalizados para ${selectedUserForPerms.nombre}`
+      justificationNote.trim() || `Actualización de rol (${targetRole}) y permisos para ${selectedUserForPerms.nombre}`
     );
 
     setSelectedUserForPerms((prev) => ({
       ...prev,
+      perfilBase: targetRole,
       permisos: editingPermissions,
     }));
 
     setSaveSuccessMessage(
-      `✓ Permisos guardados y registrados en Auditoría. Ahora puedes cambiar al usuario "${selectedUserForPerms.username}" para probar en vivo sus nuevos accesos.`
+      `✓ Permisos y rol (${targetRole}) guardados exitosamente en la base de datos para @${selectedUserForPerms.username}.`
     );
     setJustificationNote('');
   };
@@ -567,33 +583,36 @@ export const UsersPermissionsView: React.FC = () => {
             </p>
           </div>
 
-          {/* Quick presets buttons */}
+          {/* Quick presets & role buttons */}
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-slate-400 font-semibold">Cargar plantilla:</span>
-            <button
-              onClick={() => handleApplyPreset('Administrador Total')}
-              className="px-2.5 py-1 bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 rounded-lg text-xs font-medium transition-colors"
-            >
-              Admin Total
-            </button>
-            <button
-              onClick={() => handleApplyPreset('Cobranzas')}
-              className="px-2.5 py-1 bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 rounded-lg text-xs font-medium transition-colors"
-            >
-              Cobranzas
-            </button>
-            <button
-              onClick={() => handleApplyPreset('Contabilidad')}
-              className="px-2.5 py-1 bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 rounded-lg text-xs font-medium transition-colors"
-            >
-              Contabilidad
-            </button>
-            <button
-              onClick={() => handleApplyPreset('Atención al cliente')}
-              className="px-2.5 py-1 bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 rounded-lg text-xs font-medium transition-colors"
-            >
-              Atención
-            </button>
+            <span className="text-xs text-slate-500 font-semibold">Rol / Plantilla:</span>
+            {[
+              { id: 'Administrador Total', label: 'Admin Total' },
+              { id: 'Cobranzas', label: 'Cobranzas' },
+              { id: 'Contabilidad', label: 'Contabilidad' },
+              { id: 'Atención al cliente', label: 'Atención' },
+            ].map((p) => {
+              const isSelected =
+                (p.id === 'Administrador Total' && (editingPerfilBase === 'Administrador' || editingPerfilBase === 'Administrador Total')) ||
+                (p.id === 'Cobranzas' && editingPerfilBase === 'Cobranzas') ||
+                (p.id === 'Contabilidad' && (editingPerfilBase === 'Supervisor' || editingPerfilBase === 'Contabilidad')) ||
+                (p.id === 'Atención al cliente' && editingPerfilBase === 'Atención al cliente');
+
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => handleApplyPreset(p.id)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${
+                    isSelected
+                      ? 'bg-sky-500 text-white shadow-xs'
+                      : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  {p.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 

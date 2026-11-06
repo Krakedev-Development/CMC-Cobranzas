@@ -48,7 +48,7 @@ const MODULE_TITLES: Record<ModuleName, { title: string; subtitle: string }> = {
   },
   usuarios: {
     title: 'Administración de Usuarios y Permisos',
-    subtitle: 'Simulador de roles y configuración granular de permisos por módulo y acción',
+    subtitle: 'Gestión de usuarios y asignación granular de permisos por módulo y acción',
   },
   auditoria: {
     title: 'Registro de Auditoría y Trazabilidad',
