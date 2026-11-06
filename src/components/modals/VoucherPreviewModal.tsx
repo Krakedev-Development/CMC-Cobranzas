@@ -258,29 +258,17 @@ export const VoucherPreviewModal: React.FC<VoucherPreviewModalProps> = ({
                 <div className="font-semibold text-slate-900">Estado de Conciliación:</div>
                 <div className="text-[11px] text-slate-700">
                   {payment.estadoConciliacion === 'conciliado_auto' &&
-                    '✓ Conciliado automáticamente con extracto bancario.'}
+                    'Conciliado automáticamente con extracto bancario.'}
                   {payment.estadoConciliacion === 'conciliado_manual' &&
-                    '✓ Conciliado manualmente por el operador de tesorería.'}
+                    'Conciliado manualmente por el operador de tesorería.'}
                   {payment.estadoConciliacion === 'pendiente' &&
-                    '⏳ Pendiente de contrastar con el próximo extracto bancario.'}
+                    'Pendiente de contrastar con el próximo extracto bancario.'}
                   {payment.estadoConciliacion === 'con_diferencias' &&
-                    '⚠ Presenta diferencia de valor con el extracto bancario.'}
+                    'Presenta diferencia de valor con el extracto bancario.'}
                   {payment.estadoConciliacion === 'no_encontrado' &&
-                    'ℹ No localizado en el extracto del día; requiere verificación.'}
+                    'No localizado en el extracto del día; requiere verificación.'}
                 </div>
               </div>
-            )}
-
-            {fileUrl && !fileUrl.startsWith('demo://') && (
-              <a
-                href={fileUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full py-2 px-3 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                <span>Ver Archivo en Almacenamiento Seguro Cloudflare R2</span>
-              </a>
             )}
           </div>
         </div>
