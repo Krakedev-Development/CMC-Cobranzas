@@ -70,7 +70,83 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     cancelPayment,
     logAudit,
     currentUser,
+    exportToCSV,
+    exportToPDF,
   } = useApp();
+
+  const canExport = hasPermission('deudas', 'exportar');
+
+  const handleExportDebtsExcel = () => {
+    if (!canExport) return;
+    const headers = [
+      'ID Deuda',
+      'Alumno',
+      'Cédula',
+      'Programa Educativo',
+      'Fecha Adquisición',
+      'Fecha Compromiso',
+      'Días Mora',
+      'P. Nominal ($)',
+      'P. Acordado ($)',
+      'Pagado ($)',
+      'Saldo Pendiente ($)',
+      'Estado',
+    ];
+    const rows = filteredDebts.map((d) => {
+      const client = clients.find((c) => c.id === d.clienteId);
+      const product = products.find((p) => p.id === d.productoId);
+      const fin = getDebtFinancials(d.id);
+      return [
+        d.id,
+        client ? `${client.nombres} ${client.apellidos}` : d.clienteId,
+        client?.cedula || '-',
+        product?.nombre || d.productoId,
+        d.fechaAdquisicion,
+        d.fechaCompromisoPago || '-',
+        d.diasMora || 0,
+        d.precioNominalAplicado.toFixed(2),
+        d.precioAcordado.toFixed(2),
+        (fin?.validPaymentsTotal || 0).toFixed(2),
+        (fin?.saldoPendiente || 0).toFixed(2),
+        d.estado,
+      ];
+    });
+    exportToCSV('Cuentas_Por_Cobrar_Deudas', headers, rows);
+  };
+
+  const handleExportDebtsPDF = () => {
+    if (!canExport) return;
+    const headers = [
+      'Alumno',
+      'Cédula',
+      'Programa',
+      'Fecha Adq.',
+      'Compromiso',
+      'Mora',
+      'P. Acordado ($)',
+      'Pagado ($)',
+      'Saldo ($)',
+      'Estado',
+    ];
+    const rows = filteredDebts.map((d) => {
+      const client = clients.find((c) => c.id === d.clienteId);
+      const product = products.find((p) => p.id === d.productoId);
+      const fin = getDebtFinancials(d.id);
+      return [
+        client ? `${client.nombres} ${client.apellidos}` : d.clienteId,
+        client?.cedula || '-',
+        product?.nombre || d.productoId,
+        d.fechaAdquisicion,
+        d.fechaCompromisoPago || '-',
+        `${d.diasMora || 0} d`,
+        d.precioAcordado.toFixed(2),
+        (fin?.validPaymentsTotal || 0).toFixed(2),
+        (fin?.saldoPendiente || 0).toFixed(2),
+        d.estado,
+      ];
+    });
+    exportToPDF('Reporte de Cuentas por Cobrar (Deudas)', headers, rows, 'Listado oficial de cartera y saldos vigentes');
+  };
 
   // Active Sub-Tab: "deudas" or "pagos"
   const [activeTab, setActiveTab] = useState<'deudas' | 'pagos'>(initialTab);
@@ -1311,6 +1387,27 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                   <Upload className="w-3.5 h-3.5 text-slate-600" />
                   <span>Carga Masiva Excel</span>
                 </button>
+              )}
+
+              {canExport && (
+                <>
+                  <button
+                    onClick={handleExportDebtsExcel}
+                    className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-2xs"
+                    title="Exportar cartera a Excel / CSV"
+                  >
+                    <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Excel</span>
+                  </button>
+                  <button
+                    onClick={handleExportDebtsPDF}
+                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-2xs"
+                    title="Exportar o imprimir cartera en PDF"
+                  >
+                    <Printer className="w-3.5 h-3.5 text-slate-600" />
+                    <span>PDF</span>
+                  </button>
+                </>
               )}
             </div>
           </div>

@@ -62,6 +62,7 @@ export const BankReconciliationView: React.FC = () => {
     undoReconciliation,
     importBankMovements,
     exportToCSV,
+    exportToPDF,
     hasPermission,
   } = useApp();
 
@@ -525,6 +526,45 @@ export const BankReconciliationView: React.FC = () => {
     exportToCSV(`Conciliacion_Bancaria_Semaforo_${new Date().toISOString().slice(0, 10)}`, headers, rows);
   };
 
+  const handleExportPDF = () => {
+    if (!canExport) return;
+
+    const headers = [
+      'Semáforo',
+      'Fecha',
+      'Entidad',
+      'N° Transacción',
+      'Monto ($)',
+      'Alumno',
+      'Cédula',
+      'Programa',
+      'Concepto',
+    ];
+
+    const rows = filteredTrafficItems.map((item) => [
+      item.trafficType === 'verde'
+        ? 'Conciliado'
+        : item.trafficType === 'ambar'
+        ? 'En Comprobación'
+        : 'Huérfana',
+      item.fecha,
+      item.entidad,
+      item.numeroTransaccion,
+      item.monto.toFixed(2),
+      item.alumnoNombre || 'Sin alumno',
+      item.alumnoCedula || '-',
+      item.programaNombre || '-',
+      item.descripcion,
+    ]);
+
+    exportToPDF(
+      'Reporte de Conciliación Bancaria Multi-Entidad',
+      headers,
+      rows,
+      'Control de matching bancario, semáforo tricolor y movimientos de extracto'
+    );
+  };
+
   return (
     <div className="space-y-6">
       {/* ---------------------------------------------------- */}
@@ -574,16 +614,26 @@ export const BankReconciliationView: React.FC = () => {
             </button>
           )}
 
-          {/* Botón Exportar a CSV */}
+          {/* Botones de Exportación a Excel y PDF */}
           {canExport && (
-            <button
-              onClick={handleExportCSV}
-              className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 border border-slate-200"
-              title="Exportar vista actual a formato CSV"
-            >
-              <Download className="w-4 h-4" />
-              <span>Exportar</span>
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={handleExportCSV}
+                className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-2xs"
+                title="Exportar conciliación a Excel / CSV"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Excel</span>
+              </button>
+              <button
+                onClick={handleExportPDF}
+                className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-2xs"
+                title="Exportar o imprimir conciliación en PDF"
+              >
+                <FileText className="w-3.5 h-3.5 text-slate-600" />
+                <span>PDF</span>
+              </button>
+            </div>
           )}
         </div>
       </div>

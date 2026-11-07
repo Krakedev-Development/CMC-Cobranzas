@@ -200,6 +200,7 @@ interface AppContextType {
 
   // Utility
   exportToCSV: (filename: string, headers: string[], rows: (string | number | undefined | null)[][]) => void;
+  exportToPDF: (title: string, headers: string[], rows: (string | number | undefined | null)[][], subtitle?: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -1709,6 +1710,111 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     );
   };
 
+  const exportToPDF = (
+    title: string,
+    headers: string[],
+    rows: (string | number | undefined | null)[][],
+    subtitle?: string
+  ) => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert('Por favor habilite las ventanas emergentes (pop-ups) en su navegador para generar el PDF.');
+      return;
+    }
+
+    const todayStr = new Date().toLocaleDateString('es-EC', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    const headerHtml = headers
+      .map(
+        (h) =>
+          `<th style="padding: 8px 10px; background: #0f172a; color: white; border: 1px solid #334155; font-size: 10px; text-transform: uppercase; font-weight: bold;">${h}</th>`
+      )
+      .join('');
+
+    const rowsHtml = rows
+      .map((r, i) => {
+        const bg = i % 2 === 0 ? '#ffffff' : '#f8fafc';
+        const cells = r
+          .map(
+            (c) =>
+              `<td style="padding: 6px 10px; border: 1px solid #e2e8f0; font-size: 10px; color: #1e293b;">${
+                c !== undefined && c !== null ? c : '-'
+              }</td>`
+          )
+          .join('');
+        return `<tr style="background: ${bg};">${cells}</tr>`;
+      })
+      .join('');
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>${title} - CMC Cobranzas</title>
+        <style>
+          @page { size: landscape; margin: 12mm; }
+          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; color: #1e293b; margin: 0; padding: 16px; }
+          .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0284c7; padding-bottom: 10px; margin-bottom: 14px; }
+          .title { font-size: 16px; font-weight: bold; color: #0f172a; }
+          .subtitle { font-size: 11px; color: #64748b; margin-top: 3px; }
+          .meta { text-align: right; font-size: 10px; color: #64748b; line-height: 1.4; }
+          table { width: 100%; border-collapse: collapse; text-align: left; }
+          .footer { margin-top: 16px; font-size: 9px; color: #94a3b8; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 6px; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            <div class="title">${title}</div>
+            <div class="subtitle">${subtitle || 'Reporte oficial generado por CMC Cobranzas'}</div>
+          </div>
+          <div class="meta">
+            <div><strong>Clear Minds Cobranzas</strong></div>
+            <div>Fecha: ${todayStr}</div>
+            <div>Total: ${rows.length} registros</div>
+          </div>
+        </div>
+        <table>
+          <thead><tr>${headerHtml}</tr></thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+        <div class="footer">
+          Documento confidencial generado para control interno - CMC Cobranzas
+        </div>
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+            }, 250);
+          };
+        </script>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(html);
+    printWindow.document.close();
+
+    logAudit(
+      'reportes',
+      'modificar',
+      'reporte_pdf',
+      title,
+      undefined,
+      { reporte: title, totalFilas: rows.length },
+      `Exportación de reporte a archivo PDF (${rows.length} filas)`,
+      'exitoso',
+      'interfaz'
+    );
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -1758,6 +1864,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         updateUser,
         updateUserPermissions,
         exportToCSV,
+        exportToPDF,
       }}
     >
       {children}
