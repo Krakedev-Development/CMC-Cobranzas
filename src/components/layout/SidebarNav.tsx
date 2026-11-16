@@ -192,10 +192,10 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
           ) : (
             <div className="flex justify-center items-center w-full">
               <img
-                src="/assets/clear-minds-consultores-transparent.png"
+                src="/assets/clear-minds-isotipo-transparent.png"
                 alt="Clear Minds"
-                className="w-8 h-8 shrink-0 object-contain"
-                title="Clear Minds — CMC Cobranzas"
+                className="w-8 h-8 shrink-0 object-contain drop-shadow-sm"
+                title="Clear Minds Consultores"
               />
             </div>
           )}
@@ -209,16 +209,16 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
                 {currentUser.username.slice(0, 2)}
               </div>
               <div className="min-w-0 flex-1 text-left">
-                <span className="block text-xs font-bold text-slate-900 dark:text-white truncate leading-tight">
+                <span className="block text-xs font-bold text-slate-900 dark:text-white truncate leading-tight" title={currentUser.nombre}>
                   {currentUser.nombre}
                 </span>
-                <span className="block text-[11px] text-slate-500 dark:text-slate-400 truncate leading-tight mt-0.5">
+                <span className="block text-[11px] text-slate-500 dark:text-slate-400 truncate leading-tight mt-0.5" title={currentUser.cargo}>
                   {currentUser.cargo}
                 </span>
               </div>
             </div>
           ) : (
-            <div className="flex justify-center items-center w-full" title={`Usuario: ${currentUser.nombre} (${currentUser.username})`}>
+            <div className="flex justify-center items-center w-full" title={`Usuario: ${currentUser.nombre} (${currentUser.username}) - ${currentUser.cargo}`}>
               <div className="sidebar-user-avatar w-8 h-8 rounded-lg bg-sky-500 text-white flex items-center justify-center text-xs font-bold uppercase shadow-xs">
                 {currentUser.username.slice(0, 2)}
               </div>
@@ -303,7 +303,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
                           <span className="text-amber-300 text-[10px] font-normal">(Sin permiso)</span>
                         )}
                         {item.badge !== undefined && (
-                          <span className="bg-amber-500 text-white text-[10px] px-1.5 py-0.2 rounded font-bold">
+                          <span className="bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">
                             {item.badge}
                           </span>
                         )}

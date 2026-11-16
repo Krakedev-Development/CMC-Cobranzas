@@ -1430,9 +1430,9 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                     <th className="py-3 px-4">Alumno / Cliente</th>
                     <th className="py-3 px-4">Programa / Producto</th>
                     <th className="py-3 px-4">Tipo de Pago</th>
-                    <th className="py-3 px-4">P. Acordado</th>
-                    <th className="py-3 px-4">Pagos Acumulados</th>
-                    <th className="py-3 px-4">Saldo Pendiente</th>
+                    <th className="py-3 px-4 text-right">P. Acordado</th>
+                    <th className="py-3 px-4 text-right">Pagos Acumulados</th>
+                    <th className="py-3 px-4 text-right">Saldo Pendiente</th>
                     <th className="py-3 px-4">Estado</th>
                     <th className="py-3 px-4 text-right">Acciones</th>
                   </tr>
@@ -1455,15 +1455,24 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                       return (
                         <tr key={debt.id} className="hover:bg-slate-50/80 transition-colors">
                           <td className="py-3 px-4 whitespace-nowrap">
-                            <span className="font-semibold text-slate-900 block">
-                              {client ? `${client.nombres} ${client.apellidos}` : debt.clienteId}
-                            </span>
-                            <span className="text-[11px] font-mono text-slate-400">
-                              {client?.cedula || 'ID: ' + debt.clienteId}
-                            </span>
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-lg bg-slate-100 text-sky-700 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-200">
+                                {client ? `${client.nombres[0] || ''}${client.apellidos[0] || ''}`.toUpperCase() : 'CL'}
+                              </div>
+                              <div>
+                                <span className="font-semibold text-slate-900 block">
+                                  {client ? `${client.nombres} ${client.apellidos}` : debt.clienteId}
+                                </span>
+                                <span className="text-[11px] font-mono text-slate-400">
+                                  {client?.cedula || 'ID: ' + debt.clienteId}
+                                </span>
+                              </div>
+                            </div>
                           </td>
                           <td className="py-3 px-4 font-medium text-slate-800 whitespace-nowrap">
-                            <span>{product?.nombre || debt.productoId}</span>
+                            <span className="capitalize font-semibold text-slate-900 block">
+                              {product?.nombre || debt.productoId}
+                            </span>
                             <div className="flex flex-col gap-0.5 mt-0.5">
                               <span className="text-[10px] text-slate-400 font-normal">Inscripción: {debt.fechaAdquisicion}</span>
                               {debt.fechaCompromisoPago && (
@@ -1514,18 +1523,22 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                               );
                             })()}
                           </td>
-                          <td className="py-3 px-4 font-bold text-slate-900 tabular-nums whitespace-nowrap">
+                          <td className="py-3 px-4 text-right font-bold text-slate-900 tabular-nums font-mono whitespace-nowrap">
                             <div>${debt.precioAcordado.toFixed(2)}</div>
-                            <div className="text-[10px] text-slate-400 font-normal line-through">${debt.precioNominalAplicado.toFixed(2)}</div>
+                            {debt.precioNominalAplicado > debt.precioAcordado && (
+                              <div className="text-[10px] text-slate-400 font-normal line-through">
+                                ${debt.precioNominalAplicado.toFixed(2)}
+                              </div>
+                            )}
                           </td>
-                          <td className="py-3 px-4 font-semibold text-emerald-700 tabular-nums whitespace-nowrap">
+                          <td className="py-3 px-4 text-right font-semibold text-emerald-700 tabular-nums font-mono whitespace-nowrap">
                             ${(fin?.validPaymentsTotal || 0).toFixed(2)}
                           </td>
-                          <td className="py-3 px-4 font-bold tabular-nums whitespace-nowrap">
+                          <td className="py-3 px-4 text-right font-bold tabular-nums font-mono whitespace-nowrap">
                             {(() => {
                               const delay = getDebtDelayInfo(debt);
                               return (
-                                <div>
+                                <div className="flex flex-col items-end">
                                   {!isPaid ? (
                                     <span className={delay.isOverdue ? 'text-rose-700 font-extrabold' : 'text-amber-700'}>
                                       ${(fin?.saldoPendiente || 0).toFixed(2)}

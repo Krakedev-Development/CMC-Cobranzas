@@ -97,6 +97,31 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
 
         const totalAbonado = fin?.validPaymentsTotal ?? 0;
 
+        // 0. Si tiene fecha de compromiso de pago estructurada:
+        if (debt.fechaCompromisoPago) {
+          if (debt.fechaCompromisoPago < todayStr) {
+            const compDate = new Date(debt.fechaCompromisoPago);
+            const diffTime = Math.max(0, today.getTime() - compDate.getTime());
+            const daysDelayed = Math.max(1, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
+            return {
+              debt,
+              saldo,
+              daysDelayed: debt.diasMora ? Math.max(debt.diasMora, daysDelayed) : daysDelayed,
+              reason: `Compromiso de pago vencido (${debt.fechaCompromisoPago})`,
+            };
+          }
+        }
+
+        // 0.1 Si tiene días de mora explícitos:
+        if (debt.diasMora && debt.diasMora > 0) {
+          return {
+            debt,
+            saldo,
+            daysDelayed: debt.diasMora,
+            reason: `Mora acumulada: ${debt.diasMora} días`,
+          };
+        }
+
         // 1. Si la deuda tiene cuotas configuradas:
         if (debt.cuotas && debt.cuotas.length > 0) {
           let acumuladoEsperado = 0;
@@ -203,7 +228,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             >
               <Bell className={`w-5 h-5 ${overdueDebts.length > 0 ? 'animate-bounce text-rose-600' : ''}`} />
               {overdueDebts.length > 0 && (
-                <span className="absolute -top-1 -right-1 px-1.5 py-0.2 bg-rose-600 text-white rounded-full text-[10px] font-black border-2 border-white shadow-xs">
+                <span className="absolute -top-1 -right-1 px-1.5 py-0.5 bg-rose-600 text-white rounded-full text-[10px] font-black border-2 border-white shadow-xs">
                   {overdueDebts.length}
                 </span>
               )}
@@ -250,7 +275,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                         >
                           <div className="flex items-center justify-between font-bold text-slate-900">
                             <span>{cl ? `${cl.nombres} ${cl.apellidos}` : debt.clienteId}</span>
-                            <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded bg-rose-100 text-rose-800 border border-rose-200">
+                            <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 border border-rose-200">
                               {daysDelayed}d retraso
                             </span>
                           </div>
