@@ -197,6 +197,19 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
   const [observaciones, setObservaciones] = useState('');
   const [formError, setFormError] = useState('');
   const [showOverdueOnly, setShowOverdueOnly] = useState<boolean>(false);
+  const [showRuleBanner, setShowRuleBanner] = useState<boolean>(() => {
+    return localStorage.getItem('cmc_hide_rule_banner') !== 'true';
+  });
+
+  const handleDismissRuleBanner = () => {
+    setShowRuleBanner(false);
+    localStorage.setItem('cmc_hide_rule_banner', 'true');
+  };
+
+  const handleShowRuleBanner = () => {
+    setShowRuleBanner(true);
+    localStorage.removeItem('cmc_hide_rule_banner');
+  };
 
   // --- BULK IMPORT MODAL STATE ---
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -1199,15 +1212,38 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
             </div>
           )}
 
-          {/* Informative Rule Note */}
-          <div className="p-3.5 bg-slate-100 border border-slate-200 rounded-2xl text-xs text-slate-700 flex items-start gap-2.5">
-            <Receipt className="w-4 h-4 text-sky-600 shrink-0 mt-0.5" />
-            <div>
-              <strong>Regla Conceptual:</strong> Cada deuda representa una venta o adquisición de un programa educativo por un alumno.
-              Desde esta misma tabla puedes registrar <strong>nuevas ventas</strong> con plazos y días de corte, pulsar <strong>Pagar</strong> para registrar abonos con comprobante,
-              consultar el <strong>Historial de pagos</strong> y ver la <strong>Factura oficial</strong> en adquisiciones canceladas.
+          {/* Informative Rule Note (Colapsable y Descartable para optimizar altura) */}
+          {showRuleBanner ? (
+            <div className="p-3 bg-sky-50/70 border border-sky-100 rounded-2xl text-xs text-slate-700 flex items-start justify-between gap-3 shadow-2xs transition-all">
+              <div className="flex items-start gap-2.5 min-w-0">
+                <Receipt className="w-4 h-4 text-sky-600 shrink-0 mt-0.5" />
+                <div className="leading-relaxed">
+                  <strong className="text-slate-900 font-semibold">Regla Conceptual:</strong> Cada deuda representa una venta o adquisición académica. Puedes registrar nuevas ventas con plazos y cortes, pulsar <strong className="text-sky-700">Pagar</strong> para abonos con comprobante, consultar el <strong className="text-slate-900">Historial</strong> y emitir la <strong className="text-slate-900">Factura oficial</strong> en adquisiciones liquidadas.
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleDismissRuleBanner}
+                className="p-1 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-white/80 transition-colors shrink-0 cursor-pointer"
+                title="Ocultar guía para ahorrar espacio en pantalla"
+                aria-label="Cerrar regla conceptual"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
-          </div>
+          ) : (
+            <div className="flex justify-end -mb-1">
+              <button
+                type="button"
+                onClick={handleShowRuleBanner}
+                className="text-[11px] text-slate-400 hover:text-sky-600 font-medium inline-flex items-center gap-1 transition-colors cursor-pointer"
+                title="Mostrar guía de operación de cartera"
+              >
+                <Receipt className="w-3.5 h-3.5" />
+                <span>Ver guía conceptual</span>
+              </button>
+            </div>
+          )}
 
           {/* PESTAÑAS DE ESTADO DE DEUDAS (4 PESTAÑAS CLAVE + TODAS) */}
           <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-200/70 rounded-2xl border border-slate-300/70 shadow-2xs">
