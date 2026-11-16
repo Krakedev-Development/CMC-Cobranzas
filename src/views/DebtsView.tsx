@@ -1453,7 +1453,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                       const hasDebtPayments = payments.some((p) => p.deudaId === debt.id);
 
                       return (
-                        <tr key={debt.id} className="hover:bg-slate-50/80 transition-colors">
+                        <tr key={debt.id} className="group hover:bg-slate-50/80 transition-colors">
                           <td className="py-3 px-4 whitespace-nowrap">
                             <div className="flex items-center gap-2.5">
                               <div className="w-8 h-8 rounded-lg bg-slate-100 text-sky-700 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-200">
@@ -1619,10 +1619,10 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                               {!isPaid && debt.estado !== 'anulada' && canPay && (
                                 <button
                                   onClick={() => handleOpenPayModal(debt)}
-                                  className="px-2.5 py-1 bg-sky-500 hover:bg-sky-600 text-white rounded-lg text-xs font-semibold transition-colors inline-flex items-center gap-1 shadow-2xs"
+                                  className="px-2.5 py-1.5 bg-sky-50 hover:bg-sky-500 text-sky-700 hover:text-white border border-sky-200 hover:border-sky-500 rounded-lg text-xs font-semibold transition-all inline-flex items-center gap-1.5 shadow-2xs cursor-pointer"
                                   title="Registrar pago directo para esta deuda"
                                 >
-                                  <CreditCard className="w-3 h-3" />
+                                  <CreditCard className="w-3.5 h-3.5" />
                                   <span>Pagar</span>
                                 </button>
                               )}
@@ -1634,10 +1634,10 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                                     setDebtForInvoice(debt);
                                     setIsInvoiceModalOpen(true);
                                   }}
-                                  className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-semibold transition-colors inline-flex items-center gap-1 border border-emerald-200"
+                                  className="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200 hover:border-emerald-600 rounded-lg text-xs font-semibold transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-2xs"
                                   title="Ver factura oficial de esta deuda pagada"
                                 >
-                                  <FileText className="w-3 h-3" />
+                                  <FileText className="w-3.5 h-3.5" />
                                   <span>Factura</span>
                                 </button>
                               )}
@@ -1648,14 +1648,14 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                                   setDebtForHistory(debt);
                                   setIsHistoryModalOpen(true);
                                 }}
-                                className={`px-2 py-1 rounded-lg text-xs font-semibold transition-colors inline-flex items-center gap-1 border ${
+                                className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all inline-flex items-center gap-1.5 border cursor-pointer ${
                                   hasDebtPayments
-                                    ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
-                                    : 'bg-slate-50 text-slate-400 border-slate-200 hover:text-slate-600'
+                                    ? 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200 hover:border-slate-300'
+                                    : 'bg-slate-50/60 text-slate-400 border-slate-200 hover:text-slate-600'
                                 }`}
                                 title="Ver historial cronológico de pagos de esta adquisición"
                               >
-                                <History className="w-3 h-3" />
+                                <History className="w-3.5 h-3.5" />
                                 <span>Historial</span>
                               </button>
                             </div>
