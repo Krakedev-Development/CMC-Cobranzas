@@ -416,6 +416,20 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     }, 0);
   }, [overdueDebtsList, getDebtFinancials]);
 
+  const totalPortfolioBalance = useMemo(() => {
+    return debts
+      .filter((d) => d.estado !== 'anulada')
+      .reduce((sum, d) => {
+        const fin = getDebtFinancials(d.id);
+        return sum + (fin?.saldoPendiente || 0);
+      }, 0);
+  }, [debts, getDebtFinancials]);
+
+  const overduePercentage = useMemo(() => {
+    if (totalPortfolioBalance <= 0) return 0;
+    return Math.min(100, Math.round((totalOverdueBalance / totalPortfolioBalance) * 100));
+  }, [totalOverdueBalance, totalPortfolioBalance]);
+
   // Conteo dinámico para las 4 pestañas de estado de deudas
   const debtCountsByTab = useMemo(() => {
     let alDia = 0;
@@ -1159,52 +1173,52 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
       {/* ========================================================================= */}
       {activeTab === 'deudas' && (
         <div className="space-y-4">
-          {/* SECCIÓN DE ALERTAS DE RETRASO Y CUOTAS VENCIDAS */}
+          {/* SECCIÓN DE ALERTAS DE RETRASO Y CUOTAS VENCIDAS (TARJETA KPI EJECUTIVA) */}
           {overdueDebtsList.length > 0 && (
-            <div className="bg-gradient-to-r from-rose-50 via-amber-50/50 to-rose-50 border border-rose-200 rounded-2xl p-4 shadow-xs">
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-10 h-10 rounded-2xl bg-rose-600 text-white flex items-center justify-center shadow-xs shrink-0 relative">
-                    <Bell className="w-5 h-5 animate-bounce" />
-                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-amber-400 rounded-full border-2 border-white" />
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs relative overflow-hidden before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1.5 before:bg-rose-500 before:rounded-l-2xl">
+              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pl-2">
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center shrink-0">
+                    <ShieldAlert className="w-5 h-5 text-rose-600" />
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-extrabold text-slate-900 text-sm">
-                        Alertas de Cobranza: Cuotas y Pagos en Retraso
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-bold text-slate-900 text-sm tracking-tight">
+                        Cartera en Riesgo: Cuotas y Pagos en Retraso
                       </h3>
-                      <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-rose-600 text-white shadow-2xs">
+                      <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
                         {overdueDebtsList.length} {overdueDebtsList.length === 1 ? 'caso en mora' : 'casos en mora'}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-600 mt-0.5">
-                      Se detectaron pagos impagos que superaron su fecha límite o día de corte mensual. Puedes ver el detalle filtrando la tabla.
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Cuentas impagas que superaron su compromiso o día de corte. Gestiona los cobros directamente desde la tabla.
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 pt-2 md:pt-0 border-rose-100">
-                  <div className="text-left md:text-right">
+                <div className="flex items-center gap-4 w-full lg:w-auto justify-between lg:justify-end border-t lg:border-t-0 pt-3 lg:pt-0 border-slate-100 shrink-0">
+                  <div className="text-left lg:text-right">
                     <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
-                      Saldo Total en Retraso
+                      Saldo en Retraso {overduePercentage > 0 && `(${overduePercentage}% de cartera activa)`}
                     </span>
-                    <span className="text-base font-extrabold text-rose-700 font-mono">
-                      ${totalOverdueBalance.toFixed(2)} USD
+                    <span className="text-xl font-black text-rose-600 font-mono tracking-tight">
+                      ${totalOverdueBalance.toFixed(2)} <span className="text-xs font-semibold text-slate-400 font-sans">USD</span>
                     </span>
                   </div>
 
                   <button
+                    type="button"
                     onClick={() => {
                       setShowOverdueOnly(!showOverdueOnly);
                       setDebtsCurrentPage(1);
                     }}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-2xs shrink-0 ${
+                    className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all inline-flex items-center gap-2 shadow-2xs shrink-0 cursor-pointer ${
                       showOverdueOnly
-                        ? 'bg-rose-600 text-white ring-2 ring-rose-500/30'
-                        : 'bg-white text-rose-800 border border-rose-300 hover:bg-rose-100/60'
+                        ? 'bg-rose-600 hover:bg-rose-700 text-white shadow-xs'
+                        : 'bg-slate-50 hover:bg-rose-50 text-slate-700 hover:text-rose-700 border border-slate-200 hover:border-rose-300'
                     }`}
                   >
-                    <Bell className="w-4 h-4 text-rose-600" />
+                    <Bell className={`w-3.5 h-3.5 ${showOverdueOnly ? 'text-white' : 'text-rose-600'}`} />
                     <span>{showOverdueOnly ? 'Mostrando solo retrasados' : 'Filtrar cuentas con retraso'}</span>
                   </button>
                 </div>
