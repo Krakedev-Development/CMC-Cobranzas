@@ -1357,108 +1357,120 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
           </div>
 
           {/* Filter and Action Bar */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-            {/* Search */}
-            <div className="relative flex-1 max-w-sm">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Buscar por alumno, cédula o programa..."
-                value={debtSearchQuery}
-                onChange={(e) => {
-                  setDebtSearchQuery(e.target.value);
-                  setDebtsCurrentPage(1);
-                }}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
-              />
-            </div>
-
-            {/* Custom Selectors and Actions */}
-            <div className="flex flex-wrap items-center gap-2.5">
-              <CustomSelect
-                options={[
-                  { value: 'all', label: 'Todos los programas' },
-                  ...products.map((p) => ({
-                    value: p.id,
-                    label: p.nombre,
-                  })),
-                ]}
-                value={productFilter}
-                onChange={(val) => {
-                  setProductFilter(val);
-                  setDebtsCurrentPage(1);
-                }}
-                searchable={products.length > 5}
-                className="w-48"
-              />
-
-              <CustomSelect
-                options={[
-                  { value: 'all', label: 'Todos los estados' },
-                  { value: 'pendiente', label: 'Pendientes de pago' },
-                  { value: 'parcial', label: 'Parcialmente pagadas' },
-                  { value: 'pagada', label: 'Totalmente pagadas' },
-                  { value: 'anulada', label: 'Anuladas' },
-                ]}
-                value={statusFilter}
-                onChange={(val) => {
-                  setStatusFilter(val);
-                  setDebtsCurrentPage(1);
-                }}
-                className="w-44"
-              />
-
-              <CustomSelect
-                options={[
-                  { value: 'all', label: 'Todos los Tipos de Pago' },
-                  { value: 'transferencia', label: 'Transferencia' },
-                  { value: 'efectivo', label: 'Efectivo' },
-                  { value: 'tarjeta', label: 'Tarjeta' },
-                  { value: 'deposito', label: 'Depósito' },
-                ]}
-                value={debtMethodFilter}
-                onChange={(val) => {
-                  setDebtMethodFilter(val);
-                  setDebtsCurrentPage(1);
-                }}
-                className="w-48"
-              />
-
-              {canCreate && (
-                <button
-                  onClick={() => {
-                    setImportSampleLoaded(false);
-                    setImportPreviewList([]);
-                    setIsImportModalOpen(true);
+          <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-xs">
+            <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+              {/* Search */}
+              <div className="relative flex-1 min-w-[220px] max-w-sm">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Buscar por alumno, cédula o programa..."
+                  value={debtSearchQuery}
+                  onChange={(e) => {
+                    setDebtSearchQuery(e.target.value);
+                    setDebtsCurrentPage(1);
                   }}
-                  className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
-                  title="Cargar masivamente inscripciones desde Excel (Flujo A)"
-                >
-                  <Upload className="w-3.5 h-3.5 text-slate-600" />
-                  <span>Carga Masiva Excel</span>
-                </button>
-              )}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                />
+              </div>
 
-              {canExport && (
-                <>
-                  <button
-                    onClick={handleExportDebtsExcel}
-                    className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-2xs"
-                    title="Exportar cartera a Excel / CSV"
-                  >
-                    <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Excel</span>
-                  </button>
-                  <button
-                    onClick={handleExportDebtsPDF}
-                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-2xs"
-                    title="Exportar o imprimir cartera en PDF"
-                  >
-                    <Printer className="w-3.5 h-3.5 text-slate-600" />
-                    <span>PDF</span>
-                  </button>
-                </>
-              )}
+              {/* Custom Selectors and Actions */}
+              <div className="flex flex-wrap items-center gap-2">
+                <CustomSelect
+                  options={[
+                    { value: 'all', label: 'Todos los programas' },
+                    ...products.map((p) => ({
+                      value: p.id,
+                      label: p.nombre,
+                    })),
+                  ]}
+                  value={productFilter}
+                  onChange={(val) => {
+                    setProductFilter(val);
+                    setDebtsCurrentPage(1);
+                  }}
+                  searchable={products.length > 5}
+                  className="w-44"
+                />
+
+                <CustomSelect
+                  options={[
+                    { value: 'all', label: 'Todos los estados' },
+                    { value: 'pendiente', label: 'Pendientes de pago' },
+                    { value: 'parcial', label: 'Parcialmente pagadas' },
+                    { value: 'pagada', label: 'Totalmente pagadas' },
+                    { value: 'anulada', label: 'Anuladas' },
+                  ]}
+                  value={statusFilter}
+                  onChange={(val) => {
+                    setStatusFilter(val);
+                    setDebtsCurrentPage(1);
+                  }}
+                  className="w-40"
+                />
+
+                <CustomSelect
+                  options={[
+                    { value: 'all', label: 'Todos los tipos de pago' },
+                    { value: 'transferencia', label: 'Transferencia' },
+                    { value: 'efectivo', label: 'Efectivo' },
+                    { value: 'tarjeta', label: 'Tarjeta' },
+                    { value: 'deposito', label: 'Depósito' },
+                  ]}
+                  value={debtMethodFilter}
+                  onChange={(val) => {
+                    setDebtMethodFilter(val);
+                    setDebtsCurrentPage(1);
+                  }}
+                  className="w-44"
+                />
+
+                {/* Separador vertical sutil */}
+                <div className="hidden xl:block h-6 w-px bg-slate-200 mx-0.5" />
+
+                {/* Acciones de Carga Masiva y Exportación agrupada */}
+                <div className="flex items-center gap-2 ml-auto lg:ml-0">
+                  {canCreate && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setImportSampleLoaded(false);
+                        setImportPreviewList([]);
+                        setIsImportModalOpen(true);
+                      }}
+                      className="px-3 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
+                      title="Cargar masivamente inscripciones desde Excel"
+                    >
+                      <Upload className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Carga Masiva</span>
+                    </button>
+                  )}
+
+                  {canExport && (
+                    <div className="inline-flex items-center rounded-xl border border-slate-200 bg-slate-50 p-0.5 shadow-2xs">
+                      <button
+                        type="button"
+                        onClick={handleExportDebtsExcel}
+                        className="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-emerald-800 hover:bg-white hover:shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                        title="Exportar cartera a formato Excel / CSV"
+                      >
+                        <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Excel</span>
+                      </button>
+                      <div className="h-3.5 w-px bg-slate-200" />
+                      <button
+                        type="button"
+                        onClick={handleExportDebtsPDF}
+                        className="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-700 hover:bg-white hover:shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                        title="Exportar cartera a documento PDF oficial"
+                      >
+                        <Printer className="w-3.5 h-3.5 text-slate-500" />
+                        <span>PDF</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
