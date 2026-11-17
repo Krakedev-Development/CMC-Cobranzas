@@ -38,6 +38,43 @@ export const CONFIGURED_ENTITIES = [
 
 export type ConfiguredEntity = typeof CONFIGURED_ENTITIES[number];
 
+export const renderBankBadge = (bankName?: string) => {
+  const name = bankName || 'Entidad no especificada';
+  const lower = name.toLowerCase();
+
+  let badgeStyles = 'bg-slate-50 text-slate-700 border-slate-200';
+  let dotStyles = 'bg-slate-400';
+
+  if (lower.includes('pichincha')) {
+    badgeStyles = 'bg-amber-50 text-amber-950 border-amber-300/80';
+    dotStyles = 'bg-amber-500';
+  } else if (lower.includes('guayaquil')) {
+    badgeStyles = 'bg-fuchsia-50 text-fuchsia-950 border-fuchsia-300/80';
+    dotStyles = 'bg-fuchsia-600';
+  } else if (lower.includes('pacífico') || lower.includes('pacifico')) {
+    badgeStyles = 'bg-blue-50 text-blue-950 border-blue-300/80';
+    dotStyles = 'bg-blue-600';
+  } else if (lower.includes('produbanco')) {
+    badgeStyles = 'bg-emerald-50 text-emerald-950 border-emerald-300/80';
+    dotStyles = 'bg-emerald-600';
+  } else if (lower.includes('payphone')) {
+    badgeStyles = 'bg-sky-50 text-sky-950 border-sky-300/80';
+    dotStyles = 'bg-sky-500';
+  } else if (lower.includes('paypal')) {
+    badgeStyles = 'bg-indigo-50 text-indigo-950 border-indigo-300/80';
+    dotStyles = 'bg-indigo-600';
+  }
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold border ${badgeStyles} shadow-2xs tracking-tight`}
+    >
+      <span className={`w-1.5 h-1.5 rounded-full ${dotStyles} shrink-0`} />
+      <span className="truncate max-w-[140px]">{name}</span>
+    </span>
+  );
+};
+
 interface PreviewMovementItem {
   fecha: string;
   monto: number;
@@ -227,12 +264,16 @@ export const BankReconciliationView: React.FC = () => {
     return list.sort((a, b) => b.fecha.localeCompare(a.fecha));
   }, [bankMovements, reconciliations, payments, clients, debts, products]);
 
-  // Counts for traffic lights
+  // Counts and percentage rates for traffic lights
   const trafficCounts = useMemo(() => {
     const verde = trafficLightList.filter((i) => i.trafficType === 'verde').length;
     const ambar = trafficLightList.filter((i) => i.trafficType === 'ambar').length;
     const rojo = trafficLightList.filter((i) => i.trafficType === 'rojo').length;
-    return { verde, ambar, rojo, total: trafficLightList.length };
+    const total = trafficLightList.length;
+    const verdePct = total > 0 ? ((verde / total) * 100).toFixed(1) : '0.0';
+    const ambarPct = total > 0 ? ((ambar / total) * 100).toFixed(1) : '0.0';
+    const rojoPct = total > 0 ? ((rojo / total) * 100).toFixed(1) : '0.0';
+    return { verde, ambar, rojo, total, verdePct, ambarPct, rojoPct };
   }, [trafficLightList]);
 
   // Filtered traffic items
@@ -663,88 +704,100 @@ export const BankReconciliationView: React.FC = () => {
       )}
 
       {/* ---------------------------------------------------- */}
-      {/* 3 SUMMARY CARDS - SEMÁFORO VISUAL */}
-      {/* Verde (#0F766E), Ámbar (#D97706), Rojo (#DC2626) */}
+      {/* 3 SUMMARY CARDS - SEMAFORO EJECUTIVO */}
+      {/* Verde (Conciliados), Ambar (En Comprobacion), Rojo (Huerfanas) */}
       {/* ---------------------------------------------------- */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* VERDE: Conciliado */}
         <div
           onClick={() => setTrafficFilter(trafficFilter === 'verde' ? 'all' : 'verde')}
-          className={`p-4 rounded-2xl border transition-all cursor-pointer shadow-xs ${
+          className={`relative overflow-hidden p-4 rounded-2xl border transition-all cursor-pointer shadow-xs before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-teal-600 ${
             trafficFilter === 'verde'
-              ? 'ring-2 ring-[#0F766E] bg-teal-50/70 border-[#0F766E]'
+              ? 'ring-2 ring-teal-600 bg-teal-50/40 border-teal-600'
               : 'bg-white border-slate-200 hover:border-teal-300'
           }`}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-[#0F766E] inline-block" />
-              <span className="text-xs font-bold text-[#0F766E]">Conciliados</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-teal-600 inline-block" />
+              <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                Conciliados (Auditados)
+              </span>
             </div>
-            <span className="text-[11px] bg-teal-50 text-[#0F766E] border border-teal-200 px-2 py-0.5 rounded-md font-bold">
-              Verde (#0F766E)
+            <span className="text-[11px] font-mono font-bold bg-teal-50 text-teal-800 border border-teal-200 px-2 py-0.5 rounded-lg">
+              {trafficCounts.verdePct}% del total
             </span>
           </div>
           <div className="mt-3 flex items-baseline justify-between">
-            <span className="text-2xl font-black text-[#0F766E]">{trafficCounts.verde}</span>
-            <span className="text-[11px] text-slate-500">Confirmados en banco</span>
+            <span className="text-2xl lg:text-3xl font-black font-mono tracking-tight tabular-nums text-teal-800">
+              {trafficCounts.verde}
+            </span>
+            <span className="text-[11px] font-semibold text-slate-500">Confirmados en banco</span>
           </div>
-          <p className="text-[11px] text-slate-400 mt-1">
-            Dinero acreditado y conciliado con comprobante del alumno
+          <p className="text-[11px] text-slate-500 mt-1">
+            Dinero acreditado y verificado contra comprobante de alumno
           </p>
         </div>
 
-        {/* ÁMBAR: En Comprobación */}
+        {/* AMBAR: En Comprobacion */}
         <div
           onClick={() => setTrafficFilter(trafficFilter === 'ambar' ? 'all' : 'ambar')}
-          className={`p-4 rounded-2xl border transition-all cursor-pointer shadow-xs ${
+          className={`relative overflow-hidden p-4 rounded-2xl border transition-all cursor-pointer shadow-xs before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-amber-500 ${
             trafficFilter === 'ambar'
-              ? 'ring-2 ring-[#D97706] bg-amber-50/70 border-[#D97706]'
+              ? 'ring-2 ring-amber-500 bg-amber-50/40 border-amber-500'
               : 'bg-white border-slate-200 hover:border-amber-300'
           }`}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-[#D97706] inline-block" />
-              <span className="text-xs font-bold text-[#D97706]">En Comprobación</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block" />
+              <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                En Comprobacion
+              </span>
             </div>
-            <span className="text-[11px] bg-amber-50 text-[#D97706] border border-amber-200 px-2 py-0.5 rounded-md font-bold">
-              Ámbar (#D97706)
+            <span className="text-[11px] font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-lg">
+              {trafficCounts.ambarPct}% del total
             </span>
           </div>
           <div className="mt-3 flex items-baseline justify-between">
-            <span className="text-2xl font-black text-[#D97706]">{trafficCounts.ambar}</span>
-            <span className="text-[11px] text-slate-500">Pendientes en banco</span>
+            <span className="text-2xl lg:text-3xl font-black font-mono tracking-tight tabular-nums text-amber-800">
+              {trafficCounts.ambar}
+            </span>
+            <span className="text-[11px] font-semibold text-slate-500">Pendientes en extracto</span>
           </div>
-          <p className="text-[11px] text-slate-400 mt-1">
-            Voucher subido por el alumno, pendiente de cruce bancario
+          <p className="text-[11px] text-slate-500 mt-1">
+            Voucher subido por alumno en espera de cruce con extracto bancario
           </p>
         </div>
 
-        {/* ROJO: Huérfanas */}
+        {/* ROJO: Huerfanas */}
         <div
           onClick={() => setTrafficFilter(trafficFilter === 'rojo' ? 'all' : 'rojo')}
-          className={`p-4 rounded-2xl border transition-all cursor-pointer shadow-xs ${
+          className={`relative overflow-hidden p-4 rounded-2xl border transition-all cursor-pointer shadow-xs before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-rose-500 ${
             trafficFilter === 'rojo'
-              ? 'ring-2 ring-[#DC2626] bg-rose-50/70 border-[#DC2626]'
+              ? 'ring-2 ring-rose-500 bg-rose-50/40 border-rose-500'
               : 'bg-white border-slate-200 hover:border-rose-300'
           }`}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-[#DC2626] inline-block" />
-              <span className="text-xs font-bold text-[#DC2626]">Transacciones Huérfanas</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block" />
+              <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                Transacciones Huerfanas
+              </span>
             </div>
-            <span className="text-[11px] bg-rose-50 text-[#DC2626] border border-rose-200 px-2 py-0.5 rounded-md font-bold">
-              Rojo (#DC2626)
+            <span className="text-[11px] font-mono font-bold bg-rose-50 text-rose-800 border border-rose-200 px-2 py-0.5 rounded-lg">
+              {trafficCounts.rojoPct}% del total
             </span>
           </div>
           <div className="mt-3 flex items-baseline justify-between">
-            <span className="text-2xl font-black text-[#DC2626]">{trafficCounts.rojo}</span>
-            <span className="text-[11px] text-slate-500">Sin comprobante</span>
+            <span className="text-2xl lg:text-3xl font-black font-mono tracking-tight tabular-nums text-rose-700">
+              {trafficCounts.rojo}
+            </span>
+            <span className="text-[11px] font-semibold text-slate-500">Sin comprobante</span>
           </div>
-          <p className="text-[11px] text-slate-400 mt-1">
-            Dinero acreditado en banco sin alumno ni voucher asociado
+          <p className="text-[11px] text-slate-500 mt-1">
+            Dinero acreditado en banco sin alumno ni voucher registrado
           </p>
         </div>
       </div>
@@ -791,37 +844,37 @@ export const BankReconciliationView: React.FC = () => {
             <button
               onClick={() => setTrafficFilter('all')}
               className={`px-2.5 py-1 rounded-lg font-bold transition-colors ${
-                trafficFilter === 'all' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600'
+                trafficFilter === 'all' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               Todos ({trafficCounts.total})
             </button>
             <button
               onClick={() => setTrafficFilter('verde')}
-              className={`px-2.5 py-1 rounded-lg font-bold transition-colors flex items-center gap-1 ${
-                trafficFilter === 'verde' ? 'bg-[#0F766E] text-white shadow-2xs' : 'text-[#0F766E]'
+              className={`px-2.5 py-1 rounded-lg font-bold transition-colors flex items-center gap-1.5 ${
+                trafficFilter === 'verde' ? 'bg-teal-700 text-white shadow-2xs' : 'text-teal-800 hover:bg-white/60'
               }`}
             >
-              <span className="w-2 h-2 rounded-full bg-[#0F766E]" />
-              Verde
+              <span className={`w-2 h-2 rounded-full ${trafficFilter === 'verde' ? 'bg-white' : 'bg-teal-600'}`} />
+              <span>Verde ({trafficCounts.verde})</span>
             </button>
             <button
               onClick={() => setTrafficFilter('ambar')}
-              className={`px-2.5 py-1 rounded-lg font-bold transition-colors flex items-center gap-1 ${
-                trafficFilter === 'ambar' ? 'bg-[#D97706] text-white shadow-2xs' : 'text-[#D97706]'
+              className={`px-2.5 py-1 rounded-lg font-bold transition-colors flex items-center gap-1.5 ${
+                trafficFilter === 'ambar' ? 'bg-amber-600 text-white shadow-2xs' : 'text-amber-800 hover:bg-white/60'
               }`}
             >
-              <span className="w-2 h-2 rounded-full bg-[#D97706]" />
-              Ámbar
+              <span className={`w-2 h-2 rounded-full ${trafficFilter === 'ambar' ? 'bg-white' : 'bg-amber-500'}`} />
+              <span>Ámbar ({trafficCounts.ambar})</span>
             </button>
             <button
               onClick={() => setTrafficFilter('rojo')}
-              className={`px-2.5 py-1 rounded-lg font-bold transition-colors flex items-center gap-1 ${
-                trafficFilter === 'rojo' ? 'bg-[#DC2626] text-white shadow-2xs' : 'text-[#DC2626]'
+              className={`px-2.5 py-1 rounded-lg font-bold transition-colors flex items-center gap-1.5 ${
+                trafficFilter === 'rojo' ? 'bg-rose-600 text-white shadow-2xs' : 'text-rose-800 hover:bg-white/60'
               }`}
             >
-              <span className="w-2 h-2 rounded-full bg-[#DC2626]" />
-              Rojo
+              <span className={`w-2 h-2 rounded-full ${trafficFilter === 'rojo' ? 'bg-white' : 'bg-rose-600'}`} />
+              <span>Rojo ({trafficCounts.rojo})</span>
             </button>
           </div>
 
@@ -892,28 +945,19 @@ export const BankReconciliationView: React.FC = () => {
                       {/* Estado Semáforo */}
                       <td className="py-3 px-4 whitespace-nowrap">
                         {isVerde && (
-                          <span
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold text-white shadow-2xs"
-                            style={{ backgroundColor: '#0F766E' }}
-                          >
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold text-white bg-teal-700 shadow-2xs">
                             <span className="w-1.5 h-1.5 rounded-full bg-white" />
                             Conciliado
                           </span>
                         )}
                         {isAmbar && (
-                          <span
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold text-white shadow-2xs"
-                            style={{ backgroundColor: '#D97706' }}
-                          >
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold text-white bg-amber-600 shadow-2xs">
                             <span className="w-1.5 h-1.5 rounded-full bg-white" />
                             En Comprobación
                           </span>
                         )}
                         {isRojo && (
-                          <span
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold text-white shadow-2xs"
-                            style={{ backgroundColor: '#DC2626' }}
-                          >
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold text-white bg-rose-600 shadow-2xs">
                             <span className="w-1.5 h-1.5 rounded-full bg-white" />
                             Huérfana
                           </span>
@@ -926,18 +970,18 @@ export const BankReconciliationView: React.FC = () => {
                       </td>
 
                       {/* Entidad Bancaria */}
-                      <td className="py-3 px-4 whitespace-nowrap font-medium text-slate-900">
-                        {item.entidad}
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        {renderBankBadge(item.entidad)}
                       </td>
 
                       {/* N° Transacción */}
-                      <td className="py-3 px-4 font-mono font-bold text-[11px] text-slate-800 whitespace-nowrap">
+                      <td className="py-3 px-4 font-mono font-bold text-[11px] text-slate-900 whitespace-nowrap">
                         {item.numeroTransaccion}
                       </td>
 
                       {/* Monto */}
-                      <td className="py-3 px-4 text-right font-bold text-slate-900 whitespace-nowrap">
-                        ${item.monto.toFixed(2)}
+                      <td className="py-3 px-4 text-right font-mono font-bold tabular-nums text-slate-900 whitespace-nowrap">
+                        ${item.monto.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
 
                       {/* Alumno / Identificación */}
@@ -946,12 +990,13 @@ export const BankReconciliationView: React.FC = () => {
                           <div>
                             <div className="font-bold text-slate-900">{item.alumnoNombre}</div>
                             {item.alumnoCedula && (
-                              <div className="text-[11px] text-slate-500">CI: {item.alumnoCedula}</div>
+                              <div className="text-[11px] text-slate-500 font-mono">CI: {item.alumnoCedula}</div>
                             )}
                           </div>
                         ) : (
-                          <div className="text-rose-700 font-medium italic text-[11px]">
-                            Sin alumno asignado (Acreditación bancaria directa)
+                          <div className="text-rose-700 font-semibold italic text-[11px] flex items-center gap-1.5">
+                            <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-rose-500" />
+                            <span>Sin alumno asignado (Acreditación bancaria directa)</span>
                           </div>
                         )}
                       </td>
@@ -959,9 +1004,9 @@ export const BankReconciliationView: React.FC = () => {
                       {/* Programa Académico */}
                       <td className="py-3 px-4">
                         {item.programaNombre ? (
-                          <span className="font-medium text-slate-800">{item.programaNombre}</span>
+                          <span className="font-semibold text-slate-800">{item.programaNombre}</span>
                         ) : (
-                          <span className="text-slate-400 text-[11px]">-</span>
+                          <span className="text-slate-400 text-[11px] italic">No aplica</span>
                         )}
                       </td>
 
@@ -971,7 +1016,7 @@ export const BankReconciliationView: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => handleOpenManualLink(item.bancoMovement!)}
-                            className="px-3 py-1.5 bg-[#DC2626] hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1.5 shadow-2xs"
+                            className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1.5 shadow-2xs"
                             title="Conciliar manualmente esta transacción con un alumno"
                           >
                             <Link className="w-3.5 h-3.5" />
@@ -980,14 +1025,14 @@ export const BankReconciliationView: React.FC = () => {
                         )}
 
                         {isVerde && (
-                          <span className="text-[11px] font-bold text-[#0F766E] inline-flex items-center gap-1">
+                          <span className="text-[11px] font-bold text-teal-700 inline-flex items-center gap-1">
                             <CheckCircle2 className="w-3.5 h-3.5" />
                             Auditado
                           </span>
                         )}
 
                         {isAmbar && (
-                          <span className="text-[11px] font-medium text-[#D97706] inline-flex items-center gap-1">
+                          <span className="text-[11px] font-medium text-amber-700 inline-flex items-center gap-1">
                             <Clock className="w-3.5 h-3.5" />
                             Esperando banco
                           </span>
@@ -1169,10 +1214,10 @@ export const BankReconciliationView: React.FC = () => {
                               {r.numeroTransaccion}
                             </td>
                             <td className="py-1.5 px-3 truncate max-w-[200px]">{r.ordenante}</td>
-                            <td className="py-1.5 px-3 text-right font-bold text-slate-900">
-                              ${r.monto.toFixed(2)}
+                            <td className="py-1.5 px-3 text-right font-mono font-bold tabular-nums text-slate-900">
+                              ${r.monto.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </td>
-                            <td className="py-1.5 px-3">{r.banco}</td>
+                            <td className="py-1.5 px-3">{renderBankBadge(r.banco)}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -1256,8 +1301,8 @@ export const BankReconciliationView: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <div>
-                    <span className="block text-[10px] text-slate-400">Entidad:</span>
-                    <strong className="text-slate-800">{orphanMovementToLink.banco}</strong>
+                    <span className="block text-[10px] text-slate-400 mb-0.5">Entidad:</span>
+                    <div>{renderBankBadge(orphanMovementToLink.banco)}</div>
                   </div>
                   <div>
                     <span className="block text-[10px] text-slate-400">N° Transacción:</span>
@@ -1267,12 +1312,12 @@ export const BankReconciliationView: React.FC = () => {
                   </div>
                   <div>
                     <span className="block text-[10px] text-slate-400">Fecha:</span>
-                    <strong className="text-slate-800">{orphanMovementToLink.fecha}</strong>
+                    <strong className="text-slate-800 font-mono">{orphanMovementToLink.fecha}</strong>
                   </div>
                   <div>
                     <span className="block text-[10px] text-slate-400">Monto Acreditado:</span>
-                    <strong className="text-base text-[#0F766E] font-black">
-                      ${orphanMovementToLink.monto.toFixed(2)}
+                    <strong className="text-base text-teal-800 font-black font-mono tabular-nums">
+                      ${orphanMovementToLink.monto.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </strong>
                   </div>
                 </div>
