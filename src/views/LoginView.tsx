@@ -275,12 +275,19 @@ export const LoginView: React.FC = () => {
             style={{ borderBottom: '1px solid #E2E8F0' }}
           >
             <div className="flex items-center gap-2.5">
-              <span className="text-xl font-bold tracking-tight" style={{ color: '#0F172A' }}>
-                Clear Minds
-              </span>
-              <span className="text-lg font-bold tracking-tight" style={{ color: '#00A3FF' }}>
-                Cobranzas
-              </span>
+              <img
+                src="/assets/clear-minds-isotipo-transparent.png"
+                alt="Clear Minds"
+                className="w-8 h-8 object-contain shrink-0"
+              />
+              <div className="flex items-center gap-1.5">
+                <span className="text-lg font-bold tracking-tight" style={{ color: '#0F172A' }}>
+                  Clear Minds
+                </span>
+                <span className="text-base font-bold tracking-tight" style={{ color: '#00A3FF' }}>
+                  Cobranzas
+                </span>
+              </div>
             </div>
             <span
               className="text-xs px-2.5 py-1 rounded-md font-medium"
