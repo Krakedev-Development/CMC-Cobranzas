@@ -439,62 +439,60 @@ export const CashFlowView: React.FC<CashFlowViewProps> = ({ onRegisterPaymentFor
       {/* ---------------------------------------------------- */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Proyectado */}
-        <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+        <div className="p-4.5 bg-white rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between relative overflow-hidden before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-sky-500">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Cobro Proyectado</span>
-            <div className="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Cobro Proyectado</span>
+            <div className="w-8 h-8 rounded-xl bg-sky-50 border border-sky-200 text-sky-600 flex items-center justify-center shadow-2xs">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-2">
-            <span className="text-2xl font-black text-slate-900 tracking-tight">
+          <div className="mt-2.5">
+            <span className="text-2xl lg:text-3xl font-black text-slate-900 font-mono tracking-tight tabular-nums">
               ${cashFlowData.totalProyectado.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
-            <p className="text-[11px] text-slate-500 mt-0.5">
-              Esperado para {monthNames[selectedMonth]}
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              Meta esperada para {monthNames[selectedMonth]}
             </p>
           </div>
         </div>
 
         {/* Ejecutado */}
-        <div className="p-4 bg-white rounded-2xl border border-emerald-200 bg-emerald-50/20 shadow-xs flex flex-col justify-between">
+        <div className="p-4.5 bg-white rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between relative overflow-hidden before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-emerald-500">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-emerald-800">Cobro Real Ejecutado</span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
+            <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">Cobro Real Ejecutado</span>
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center shadow-2xs">
               <CheckCircle2 className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-2">
-            <span className="text-2xl font-black text-emerald-700 tracking-tight">
+          <div className="mt-2.5">
+            <span className="text-2xl lg:text-3xl font-black text-emerald-600 font-mono tracking-tight tabular-nums">
               ${cashFlowData.totalEjecutado.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
-            <p className="text-[11px] text-emerald-700/80 mt-0.5">
-              Efectivamente acreditado en banco
+            <p className="text-[11px] text-emerald-600/80 mt-0.5">
+              Acreditado en cuentas bancarias
             </p>
           </div>
         </div>
 
         {/* Brecha / Gap */}
         <div
-          className={`p-4 rounded-2xl border shadow-xs flex flex-col justify-between ${
-            cashFlowData.totalGap > 0
-              ? 'bg-amber-50/40 border-amber-200'
-              : 'bg-emerald-50/30 border-emerald-200'
+          className={`p-4.5 bg-white rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between relative overflow-hidden before:absolute before:top-0 before:left-0 before:right-0 before:h-1 ${
+            cashFlowData.totalGap > 0 ? 'before:bg-amber-500' : 'before:bg-emerald-500'
           }`}
         >
           <div className="flex items-center justify-between">
             <span
-              className={`text-xs font-semibold ${
+              className={`text-xs font-bold uppercase tracking-wider ${
                 cashFlowData.totalGap > 0 ? 'text-amber-800' : 'text-emerald-800'
               }`}
             >
-              Brecha de Recaudación (Gap)
+              Brecha de Cobro (Gap)
             </span>
             <div
-              className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+              className={`w-8 h-8 rounded-xl border flex items-center justify-center shadow-2xs ${
                 cashFlowData.totalGap > 0
-                  ? 'bg-amber-100 text-amber-700'
-                  : 'bg-emerald-100 text-emerald-700'
+                  ? 'bg-amber-50 border-amber-200 text-amber-600'
+                  : 'bg-emerald-50 border-emerald-200 text-emerald-600'
               }`}
             >
               {cashFlowData.totalGap > 0 ? (
@@ -504,10 +502,10 @@ export const CashFlowView: React.FC<CashFlowViewProps> = ({ onRegisterPaymentFor
               )}
             </div>
           </div>
-          <div className="mt-2">
+          <div className="mt-2.5">
             <span
-              className={`text-2xl font-black tracking-tight ${
-                cashFlowData.totalGap > 0 ? 'text-amber-700' : 'text-emerald-700'
+              className={`text-2xl lg:text-3xl font-black font-mono tracking-tight tabular-nums ${
+                cashFlowData.totalGap > 0 ? 'text-amber-600' : 'text-emerald-600'
               }`}
             >
               ${Math.abs(cashFlowData.totalGap).toLocaleString('es-EC', {
@@ -521,38 +519,46 @@ export const CashFlowView: React.FC<CashFlowViewProps> = ({ onRegisterPaymentFor
               }`}
             >
               {cashFlowData.totalGap > 0
-                ? 'Monto pendiente por recaudar'
-                : 'Meta mensual alcanzada'}
+                ? 'Saldo pendiente de recaudación'
+                : 'Objetivo de liquidez cumplido'}
             </p>
           </div>
         </div>
 
         {/* Tasa de Cumplimiento */}
-        <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+        <div className="p-4.5 bg-white rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between relative overflow-hidden before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-indigo-500">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Eficiencia de Recaudación</span>
-            <span className="text-xs font-bold text-sky-600">
-              {cashFlowData.efficiency.toFixed(1)}%
-            </span>
-          </div>
-          <div className="mt-3">
-            <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-              <div
-                className={`h-2.5 rounded-full transition-all duration-500 ${
-                  cashFlowData.efficiency >= 100
-                    ? 'bg-emerald-500'
-                    : cashFlowData.efficiency >= 70
-                    ? 'bg-sky-500'
-                    : 'bg-amber-500'
-                }`}
-                style={{ width: `${Math.min(cashFlowData.efficiency, 100)}%` }}
-              />
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Eficiencia de Cobro</span>
+            <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center shadow-2xs">
+              <TrendingUp className="w-4 h-4" />
             </div>
-            <p className="text-[11px] text-slate-500 mt-2">
-              {cashFlowData.efficiency >= 100
-                ? '100% de la cuota programada cobrada'
-                : `${(100 - cashFlowData.efficiency).toFixed(1)}% pendiente de cobertura`}
-            </p>
+          </div>
+          <div className="mt-2.5">
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl lg:text-3xl font-black text-slate-900 font-mono tracking-tight tabular-nums">
+                {cashFlowData.efficiency.toFixed(1)}%
+              </span>
+              <span className="text-xs font-semibold text-slate-400">de cobertura</span>
+            </div>
+            <div className="mt-2">
+              <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                <div
+                  className={`h-2 rounded-full transition-all duration-500 ${
+                    cashFlowData.efficiency >= 100
+                      ? 'bg-emerald-500'
+                      : cashFlowData.efficiency >= 70
+                      ? 'bg-sky-500'
+                      : 'bg-amber-500'
+                  }`}
+                  style={{ width: `${Math.min(cashFlowData.efficiency, 100)}%` }}
+                />
+              </div>
+              <p className="text-[11px] text-slate-400 mt-1">
+                {cashFlowData.efficiency >= 100
+                  ? 'Meta mensual 100% recaudada'
+                  : `${(100 - cashFlowData.efficiency).toFixed(1)}% pendiente de cobertura`}
+              </p>
+            </div>
           </div>
         </div>
       </div>
