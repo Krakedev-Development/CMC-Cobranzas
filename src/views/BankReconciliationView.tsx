@@ -61,8 +61,8 @@ export const renderBankBadge = (bankName?: string) => {
     badgeStyles = 'bg-sky-50 text-sky-950 border-sky-300/80';
     dotStyles = 'bg-sky-500';
   } else if (lower.includes('paypal')) {
-    badgeStyles = 'bg-indigo-50 text-indigo-950 border-indigo-300/80';
-    dotStyles = 'bg-indigo-600';
+    badgeStyles = 'bg-blue-50 text-blue-950 border-blue-300/80';
+    dotStyles = 'bg-blue-600';
   }
 
   return (

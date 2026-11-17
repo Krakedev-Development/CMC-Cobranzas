@@ -216,9 +216,9 @@ export const UsersPermissionsView: React.FC = () => {
         label: 'Administradores y Supervisión',
         value: `${adminsCount}`,
         subtext: 'Control total del sistema',
-        accentClass: 'before:bg-indigo-500',
-        textClass: 'text-indigo-700',
-        bgBadge: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+        accentClass: 'before:bg-blue-600',
+        textClass: 'text-blue-700',
+        bgBadge: 'bg-blue-50 text-blue-700 border-blue-200',
         icon: ShieldCheck,
       },
       {

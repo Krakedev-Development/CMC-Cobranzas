@@ -175,9 +175,9 @@ export const AuditView: React.FC = () => {
         label: 'Usuarios Operadores Trazados',
         value: `${usuariosTrazados}`,
         subtext: 'Cuentas con actividad auditada',
-        accentClass: 'before:bg-indigo-500',
-        textClass: 'text-indigo-700',
-        bgBadge: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+        accentClass: 'before:bg-blue-600',
+        textClass: 'text-blue-700',
+        bgBadge: 'bg-blue-50 text-blue-700 border-blue-200',
         icon: User,
       },
       {

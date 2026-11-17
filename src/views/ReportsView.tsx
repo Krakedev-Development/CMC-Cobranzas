@@ -88,8 +88,8 @@ const renderConciliationStatusBadge = (estado: string) => {
     colorStyles = 'bg-rose-50 text-rose-800 border-rose-200';
     dotStyles = 'bg-rose-500';
   } else if (norm.includes('manual') || norm.includes('revision')) {
-    colorStyles = 'bg-indigo-50 text-indigo-800 border-indigo-200';
-    dotStyles = 'bg-indigo-500';
+    colorStyles = 'bg-blue-50 text-blue-800 border-blue-200';
+    dotStyles = 'bg-blue-500';
   } else if (norm.includes('no encontrado')) {
     colorStyles = 'bg-slate-100 text-slate-700 border-slate-300';
     dotStyles = 'bg-slate-500';
@@ -395,10 +395,10 @@ export const ReportsView: React.FC = () => {
           label: 'Ticket Promedio de Pago',
           value: `$${ticketPromedio.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
           subtext: 'Promedio por cuota o abono',
-          color: 'indigo',
-          accentClass: 'before:bg-indigo-500',
-          textClass: 'text-indigo-700',
-          bgBadge: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+          color: 'blue',
+          accentClass: 'before:bg-blue-600',
+          textClass: 'text-blue-700',
+          bgBadge: 'bg-blue-50 text-blue-700 border-blue-200',
           icon: TrendingUp,
         },
       ];
@@ -432,10 +432,10 @@ export const ReportsView: React.FC = () => {
           label: 'Monto Extracto Bancario',
           value: `$${montoBanco.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
           subtext: 'Total acreditado efectivamente',
-          color: 'indigo',
-          accentClass: 'before:bg-indigo-500',
-          textClass: 'text-indigo-700',
-          bgBadge: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+          color: 'blue',
+          accentClass: 'before:bg-blue-600',
+          textClass: 'text-blue-700',
+          bgBadge: 'bg-blue-50 text-blue-700 border-blue-200',
           icon: Building,
         },
         {
@@ -488,10 +488,10 @@ export const ReportsView: React.FC = () => {
           label: 'Acción Requerida',
           value: 'Asignación',
           subtext: 'Vincular en Conciliación Bancaria',
-          color: 'indigo',
-          accentClass: 'before:bg-indigo-500',
-          textClass: 'text-indigo-700',
-          bgBadge: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+          color: 'blue',
+          accentClass: 'before:bg-blue-600',
+          textClass: 'text-blue-700',
+          bgBadge: 'bg-blue-50 text-blue-700 border-blue-200',
           icon: CheckCircle2,
         },
       ];

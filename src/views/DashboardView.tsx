@@ -194,16 +194,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         {/* KPI 4: Movimientos Bancarios sin Asignar */}
         <div
           onClick={() => onNavigate('conciliacion')}
-          className="relative overflow-hidden bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between cursor-pointer hover:border-indigo-300 transition-all before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-indigo-500"
+          className="relative overflow-hidden bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between cursor-pointer hover:border-blue-300 transition-all before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-blue-600"
         >
           <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-bold text-indigo-800 uppercase tracking-wider">Banco sin Asignar</span>
-            <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-2xs flex items-center justify-center">
+            <span className="text-xs font-bold text-blue-800 uppercase tracking-wider">Banco sin Asignar</span>
+            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-700 border border-blue-200 shadow-2xs flex items-center justify-center">
               <Scale className="w-4 h-4" />
             </div>
           </div>
           <div>
-            <div className="text-2xl font-black font-mono tracking-tight text-indigo-700 tabular-nums flex items-baseline gap-1.5">
+            <div className="text-2xl font-black font-mono tracking-tight text-blue-700 tabular-nums flex items-baseline gap-1.5">
               <span>{unassignedMovementsCount}</span>
               <span className="text-xs font-medium text-slate-500">huérfanos</span>
             </div>

@@ -526,10 +526,10 @@ export const CashFlowView: React.FC<CashFlowViewProps> = ({ onRegisterPaymentFor
         </div>
 
         {/* Tasa de Cumplimiento */}
-        <div className="p-4.5 bg-white rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between relative overflow-hidden before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-indigo-500">
+        <div className="p-4.5 bg-white rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between relative overflow-hidden before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-blue-600">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Eficiencia de Cobro</span>
-            <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center shadow-2xs">
+            <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 flex items-center justify-center shadow-2xs">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
