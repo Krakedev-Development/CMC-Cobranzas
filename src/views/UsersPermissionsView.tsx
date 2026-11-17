@@ -21,9 +21,17 @@ import {
   Search,
   Users,
   CheckCircle2,
+  Lock,
 } from 'lucide-react';
 import { CustomSelect } from '../components/common/CustomSelect';
 import { Pagination } from '../components/common/Pagination';
+
+const getInitials = (fullName: string) => {
+  const parts = (fullName || '').trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return 'US';
+  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+  return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+};
 
 const MODULE_LABELS: Record<ModuleName, string> = {
   dashboard: '1. Inicio / Dashboard',
@@ -178,21 +186,87 @@ export const UsersPermissionsView: React.FC = () => {
     return filteredUsers.slice(start, start + userPageSize);
   }, [filteredUsers, userCurrentPage, userPageSize]);
 
+  // Executive KPI summary calculations
+  const kpiData = useMemo(() => {
+    const totalUsuarios = users.length;
+    const usuariosActivos = users.filter((u) => u.estado === 'activo').length;
+    const adminsCount = users.filter(
+      (u) =>
+        (u.perfilBase || '').toLowerCase().includes('admin') ||
+        (u.perfilBase || '').toLowerCase().includes('superv')
+    ).length;
+    const operativosCount = users.filter(
+      (u) =>
+        (u.perfilBase || '').toLowerCase().includes('cobranza') ||
+        (u.perfilBase || '').toLowerCase().includes('contab') ||
+        (u.perfilBase || '').toLowerCase().includes('atenci')
+    ).length;
+
+    return [
+      {
+        label: 'Total de Usuarios',
+        value: `${totalUsuarios}`,
+        subtext: `${usuariosActivos} operadores habilitados`,
+        accentClass: 'before:bg-sky-500',
+        textClass: 'text-sky-700',
+        bgBadge: 'bg-sky-50 text-sky-700 border-sky-200',
+        icon: Users,
+      },
+      {
+        label: 'Administradores y Supervisión',
+        value: `${adminsCount}`,
+        subtext: 'Control total del sistema',
+        accentClass: 'before:bg-indigo-500',
+        textClass: 'text-indigo-700',
+        bgBadge: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+        icon: ShieldCheck,
+      },
+      {
+        label: 'Operadores de Cobranzas y Caja',
+        value: `${operativosCount}`,
+        subtext: 'Gestión de cartera y conciliación',
+        accentClass: 'before:bg-emerald-500',
+        textClass: 'text-emerald-700',
+        bgBadge: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+        icon: UserCheck,
+      },
+      {
+        label: 'Módulos Protegidos RBAC',
+        value: '11 Módulos',
+        subtext: 'Matriz granular por acción y rol',
+        accentClass: 'before:bg-amber-500',
+        textClass: 'text-amber-700',
+        bgBadge: 'bg-amber-50 text-amber-700 border-amber-200',
+        icon: KeyRound,
+      },
+    ];
+  }, [users]);
+
   const getRoleBadgeStyle = (role?: string) => {
     const normalized = (role || '').toLowerCase();
+    let badgeStyles = 'bg-slate-100 text-slate-700 border-slate-200';
+    let dotStyles = 'bg-slate-400';
+
     if (normalized.includes('admin')) {
-      return 'bg-slate-900 text-white border-slate-900';
+      badgeStyles = 'bg-slate-900 text-white border-slate-900';
+      dotStyles = 'bg-sky-400';
+    } else if (normalized.includes('cobranza')) {
+      badgeStyles = 'bg-sky-50 text-sky-950 border-sky-200';
+      dotStyles = 'bg-sky-500';
+    } else if (normalized.includes('contab') || normalized.includes('superv')) {
+      badgeStyles = 'bg-emerald-50 text-emerald-950 border-emerald-200';
+      dotStyles = 'bg-emerald-600';
+    } else if (normalized.includes('atenci')) {
+      badgeStyles = 'bg-amber-50 text-amber-950 border-amber-200';
+      dotStyles = 'bg-amber-500';
     }
-    if (normalized.includes('cobranza')) {
-      return 'bg-sky-50 text-slate-900 border-sky-200';
-    }
-    if (normalized.includes('contab')) {
-      return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-    }
-    if (normalized.includes('atenci')) {
-      return 'bg-amber-50 text-amber-700 border-amber-200';
-    }
-    return 'bg-slate-100 text-slate-700 border-slate-200';
+
+    return (
+      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${badgeStyles} shadow-2xs`}>
+        <span className={`w-1.5 h-1.5 rounded-full ${dotStyles} shrink-0`} />
+        <span>{role || 'Personalizado'}</span>
+      </span>
+    );
   };
 
   const countAllowedModules = (perms: UserPermissions) => {
@@ -344,19 +418,49 @@ export const UsersPermissionsView: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* 4 Executive KPI Cards Strip */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {kpiData.map((kpi, idx) => {
+          const IconComp = kpi.icon;
+          return (
+            <div
+              key={idx}
+              className={`relative overflow-hidden bg-white p-4 lg:p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between before:absolute before:top-0 before:left-0 before:right-0 before:h-1 ${kpi.accentClass}`}
+            >
+              <div className="flex items-center justify-between text-slate-500 mb-2">
+                <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  {kpi.label}
+                </span>
+                <div className={`w-8 h-8 rounded-xl border shadow-2xs flex items-center justify-center shrink-0 ${kpi.bgBadge}`}>
+                  <IconComp className="w-4 h-4" />
+                </div>
+              </div>
+              <div>
+                <div className={`text-2xl lg:text-3xl font-black font-mono tracking-tight tabular-nums ${kpi.textClass}`}>
+                  {kpi.value}
+                </div>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  {kpi.subtext}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
       {/* Informative Header Banner with Create User Action */}
       <div className="p-4 bg-white border border-slate-200 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
         <div className="flex items-start gap-3 text-xs text-slate-700">
-          <div className="p-2 bg-sky-50 text-sky-700 rounded-xl shrink-0 mt-0.5">
+          <div className="p-2.5 bg-sky-50 text-sky-700 rounded-xl shrink-0 mt-0.5 border border-sky-200">
             <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
             <h2 className="text-sm font-bold text-slate-900">
               Administración de Usuarios y Matriz de Permisos Granulares
             </h2>
-            <p className="text-slate-500 mt-0.5 max-w-2xl">
+            <p className="text-slate-500 mt-0.5 max-w-2xl text-xs leading-relaxed">
               Crea nuevos operadores o administradores, asigna roles base o personaliza individualmente cada módulo (Ver, Crear, Modificar, Eliminar, Aprobar, Exportar).
-              Cambia la sesión en tiempo real para verificar las restricciones.
+              Cambia la sesión en tiempo real para verificar las restricciones normativas.
             </p>
           </div>
         </div>
@@ -372,7 +476,7 @@ export const UsersPermissionsView: React.FC = () => {
               setNewUserError('');
               setIsNewUserModalOpen(true);
             }}
-            className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-bold inline-flex items-center gap-2 shadow-xs transition-colors shrink-0 self-start md:self-auto"
+            className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold inline-flex items-center gap-2 shadow-xs hover:shadow transition-all shrink-0 self-start md:self-auto"
           >
             <UserPlus className="w-4 h-4" />
             <span>+ Crear Nuevo Usuario</span>
@@ -381,8 +485,8 @@ export const UsersPermissionsView: React.FC = () => {
       </div>
 
       {/* Users Search & Filter Controls */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div className="flex-1 relative">
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+        <div className="flex-1 relative max-w-md">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
@@ -392,7 +496,7 @@ export const UsersPermissionsView: React.FC = () => {
               setUserSearchText(e.target.value);
               setUserCurrentPage(1);
             }}
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:bg-white transition-all"
           />
         </div>
 
@@ -419,24 +523,24 @@ export const UsersPermissionsView: React.FC = () => {
       </div>
 
       {/* Users Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs">
-        <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-50/50 rounded-t-2xl">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+        <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-50/75">
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-sky-600" />
-            <span className="text-xs text-slate-700 font-bold">
+            <span className="text-xs text-slate-800 font-bold">
               Directorio de Usuarios ({filteredUsers.length} de {users.length})
             </span>
           </div>
-          <span className="text-[11px] text-slate-400">
-            Haz clic en una fila o en &quot;Editar Permisos&quot; para ajustar su matriz de acceso individual
+          <span className="text-[11px] text-slate-400 hidden sm:inline">
+            Haga clic en una fila para editar su matriz de permisos o cambiar de sesión
           </span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left">
             <thead>
-              <tr className="border-b border-slate-200 text-slate-400 font-semibold uppercase tracking-wider text-[11px] bg-slate-50/30">
-                <th className="py-3 px-4">Usuario / Login</th>
+              <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px] bg-slate-50/50">
+                <th className="py-3 px-4">Usuario / Identificador</th>
                 <th className="py-3 px-4">Nombre Completo y Cargo</th>
                 <th className="py-3 px-4">Perfil Base / Rol</th>
                 <th className="py-3 px-4 text-center">Módulos Habilitados</th>
@@ -447,8 +551,12 @@ export const UsersPermissionsView: React.FC = () => {
             <tbody className="divide-y divide-slate-100">
               {paginatedUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-slate-400">
-                    No se encontraron usuarios con los criterios de búsqueda.
+                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                    <div className="flex flex-col items-center justify-center">
+                      <Users className="w-8 h-8 text-slate-300 mb-2" />
+                      <p className="font-semibold text-slate-600">No se encontraron usuarios</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">Ajuste o limpie los criterios de búsqueda</p>
+                    </div>
                   </td>
                 </tr>
               ) : (
@@ -467,13 +575,13 @@ export const UsersPermissionsView: React.FC = () => {
                           : 'hover:bg-slate-50/80 border-l-4 border-l-transparent'
                       }`}
                     >
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-4 whitespace-nowrap">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-sky-50 text-slate-900 font-bold flex items-center justify-center text-xs shrink-0 border border-sky-200">
-                            {u.nombre.charAt(0).toUpperCase()}
+                          <div className="w-8 h-8 rounded-xl bg-sky-50 text-sky-800 font-bold flex items-center justify-center text-xs shrink-0 border border-sky-200 shadow-2xs">
+                            {getInitials(u.nombre)}
                           </div>
                           <div>
-                            <span className="font-mono text-xs font-bold text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded">
+                            <span className="font-mono text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200">
                               @{u.username}
                             </span>
                             <div className="text-[10px] text-slate-400 mt-0.5 font-mono">{u.id}</div>
@@ -482,32 +590,26 @@ export const UsersPermissionsView: React.FC = () => {
                       </td>
 
                       <td className="py-3 px-4">
-                        <div className="font-semibold text-slate-900">{u.nombre}</div>
+                        <div className="font-bold text-slate-900">{u.nombre}</div>
                         <div className="text-slate-500 text-[11px]">{u.cargo}</div>
                       </td>
 
-                      <td className="py-3 px-4">
-                        <span
-                          className={`px-2 py-0.5 rounded-md text-[11px] font-bold border inline-block ${getRoleBadgeStyle(
-                            u.perfilBase
-                          )}`}
-                        >
-                          {u.perfilBase || 'Personalizado'}
-                        </span>
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        {getRoleBadgeStyle(u.perfilBase)}
                       </td>
 
-                      <td className="py-3 px-4 text-center">
-                        <div className="inline-flex items-center gap-1.5 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
+                      <td className="py-3 px-4 text-center whitespace-nowrap">
+                        <div className="inline-flex items-center gap-1.5 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200 text-xs">
                           <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                          <span className="font-bold text-slate-700 text-[11px]">
-                            {allowedCount} / 10
+                          <span className="font-bold text-slate-700 text-[11px] font-mono">
+                            {allowedCount} / 11
                           </span>
                         </div>
                       </td>
 
-                      <td className="py-3 px-4 text-center">
+                      <td className="py-3 px-4 text-center whitespace-nowrap">
                         {isCurrentActive ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-900 bg-sky-50 border border-sky-200 px-2.5 py-1 rounded-full shadow-2xs">
+                          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-900 bg-sky-50 border border-sky-200 px-2.5 py-1 rounded-full shadow-2xs">
                             <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse" />
                             Sesión Activa
                           </span>
@@ -516,30 +618,30 @@ export const UsersPermissionsView: React.FC = () => {
                         )}
                       </td>
 
-                      <td className="py-3 px-4 text-right">
+                      <td className="py-3 px-4 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
                           <button
                             type="button"
                             onClick={() => handleSelectUser(u)}
-                            className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1 border ${
+                            className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1 border ${
                               isSelectedToEdit
-                                ? 'bg-sky-500 text-white border-sky-500 shadow-2xs'
+                                ? 'bg-sky-600 text-white border-sky-600 shadow-2xs font-bold'
                                 : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
                             }`}
                             title="Editar matriz de permisos de este usuario"
                           >
-                            <KeyRound className="w-3 h-3" />
-                            <span>{isSelectedToEdit ? 'Editando' : 'Editar Permisos'}</span>
+                            <KeyRound className="w-3.5 h-3.5" />
+                            <span>{isSelectedToEdit ? 'Editando' : 'Permisos'}</span>
                           </button>
 
                           <button
                             type="button"
                             onClick={() => setCurrentUserId(u.id)}
                             disabled={isCurrentActive}
-                            className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1 border ${
+                            className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1 border ${
                               isCurrentActive
                                 ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-default'
-                                : 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-2xs'
+                                : 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-2xs font-bold'
                             }`}
                             title="Cambiar sesión activa a este usuario para probar sus permisos"
                           >
@@ -565,14 +667,14 @@ export const UsersPermissionsView: React.FC = () => {
           pageSizeOptions={[15, 20, 25]}
           onPageChange={setUserCurrentPage}
           onPageSizeChange={setUserPageSize}
-          className="rounded-b-2xl"
+          className="rounded-b-2xl border-t border-slate-100"
         />
       </div>
 
       {/* Permissions Editor for Selected User */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
         {/* Editor Header */}
-        <div className="p-5 border-b border-slate-100 bg-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-t-2xl">
+        <div className="p-5 border-b border-slate-100 bg-slate-50/75 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
               <KeyRound className="w-4 h-4 text-sky-600" />
@@ -605,9 +707,9 @@ export const UsersPermissionsView: React.FC = () => {
                   key={p.id}
                   type="button"
                   onClick={() => handleApplyPreset(p.id)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                     isSelected
-                      ? 'bg-sky-500 text-white shadow-xs'
+                      ? 'bg-sky-600 text-white shadow-xs font-bold'
                       : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
                   }`}
                 >
@@ -638,7 +740,7 @@ export const UsersPermissionsView: React.FC = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left">
             <thead>
-              <tr className="border-b border-slate-200 text-slate-400 font-semibold uppercase tracking-wider text-[11px] bg-slate-50/50">
+              <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px] bg-slate-50/50">
                 <th className="py-3 px-4">Módulo Funcional</th>
                 {ACTION_LABELS.map((act) => (
                   <th key={act.key} className="py-3 px-4 text-center">
@@ -662,7 +764,7 @@ export const UsersPermissionsView: React.FC = () => {
                 const isAuditModule = moduleKey === 'auditoria';
 
                 return (
-                  <tr key={moduleKey} className="hover:bg-slate-50">
+                  <tr key={moduleKey} className="hover:bg-slate-50/80 transition-colors">
                     <td className="py-3 px-4 font-semibold text-slate-800 whitespace-nowrap">
                       {MODULE_LABELS[moduleKey]}
                     </td>
@@ -674,8 +776,9 @@ export const UsersPermissionsView: React.FC = () => {
                       return (
                         <td key={act.key} className="py-3 px-4 text-center">
                           {isBlockedAction ? (
-                            <span className="text-[10px] text-slate-300 font-mono italic">
-                              Inmutable
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 text-slate-400 border border-slate-200 rounded-lg text-[10px] font-mono italic">
+                              <Lock className="w-2.5 h-2.5" />
+                              <span>Inmutable</span>
                             </span>
                           ) : (
                             <button
@@ -684,7 +787,7 @@ export const UsersPermissionsView: React.FC = () => {
                               disabled={!canManageUsers}
                               className={`w-7 h-7 rounded-lg inline-flex items-center justify-center transition-all ${
                                 isAllowed
-                                  ? 'bg-sky-500 text-white shadow-xs'
+                                  ? 'bg-sky-500 text-white shadow-2xs hover:bg-sky-600'
                                   : 'bg-slate-100 text-slate-300 hover:bg-slate-200 hover:text-slate-500'
                               } ${!canManageUsers ? 'cursor-not-allowed opacity-50' : ''}`}
                               title={`${isAllowed ? 'Revocar' : 'Conceder'} permiso ${act.label} en ${moduleKey}`}
@@ -703,14 +806,14 @@ export const UsersPermissionsView: React.FC = () => {
         </div>
 
         {/* Justification & Save Button Bar */}
-        <div className="p-4 border-t border-slate-100 bg-slate-50/70 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs rounded-b-2xl">
+        <div className="p-4 border-t border-slate-100 bg-slate-50/70 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
           <div className="flex-1 w-full max-w-md">
             <input
               type="text"
               placeholder="Motivo del cambio de permisos para auditoría (opcional)..."
               value={justificationNote}
               onChange={(e) => setJustificationNote(e.target.value)}
-              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
+              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
             />
           </div>
 
@@ -725,7 +828,7 @@ export const UsersPermissionsView: React.FC = () => {
             <button
               onClick={handleSavePermissions}
               disabled={!canManageUsers}
-              className="px-4 py-2 bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white rounded-xl font-bold flex items-center gap-2 shadow-xs transition-colors"
+              className="px-4 py-2 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white rounded-xl font-bold flex items-center gap-2 shadow-xs hover:shadow transition-all"
             >
               <Save className="w-4 h-4" />
               <span>Guardar Permisos y Auditar</span>
@@ -736,18 +839,20 @@ export const UsersPermissionsView: React.FC = () => {
 
       {/* --- MODAL: CREAR NUEVO USUARIO Y CONFIGURAR SUS PERMISOS --- */}
       {isNewUserModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/50 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
           <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-[#0B1B2B] text-white">
-              <div className="flex items-center gap-2">
-                <UserPlus className="w-5 h-5" />
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-900 text-white">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-400/30 flex items-center justify-center shrink-0">
+                  <UserPlus className="w-4 h-4" />
+                </div>
                 <h2 className="text-sm font-bold">
                   Crear Nuevo Usuario y Definir sus Permisos de Acceso
                 </h2>
               </div>
               <button
                 onClick={() => setIsNewUserModalOpen(false)}
-                className="p-1 text-white/80 hover:text-white rounded-lg"
+                className="p-1.5 text-white/70 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -755,7 +860,7 @@ export const UsersPermissionsView: React.FC = () => {
 
             <form onSubmit={handleCreateNewUser} className="p-5 overflow-y-auto space-y-4 text-xs">
               {newUserError && (
-                <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 flex items-center gap-2 font-medium">
+                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 flex items-center gap-2 font-medium">
                   <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
                   <span>{newUserError}</span>
                 </div>
@@ -771,7 +876,7 @@ export const UsersPermissionsView: React.FC = () => {
                     placeholder="Ej: Gabriela Espinoza"
                     value={newNombre}
                     onChange={(e) => setNewNombre(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none transition-all"
                   />
                 </div>
 
@@ -780,96 +885,89 @@ export const UsersPermissionsView: React.FC = () => {
                   <input
                     type="text"
                     required
-                    placeholder="Ej: gespinoza"
+                    placeholder="gabriela.espinoza"
                     value={newUsername}
-                    onChange={(e) => setNewUsername(e.target.value.toLowerCase().replace(/\s+/g, ''))}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-mono focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none"
+                    onChange={(e) => setNewUsername(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-mono focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Cargo / Función</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Cargo Institucional</label>
                   <input
                     type="text"
-                    placeholder="Ej: Especialista de Cobranzas"
+                    placeholder="Ej: Oficial de Cobranzas"
                     value={newCargo}
                     onChange={(e) => setNewCargo(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none transition-all"
                   />
                 </div>
               </div>
 
-              {/* Selector de Plantilla Rápida */}
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-indigo-600" />
-                    <span className="font-bold text-slate-900">
-                      Plantilla Inicial de Rol / Permisos:
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
+              {/* Selector de Perfil Base */}
+              <div className="pt-2 border-t border-slate-100">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                  <label className="font-semibold text-slate-700">Seleccionar Perfil Base:</label>
+                  <div className="flex items-center gap-1.5 text-[11px]">
                     <button
                       type="button"
                       onClick={handleSelectAllNewUserPerms}
-                      className="px-2 py-1 text-[11px] bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-100 font-semibold"
+                      className="text-sky-600 hover:text-sky-800 font-semibold"
                     >
-                      Marcar Todos
+                      Todos los permisos
                     </button>
+                    <span className="text-slate-300">·</span>
                     <button
                       type="button"
                       onClick={handleClearAllNewUserPerms}
-                      className="px-2 py-1 text-[11px] bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-100 font-semibold"
+                      className="text-slate-500 hover:text-slate-700 font-semibold"
                     >
-                      Desmarcar Todos
+                      Limpiar
                     </button>
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-1.5">
-                  {[
-                    'Cobranzas',
-                    'Contabilidad',
-                    'Atención al cliente',
-                    'Auditor / Solo Lectura',
-                    'Administrador Total',
-                  ].map((preset) => (
-                    <button
-                      key={preset}
-                      type="button"
-                      onClick={() => handleApplyPresetToNewUser(preset)}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
-                        newPerfilBase === preset
-                          ? 'bg-indigo-600 text-white shadow-2xs'
-                          : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
-                      }`}
-                    >
-                      {preset}
-                    </button>
-                  ))}
+                <div className="flex flex-wrap gap-2">
+                  {['Administrador Total', 'Cobranzas', 'Contabilidad', 'Atención al cliente', 'Auditor / Solo Lectura'].map(
+                    (p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => handleApplyPresetToNewUser(p)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                          newPerfilBase === p
+                            ? 'bg-sky-600 text-white shadow-xs font-bold'
+                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    )
+                  )}
                 </div>
               </div>
 
-              {/* Matriz Granular de Permisos Elegibles para el Nuevo Usuario */}
-              <div>
-                <label className="block font-bold text-slate-900 mb-1.5">
-                  Permisos Específicos por Módulo (Haz clic en los círculos para activar/desactivar):
-                </label>
+              {/* Matriz de Permisos para el Nuevo Usuario */}
+              <div className="pt-2 border-t border-slate-100">
+                <span className="font-semibold text-slate-700 block mb-2">
+                  Matriz de Permisos Individuales para este Usuario:
+                </span>
 
-                <div className="border border-slate-200 rounded-xl overflow-hidden max-h-60 overflow-y-auto">
+                <div className="border border-slate-200 rounded-xl overflow-hidden max-h-56 overflow-y-auto">
                   <table className="w-full text-xs text-left">
-                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold sticky top-0 z-10">
+                    <thead className="sticky top-0 bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase text-[10px]">
                       <tr>
-                        <th className="p-2.5">Módulo</th>
+                        <th className="py-2 px-3">Módulo</th>
                         {ACTION_LABELS.map((a) => (
-                          <th key={a.key} className="p-2.5 text-center">{a.label}</th>
+                          <th key={a.key} className="py-2 px-2 text-center">
+                            {a.label}
+                          </th>
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 bg-white">
-                      {ALL_MODULES.map((modKey) => {
-                        const p = newUserPermissions[modKey] || {
+                    <tbody className="divide-y divide-slate-100">
+                      {ALL_MODULES.map((m) => {
+                        const p = newUserPermissions[m] || {
                           ver: false,
                           crear: false,
                           modificar: false,
@@ -877,33 +975,34 @@ export const UsersPermissionsView: React.FC = () => {
                           aprobar: false,
                           exportar: false,
                         };
-                        const isAudit = modKey === 'auditoria';
+                        const isAudit = m === 'auditoria';
 
                         return (
-                          <tr key={modKey} className="hover:bg-slate-50">
-                            <td className="p-2.5 font-semibold text-slate-800">
-                              {MODULE_LABELS[modKey]}
+                          <tr key={m} className="hover:bg-slate-50/80">
+                            <td className="py-2 px-3 font-semibold text-slate-800 text-[11px] whitespace-nowrap">
+                              {MODULE_LABELS[m]}
                             </td>
-                            {ACTION_LABELS.map((act) => {
-                              const active = !!p[act.key];
-                              const blocked = isAudit && act.key !== 'ver' && act.key !== 'exportar';
+                            {ACTION_LABELS.map((a) => {
+                              const allowed = !!p[a.key];
+                              const blocked = isAudit && a.key !== 'ver' && a.key !== 'exportar';
 
                               return (
-                                <td key={act.key} className="p-2.5 text-center">
+                                <td key={a.key} className="py-2 px-2 text-center">
                                   {blocked ? (
-                                    <span className="text-[10px] text-slate-300 italic">N/A</span>
+                                    <span className="text-[9px] text-slate-300 font-mono italic">
+                                      Inmutable
+                                    </span>
                                   ) : (
                                     <button
                                       type="button"
-                                      onClick={() => handleToggleNewUserPerm(modKey, act.key)}
-                                      className={`w-6 h-6 rounded-md inline-flex items-center justify-center transition-colors ${
-                                        active
-                                          ? 'bg-indigo-600 text-white'
+                                      onClick={() => handleToggleNewUserPerm(m, a.key)}
+                                      className={`w-6 h-6 rounded-lg inline-flex items-center justify-center transition-all ${
+                                        allowed
+                                          ? 'bg-sky-500 text-white shadow-2xs'
                                           : 'bg-slate-100 text-slate-300 hover:bg-slate-200 hover:text-slate-500'
                                       }`}
-                                      title={`${active ? 'Desactivar' : 'Activar'} ${act.label} en ${modKey}`}
                                     >
-                                      {active ? <Check className="w-3.5 h-3.5 stroke-[2.5]" /> : <X className="w-3 h-3" />}
+                                      {allowed ? <Check className="w-3.5 h-3.5 stroke-[2.5]" /> : <X className="w-3 h-3" />}
                                     </button>
                                   )}
                                 </td>
@@ -917,27 +1016,21 @@ export const UsersPermissionsView: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                <span className="text-[11px] text-slate-400">
-                  El usuario podrá ingresar de inmediato y sus permisos se aplicarán en tiempo real.
-                </span>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsNewUserModalOpen(false)}
-                    className="px-4 py-2 border border-slate-200 text-slate-700 rounded-xl font-semibold hover:bg-slate-100"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-bold transition-colors shadow-xs flex items-center gap-1.5"
-                  >
-                    <UserPlus className="w-4 h-4" />
-                    <span>Crear Usuario con Permisos</span>
-                  </button>
-                </div>
+              {/* Botones de Acción */}
+              <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsNewUserModalOpen(false)}
+                  className="px-4 py-2 border border-slate-200 text-slate-700 rounded-xl font-semibold hover:bg-slate-100 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl font-bold transition-all shadow-xs"
+                >
+                  Crear y Activar Usuario
+                </button>
               </div>
             </form>
           </div>
