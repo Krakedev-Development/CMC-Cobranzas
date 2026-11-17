@@ -28,6 +28,13 @@ import {
 
 import { CustomSelect } from '../components/common/CustomSelect';
 import { Pagination } from '../components/common/Pagination';
+import { renderBankBadge } from './BankReconciliationView';
+
+const getInitials = (nombres: string, apellidos: string) => {
+  const n = (nombres || '').trim().split(/\s+/)[0] || '';
+  const a = (apellidos || '').trim().split(/\s+/)[0] || '';
+  return `${n[0] || ''}${a[0] || ''}`.toUpperCase() || 'AL';
+};
 
 interface ClientsViewProps {
   onRegisterPaymentForClient?: (clientId: string) => void;
@@ -373,72 +380,109 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left">
             <thead>
-              <tr className="border-b border-slate-200 text-slate-400 font-semibold uppercase tracking-wider text-[11px]">
-                <th className="py-3 px-4">Cédula (Obligatoria)</th>
-                <th className="py-3 px-4">Nombres y Apellidos</th>
+              <tr className="border-b border-slate-200 text-slate-700 font-bold bg-slate-50/60 text-[11px] uppercase tracking-wider">
+                <th className="py-3 px-4">Alumno</th>
+                <th className="py-3 px-4">Identificación (CI)</th>
                 <th className="py-3 px-4">Contacto</th>
-                <th className="py-3 px-4">Deudas / Programas</th>
-                <th className="py-3 px-4">Saldo Pendiente</th>
-                <th className="py-3 px-4">Estado</th>
+                <th className="py-3 px-4">Programas</th>
+                <th className="py-3 px-4 text-right">Saldo Pendiente</th>
+                <th className="py-3 px-4 text-center">Estado</th>
                 <th className="py-3 px-4 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {paginatedClients.map((client) => {
                 const fin = getClientFinancials(client.id);
+                const initials = getInitials(client.nombres, client.apellidos);
+                const saldo = fin?.saldoPendienteTotal || 0;
+                const acordado = fin?.totalPrecioAcordado || 0;
+
                 return (
                   <tr key={client.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="py-3 px-4 font-mono font-medium text-slate-800 whitespace-nowrap">
+                    {/* Alumno con Avatar */}
+                    <td className="py-3 px-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-sky-50 text-sky-800 border border-sky-200/80 flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+                          {initials}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-bold text-slate-900 truncate">
+                            {client.nombres} {client.apellidos}
+                          </div>
+                          {client.notas && (
+                            <div className="text-[10px] text-slate-400 truncate max-w-[160px]">
+                              {client.notas}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Identificación (Cédula) */}
+                    <td className="py-3 px-4 font-mono font-bold text-slate-900 text-xs whitespace-nowrap">
                       {client.cedula}
                     </td>
-                    <td className="py-3 px-4 font-semibold text-slate-900 whitespace-nowrap">
-                      {client.nombres} {client.apellidos}
-                    </td>
-                    <td className="py-3 px-4 text-slate-500 whitespace-nowrap">
-                      <div className="flex items-center gap-1 text-[11px]">
-                        <Phone className="w-3 h-3 text-slate-400" />
+
+                    {/* Contacto */}
+                    <td className="py-3 px-4 text-slate-600 whitespace-nowrap">
+                      <div className="flex items-center gap-1 font-mono text-[11px]">
+                        <Phone className="w-3 h-3 text-slate-400 shrink-0" />
                         <span>{client.telefono}</span>
                       </div>
-                      <div className="flex items-center gap-1 text-[11px] text-slate-400">
-                        <Mail className="w-3 h-3 text-slate-400" />
+                      <div className="flex items-center gap-1 text-[11px] text-slate-400 mt-0.5">
+                        <Mail className="w-3 h-3 text-slate-400 shrink-0" />
                         <span className="truncate max-w-[140px]">{client.correo}</span>
                       </div>
                     </td>
+
+                    {/* Programas */}
                     <td className="py-3 px-4 whitespace-nowrap">
-                      <span className="font-semibold text-slate-800">
-                        {fin?.deudas.length || 0} programas
+                      <span className="font-bold text-slate-800 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-lg text-xs">
+                        {fin?.deudas.length || 0} {(fin?.deudas.length || 0) === 1 ? 'programa' : 'programas'}
                       </span>
-                      <span className="text-slate-400 text-[11px] block">
-                        Acordado: ${fin?.totalPrecioAcordado.toFixed(2)}
+                      <span className="text-slate-500 font-mono text-[11px] block mt-1">
+                        Acordado: ${acordado.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </span>
                     </td>
-                    <td className="py-3 px-4 font-bold tabular-nums whitespace-nowrap">
-                      {(fin?.saldoPendienteTotal || 0) > 0 ? (
-                        <span className="text-amber-700">
-                          ${fin?.saldoPendienteTotal.toFixed(2)}
-                        </span>
+
+                    {/* Saldo Pendiente */}
+                    <td className="py-3 px-4 text-right whitespace-nowrap">
+                      {saldo > 0 ? (
+                        <div>
+                          <span className="font-mono font-black text-amber-700 text-sm tabular-nums">
+                            ${saldo.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                          <span className="block text-[10px] text-slate-400">Por liquidar</span>
+                        </div>
                       ) : (
-                        <span className="text-emerald-700 flex items-center gap-1 font-semibold">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> Al día ($0.00)
-                        </span>
+                        <div className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-xl font-bold font-mono text-xs tabular-nums shadow-2xs">
+                          <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                          <span>Al día ($0.00)</span>
+                        </div>
                       )}
                     </td>
-                    <td className="py-3 px-4 whitespace-nowrap">
+
+                    {/* Estado */}
+                    <td className="py-3 px-4 text-center whitespace-nowrap">
                       {client.estado === 'activo' ? (
-                        <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-[11px] font-semibold border border-emerald-200">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
                           Activo
                         </span>
                       ) : (
-                        <span className="text-slate-500 bg-slate-100 px-2 py-0.5 rounded text-[11px] font-medium">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                          <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
                           Inactivo
                         </span>
                       )}
                     </td>
+
+                    {/* Acciones */}
                     <td className="py-3 px-4 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => setSelectedClientDetailId(client.id)}
-                          className="px-2.5 py-1 bg-slate-100 hover:bg-sky-50 text-slate-700 hover:text-slate-900 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+                          className="px-2.5 py-1 bg-slate-100 hover:bg-sky-50 text-slate-700 hover:text-sky-700 border border-slate-200 rounded-xl text-xs font-bold flex items-center gap-1 transition-colors shadow-2xs"
                           title="Ver Ficha Integral y Trazabilidad del Cliente"
                         >
                           <Eye className="w-3.5 h-3.5" />
@@ -449,15 +493,17 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
                           <>
                             <button
                               onClick={() => handleOpenEdit(client)}
-                              className="p-1 text-slate-400 hover:text-slate-700 rounded hover:bg-slate-200/50"
+                              className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
                               title="Modificar datos"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => toggleClientStatus(client.id)}
-                              className={`p-1 rounded hover:bg-slate-200/50 ${
-                                client.estado === 'activo' ? 'text-amber-600' : 'text-emerald-600'
+                              className={`p-1.5 rounded-lg transition-colors ${
+                                client.estado === 'activo'
+                                  ? 'text-amber-600 hover:bg-amber-50'
+                                  : 'text-emerald-600 hover:bg-emerald-50'
                               }`}
                               title={client.estado === 'activo' ? 'Desactivar cliente' : 'Activar cliente'}
                             >
@@ -746,21 +792,22 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
           <div className="w-full max-w-3xl bg-white rounded-2xl shadow-2xl flex flex-col border border-slate-200 overflow-hidden max-h-[85vh]">
             {/* Drawer Header */}
             <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-2xl bg-sky-500 text-white flex items-center justify-center font-bold text-lg shadow-sm">
-                  {selectedFinancials.client.nombres[0]}
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-2xl bg-sky-500 text-white flex items-center justify-center font-bold text-base shadow-sm">
+                  {getInitials(selectedFinancials.client.nombres, selectedFinancials.client.apellidos)}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="text-base font-bold text-slate-900 leading-tight">
                       {selectedFinancials.client.nombres} {selectedFinancials.client.apellidos}
                     </h2>
-                    <span className="text-[10px] font-semibold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md">
+                    <span className="text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
                       {selectedFinancials.client.estado}
                     </span>
                   </div>
                   <p className="text-xs text-slate-500 font-mono mt-0.5">
-                    Cédula: {selectedFinancials.client.cedula} · Tel: {selectedFinancials.client.telefono}
+                    CI: {selectedFinancials.client.cedula} · Tel: {selectedFinancials.client.telefono} · {selectedFinancials.client.correo}
                   </p>
                 </div>
               </div>
@@ -776,26 +823,26 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
             <div className="grid grid-cols-4 bg-slate-900 text-white p-4 text-center divide-x divide-slate-800 text-xs">
               <div>
                 <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Precio Nominal</span>
-                <span className="text-sm font-bold tabular-nums">
-                  ${selectedFinancials.totalPrecioNominal.toFixed(2)}
+                <span className="text-sm font-bold font-mono tabular-nums text-slate-300">
+                  ${selectedFinancials.totalPrecioNominal.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
               <div>
                 <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Precio Acordado</span>
-                <span className="text-sm font-bold tabular-nums text-sky-300">
-                  ${selectedFinancials.totalPrecioAcordado.toFixed(2)}
+                <span className="text-sm font-black font-mono tabular-nums text-sky-400">
+                  ${selectedFinancials.totalPrecioAcordado.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Total Pagado</span>
-                <span className="text-sm font-bold tabular-nums text-emerald-400">
-                  ${selectedFinancials.totalPagado.toFixed(2)}
+                <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Total Recaudado</span>
+                <span className="text-sm font-black font-mono tabular-nums text-emerald-400">
+                  ${selectedFinancials.totalPagado.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
               <div>
                 <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Saldo Pendiente</span>
-                <span className="text-sm font-bold tabular-nums text-amber-400">
-                  ${selectedFinancials.saldoPendienteTotal.toFixed(2)}
+                <span className="text-sm font-black font-mono tabular-nums text-amber-400">
+                  ${selectedFinancials.saldoPendienteTotal.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
             </div>
@@ -852,21 +899,23 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
                           </span>
                         </div>
 
-                        <div className="grid grid-cols-3 gap-2 bg-white p-2 rounded-lg border border-slate-200 text-center text-[11px]">
+                        <div className="grid grid-cols-3 gap-2 bg-white p-2.5 rounded-xl border border-slate-200 text-center text-[11px]">
                           <div>
-                            <span className="text-slate-400 block">Acordado</span>
-                            <span className="font-bold text-slate-800">${debt.precioAcordado.toFixed(2)}</span>
-                          </div>
-                          <div>
-                            <span className="text-slate-400 block">Abonado</span>
-                            <span className="font-bold text-emerald-600">
-                              ${(fin?.validPaymentsTotal || 0).toFixed(2)}
+                            <span className="text-slate-400 block text-[10px]">Acordado</span>
+                            <span className="font-bold font-mono tabular-nums text-slate-800">
+                              ${debt.precioAcordado.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                           </div>
                           <div>
-                            <span className="text-slate-400 block">Saldo</span>
-                            <span className="font-bold text-amber-600">
-                              ${(fin?.saldoPendiente || 0).toFixed(2)}
+                            <span className="text-slate-400 block text-[10px]">Abonado</span>
+                            <span className="font-bold font-mono tabular-nums text-emerald-600">
+                              ${(fin?.validPaymentsTotal || 0).toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 block text-[10px]">Saldo</span>
+                            <span className="font-bold font-mono tabular-nums text-amber-600">
+                              ${(fin?.saldoPendiente || 0).toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                           </div>
                         </div>
@@ -904,14 +953,17 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
                       >
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-slate-900">${p.monto.toFixed(2)}</span>
-                            <span className="text-slate-500">· {p.fechaPago}</span>
-                            <span className="font-mono text-[11px] text-slate-600">
+                            <span className="font-bold font-mono tabular-nums text-slate-900">
+                              ${p.monto.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                            <span className="text-slate-500 font-mono text-[11px]">· {p.fechaPago}</span>
+                            <span className="font-mono text-[11px] font-bold text-slate-700">
                               [{p.numeroTransaccion || 'Sin TX'}]
                             </span>
                           </div>
-                          <div className="text-[11px] text-slate-500 mt-0.5">
-                            {p.metodo} · {p.bancoOrigen || 'Sin banco especificado'}
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-[11px] text-slate-500 capitalize">{p.metodo}</span>
+                            {p.bancoOrigen && renderBankBadge(p.bancoOrigen)}
                           </div>
                           {p.motivoAnulacion && (
                             <div className="text-[10px] text-rose-600 font-medium mt-1">
@@ -967,7 +1019,10 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
                         <div>
                           <div className="font-bold text-slate-900 font-mono">{inv.numeroFactura}</div>
                           <div className="text-[11px] text-slate-500">
-                            Fecha: {inv.fechaFactura} · Monto: ${(inv.monto || 0).toFixed(2)}
+                            Fecha: {inv.fechaFactura} · Monto:{' '}
+                            <strong className="font-mono tabular-nums text-slate-800">
+                              ${(inv.monto || 0).toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </strong>
                           </div>
                           {inv.nombreArchivo && (
                             <div className="text-[10px] text-slate-700 flex items-center gap-1 mt-0.5 font-medium">
