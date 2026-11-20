@@ -308,4 +308,87 @@ export const api = {
       body: JSON.stringify(data),
     });
   },
+
+  // Documentos OCR (Amazon Textract)
+  async analyzeDocument(file: File, documentType: 'TRANSFER' | 'INVOICE'): Promise<AnalyzeDocumentResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('documentType', documentType);
+
+    return request<AnalyzeDocumentResponse>('/documents/analyze', {
+      method: 'POST',
+      body: formData,
+    });
+  },
+
+  async confirmDocument(analysisId: string, data: ConfirmDocumentInput) {
+    return request<{ message: string; entityId: string; analysisId: string; status: string }>(
+      `/documents/analyses/${analysisId}/confirm`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      },
+    );
+  },
+
+  async getDocumentAnalysis(analysisId: string): Promise<AnalyzeDocumentResponse> {
+    return request<AnalyzeDocumentResponse>(`/documents/analyses/${analysisId}`);
+  },
 };
+
+export interface AnalyzeDocumentResponse {
+  cached: boolean;
+  analysisId: string;
+  documentType: 'TRANSFER' | 'INVOICE';
+  status: string;
+  confidenceScore: number;
+  requiresReview: boolean;
+  reviewReasons: string[];
+  extracted: {
+    bank?: string;
+    amount?: number;
+    date?: string;
+    reference?: string;
+    destinationAccountLast4?: string;
+    payerName?: string;
+    invoiceNumber?: string;
+    issuerRuc?: string;
+    issuerBusinessName?: string;
+    recipientRuc?: string;
+    sriAccessKey?: string;
+    subtotal?: number;
+    iva?: number;
+    total?: number;
+  };
+  suggestions: {
+    clientCandidate?: {
+      id: string;
+      label: string;
+      identifier?: string;
+      matchedBy: string[];
+      confidence: number;
+    };
+    payer?: {
+      selectedId: string | null;
+      candidates: Array<{
+        id: string;
+        label: string;
+        identifier?: string;
+        matchedBy: string[];
+        confidence: number;
+      }>;
+    };
+    duplicatePaymentDetected?: boolean;
+    duplicateInvoiceDetected?: boolean;
+  };
+}
+
+export interface ConfirmDocumentInput {
+  clientId: string;
+  debtId?: string;
+  confirmedAmount: number;
+  reference?: string;
+  banco?: string;
+  observations?: string;
+}
+

@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { Invoice, Client, Debt } from '../types';
+import { api } from '../services/api';
 import {
   FileText,
   Plus,
@@ -21,6 +22,8 @@ import {
   Image as ImageIcon,
   DollarSign,
   Receipt,
+  Loader2,
+  Sparkles,
 } from 'lucide-react';
 
 import { Pagination } from '../components/common/Pagination';
@@ -65,6 +68,58 @@ export const InvoicesView: React.FC = () => {
   const [formNombreArchivo, setFormNombreArchivo] = useState('');
   const [formObservaciones, setFormObservaciones] = useState('');
   const [formError, setFormError] = useState('');
+
+  // OCR Textract state
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [ocrAnalysisResult, setOcrAnalysisResult] = useState<any | null>(null);
+
+  const handleScanInvoiceFile = async (file: File) => {
+    setIsAnalyzing(true);
+    setFormError('');
+    setOcrAnalysisResult(null);
+
+    try {
+      setFormNombreArchivo(file.name);
+      const res = await api.analyzeDocument(file, 'INVOICE');
+      setOcrAnalysisResult(res);
+
+      if (res.extracted.invoiceNumber) {
+        setFormNumero(res.extracted.invoiceNumber);
+      }
+      if (res.extracted.total) {
+        setFormMonto(res.extracted.total.toString());
+      }
+      if (res.extracted.date) {
+        setFormFecha(res.extracted.date.slice(0, 10));
+      }
+
+      if (res.suggestions.clientCandidate?.id) {
+        setFormClientId(res.suggestions.clientCandidate.id);
+      } else if (res.extracted.recipientRuc) {
+        const found = clients.find((c) => c.cedula === res.extracted.recipientRuc);
+        if (found) setFormClientId(found.id);
+      }
+
+      const obsParts: string[] = [];
+      if (res.extracted.sriAccessKey) {
+        obsParts.push(`Clave SRI: ${res.extracted.sriAccessKey}`);
+      }
+      if (res.extracted.subtotal || res.extracted.iva) {
+        obsParts.push(`Subtotal: $${res.extracted.subtotal || 0} | IVA: $${res.extracted.iva || 0}`);
+      }
+      if (res.extracted.issuerBusinessName) {
+        obsParts.push(`Emisor: ${res.extracted.issuerBusinessName}`);
+      }
+
+      if (obsParts.length > 0) {
+        setFormObservaciones((prev) => (prev ? `${prev}\n${obsParts.join(' | ')}` : obsParts.join(' | ')));
+      }
+    } catch (err: any) {
+      setFormError(err.message || 'Error al analizar la factura con Amazon Textract');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   const canCreate = hasPermission('facturas', 'crear');
   const canModify = hasPermission('facturas', 'modificar');
@@ -237,10 +292,14 @@ export const InvoicesView: React.FC = () => {
     setFormMonto('');
     setFormNombreArchivo('');
     setFormObservaciones('');
+    setOcrAnalysisResult(null);
+    setIsAnalyzing(false);
   };
 
   const handleOpenEdit = (inv: Invoice) => {
     setEditingInvoice(inv);
+    setOcrAnalysisResult(null);
+    setIsAnalyzing(false);
     setFormClientId(inv.clienteId);
     setFormDebtId(inv.deudaId || '');
     setFormNumero(inv.numeroFactura);
@@ -597,6 +656,63 @@ export const InvoicesView: React.FC = () => {
                   <span>{formError}</span>
                 </div>
               )}
+
+              {/* Seccion Amazon Textract OCR */}
+              <div className="p-3 bg-sky-50/70 border border-sky-100 rounded-xl space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-sky-900 font-semibold text-xs">
+                    <Sparkles className="w-3.5 h-3.5 text-sky-600" />
+                    <span>Lector OCR Amazon Textract (Autocompletado)</span>
+                  </div>
+                  {isAnalyzing && (
+                    <div className="flex items-center gap-1.5 text-sky-600 text-xs font-medium">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Analizando...</span>
+                    </div>
+                  )}
+                </div>
+
+                <label className="flex flex-col items-center justify-center border-2 border-dashed border-sky-200 hover:border-sky-400 bg-white rounded-xl p-3 cursor-pointer transition-colors">
+                  <input
+                    type="file"
+                    accept="application/pdf,image/png,image/jpeg"
+                    disabled={isAnalyzing}
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleScanInvoiceFile(file);
+                    }}
+                  />
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <Upload className="w-4 h-4 text-sky-600" />
+                    <span className="font-medium text-slate-800">
+                      {isAnalyzing ? 'Escaneando con AWS Textract...' : 'Subir factura PDF o imagen para autocompletar'}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-slate-400 mt-0.5">
+                    Extrae RUC emisor/receptor, clave SRI de 49 digitos, total, IVA y numero de factura
+                  </span>
+                </label>
+
+                {ocrAnalysisResult && (
+                  <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-900 text-[11px] flex items-start gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold">
+                        Factura analizada con exito (Confianza: {ocrAnalysisResult.confidenceScore}%)
+                      </p>
+                      {ocrAnalysisResult.suggestions?.duplicateInvoiceDetected && (
+                        <p className="text-amber-700 font-medium mt-0.5">
+                          Aviso: Este numero de factura ya se encuentra registrado en el sistema.
+                        </p>
+                      )}
+                      <p className="text-slate-500 text-[10px] mt-0.5">
+                        Verifique y confirme los datos extraidos antes de guardar.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               <div>
                 <label className="block font-semibold text-slate-700 mb-1">Cliente / Alumno *</label>

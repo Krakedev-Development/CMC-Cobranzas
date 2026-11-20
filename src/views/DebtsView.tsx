@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { Debt, Client, Product, Payment, ExtractedData, PaymentMethod } from '../types';
+import { api } from '../services/api';
 import {
   Receipt,
   Plus,
@@ -34,6 +35,7 @@ import {
   AlertOctagon,
   RefreshCw,
   Landmark,
+  Loader2,
 } from 'lucide-react';
 import { CustomSelect } from '../components/common/CustomSelect';
 import { Pagination } from '../components/common/Pagination';
@@ -696,7 +698,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     setIsPayModalOpen(true);
   };
 
-  const handleVoucherFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleVoucherFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -712,6 +714,44 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     } else {
       setPayFilePreviewUrl(null);
     }
+
+    // Escaneo automatico con Amazon Textract si es transferencia o deposito
+    if (payMethod === 'transferencia' || payMethod === 'deposito') {
+      setIsPayOcrScanning(true);
+      setPayError('');
+      try {
+        const res = await api.analyzeDocument(file, 'TRANSFER');
+        if (res?.extracted) {
+          if (res.extracted.amount && res.extracted.amount > 0) {
+            setPayAmount(res.extracted.amount.toString());
+          }
+          if (res.extracted.reference) {
+            setPayTxNumber(res.extracted.reference);
+            setPayRef(res.extracted.reference);
+          }
+          if (res.extracted.date) {
+            setPayDate(res.extracted.date.slice(0, 10));
+          }
+          if (res.extracted.bank) {
+            const b = res.extracted.bank.toUpperCase();
+            if (b.includes('PICHINCHA')) setPayBank('Banco Pichincha');
+            else if (b.includes('GUAYAQUIL')) setPayBank('Banco Guayaquil');
+            else if (b.includes('PRODUBANCO')) setPayBank('Produbanco');
+            else if (b.includes('INTERNACIONAL')) setPayBank('Banco Internacional');
+            else setPayBank(res.extracted.bank);
+          }
+          if (res.suggestions?.duplicatePaymentDetected) {
+            setPayError('Aviso: Este comprobante ya ha sido registrado previamente.');
+          }
+          setPayOcrExtracted(res.extracted as any);
+        }
+      } catch (err: any) {
+        console.warn('Textract OCR:', err);
+      } finally {
+        setIsPayOcrScanning(false);
+      }
+    }
+
     e.target.value = '';
   };
 
@@ -2936,9 +2976,24 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                         </label>
                       </div>
 
-                      <p className="text-[11px] text-slate-500">
-                        Adjunte el comprobante digital de la transacción. Los datos del banco, transacción, monto y fecha se capturan de forma manual a continuación.
-                      </p>
+                      <div className="flex items-center justify-between text-[11px] text-slate-500">
+                        <span>
+                          Amazon Textract lee automaticamente banco, monto, fecha y referencia del comprobante.
+                        </span>
+                        {isPayOcrScanning && (
+                          <div className="flex items-center gap-1.5 text-sky-600 font-semibold text-xs">
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <span>Leyendo con Textract...</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {payOcrExtracted && (
+                        <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-900 text-[11px] flex items-center gap-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          <span>Datos autocompletados con exito mediante Amazon Textract. Verifique antes de registrar.</span>
+                        </div>
+                      )}
 
                       {/* Estado del archivo cargado */}
                       {payUploadedFileName ? (
