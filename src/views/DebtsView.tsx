@@ -864,6 +864,9 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
             else if (b.includes('INTERNACIONAL')) setSaleBankOrEntity('Banco Internacional');
             else setSaleBankOrEntity(res.extracted.bank);
           }
+          if (res.extracted.date) {
+            setSaleFechaAdquisicion(res.extracted.date.slice(0, 10));
+          }
           setSaleOcrExtracted(res.extracted as any);
         }
       } catch (err: any) {
@@ -2682,6 +2685,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                         <p className="text-[11px] text-emerald-700">
                           Monto: <strong className="font-bold text-emerald-900">${Number(saleOcrExtracted.amount || 0).toFixed(2)}</strong>
                           {saleOcrExtracted.bank && <> | Banco: <strong className="font-bold text-emerald-900">{saleOcrExtracted.bank}</strong></>}
+                          {saleOcrExtracted.date && <> | Fecha: <strong className="font-bold text-emerald-900">{saleOcrExtracted.date.slice(0, 10)}</strong></>}
                           {saleOcrExtracted.reference && <> | Ref: <strong className="font-bold text-emerald-900">{saleOcrExtracted.reference}</strong></>}
                         </p>
                         <p className="text-[10px] text-emerald-600">
@@ -3072,7 +3076,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                               Comprobante analizado con exito por Amazon Textract
                             </p>
                             <p className="text-slate-600 text-[11px]">
-                              Monto: <strong>${payOcrExtracted.amount ? Number(payOcrExtracted.amount).toFixed(2) : payAmount}</strong> | Banco: <strong>{payBank}</strong> | Ref: <strong>{payTxNumber || 'Sin ref'}</strong>
+                              Monto: <strong>${payOcrExtracted.amount ? Number(payOcrExtracted.amount).toFixed(2) : payAmount}</strong> | Banco: <strong>{payBank}</strong> | Fecha: <strong>{payDate}</strong> | Ref: <strong>{payTxNumber || 'Sin ref'}</strong>
                             </p>
                             <p className="text-[10px] text-slate-500">
                               Valores precargados automaticamente. Puede editarlos antes de confirmar el pago.
