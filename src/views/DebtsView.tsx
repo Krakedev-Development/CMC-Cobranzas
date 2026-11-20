@@ -722,8 +722,12 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
       try {
         const res = await api.analyzeDocument(file, 'TRANSFER');
         if (res?.extracted) {
-          if (res.extracted.amount && Number(res.extracted.amount) > 0) {
-            setPayAmount(Number(res.extracted.amount).toFixed(2));
+          const extractedAmt =
+            res.extracted.amount !== undefined && res.extracted.amount !== null
+              ? Number(res.extracted.amount)
+              : 0;
+          if (extractedAmt > 0) {
+            setPayAmount(extractedAmt.toFixed(2));
           }
           if (res.extracted.reference) {
             setPayTxNumber(res.extracted.reference);
@@ -2996,7 +3000,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                               Comprobante analizado con exito por Amazon Textract
                             </p>
                             <p className="text-slate-600 text-[11px]">
-                              Monto: <strong>${payAmount}</strong> | Banco: <strong>{payBank}</strong> | Ref: <strong>{payTxNumber || 'Sin ref'}</strong>
+                              Monto: <strong>${payOcrExtracted.amount ? Number(payOcrExtracted.amount).toFixed(2) : payAmount}</strong> | Banco: <strong>{payBank}</strong> | Ref: <strong>{payTxNumber || 'Sin ref'}</strong>
                             </p>
                             <p className="text-[10px] text-slate-500">
                               Valores precargados automaticamente. Puede editarlos antes de confirmar el pago.
