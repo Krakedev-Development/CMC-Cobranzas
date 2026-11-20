@@ -196,6 +196,13 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
   const [saleVoucherFileName, setSaleVoucherFileName] = useState<string | null>(null);
   const [saleVoucherFile, setSaleVoucherFile] = useState<File | null>(null);
   const [saleVoucherPreviewUrl, setSaleVoucherPreviewUrl] = useState<string | null>(null);
+  const [isSaleOcrScanning, setIsSaleOcrScanning] = useState<boolean>(false);
+  const [saleOcrExtracted, setSaleOcrExtracted] = useState<{
+    amount?: number;
+    reference?: string;
+    bank?: string;
+    date?: string;
+  } | null>(null);
   const [observaciones, setObservaciones] = useState('');
   const [formError, setFormError] = useState('');
   const [showOverdueOnly, setShowOverdueOnly] = useState<boolean>(false);
@@ -454,12 +461,16 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
 
       if (isPaid) {
         conciliados++;
-      } else if (isEnComp) {
-        enComprobacion++;
-      } else if (delay.isOverdue) {
-        vencidos++;
       } else {
-        alDia++;
+        if (delay.isOverdue) {
+          vencidos++;
+        }
+        if (isEnComp) {
+          enComprobacion++;
+        }
+        if (!isEnComp && !delay.isOverdue) {
+          alDia++;
+        }
       }
     });
 
@@ -634,6 +645,8 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     setSaleVoucherFileName(null);
     setSaleVoucherFile(null);
     setSaleVoucherPreviewUrl(null);
+    setIsSaleOcrScanning(false);
+    setSaleOcrExtracted(null);
     setObservaciones('');
     setFormError('');
     setIsCreateModalOpen(true);
@@ -811,7 +824,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     }
   };
 
-  const handleSaleVoucherUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSaleVoucherUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -827,6 +840,39 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     } else {
       setSaleVoucherPreviewUrl(null);
     }
+
+    if (salePaymentMethod === 'transferencia' || salePaymentMethod === 'deposito') {
+      setIsSaleOcrScanning(true);
+      try {
+        const res = await api.analyzeDocument(file, 'TRANSFER');
+        if (res?.extracted) {
+          const extractedAmt =
+            res.extracted.amount !== undefined && res.extracted.amount !== null
+              ? Number(res.extracted.amount)
+              : 0;
+          if (extractedAmt > 0) {
+            setSaleInitialPayAmount(extractedAmt.toFixed(2));
+          }
+          if (res.extracted.reference) {
+            setSaleInitialTxNumber(res.extracted.reference);
+          }
+          if (res.extracted.bank) {
+            const b = res.extracted.bank.toUpperCase();
+            if (b.includes('PICHINCHA')) setSaleBankOrEntity('Banco Pichincha');
+            else if (b.includes('GUAYAQUIL')) setSaleBankOrEntity('Banco Guayaquil');
+            else if (b.includes('PRODUBANCO')) setSaleBankOrEntity('Produbanco');
+            else if (b.includes('INTERNACIONAL')) setSaleBankOrEntity('Banco Internacional');
+            else setSaleBankOrEntity(res.extracted.bank);
+          }
+          setSaleOcrExtracted(res.extracted as any);
+        }
+      } catch (err: any) {
+        console.warn('Textract OCR:', err);
+      } finally {
+        setIsSaleOcrScanning(false);
+      }
+    }
+
     e.target.value = '';
   };
 
@@ -1046,6 +1092,8 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
       setSaleVoucherFileName(null);
       setSaleVoucherFile(null);
       setSaleVoucherPreviewUrl(null);
+      setIsSaleOcrScanning(false);
+      setSaleOcrExtracted(null);
       setObservaciones('');
     } catch (err: any) {
       setFormError(err.message || 'Error al registrar la venta en la base de datos');
@@ -2617,7 +2665,30 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                           onChange={handleSaleVoucherUpload}
                         />
                       </label>
+                      {isSaleOcrScanning && (
+                        <span className="inline-flex items-center gap-1.5 text-xs text-sky-700 font-medium bg-sky-50 px-2.5 py-1 rounded-md border border-sky-200">
+                          <Loader2 className="w-3.5 h-3.5 animate-spin text-sky-600" />
+                          Amazon Textract analizando comprobante...
+                        </span>
+                      )}
                     </div>
+
+                    {saleOcrExtracted && (
+                      <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-800 space-y-1">
+                        <div className="flex items-center gap-1.5 font-bold text-emerald-900">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                          <span>Comprobante analizado con exito por Amazon Textract</span>
+                        </div>
+                        <p className="text-[11px] text-emerald-700">
+                          Monto: <strong className="font-bold text-emerald-900">${Number(saleOcrExtracted.amount || 0).toFixed(2)}</strong>
+                          {saleOcrExtracted.bank && <> | Banco: <strong className="font-bold text-emerald-900">{saleOcrExtracted.bank}</strong></>}
+                          {saleOcrExtracted.reference && <> | Ref: <strong className="font-bold text-emerald-900">{saleOcrExtracted.reference}</strong></>}
+                        </p>
+                        <p className="text-[10px] text-emerald-600">
+                          Valores precargados automaticamente. Puede editarlos antes de guardar.
+                        </p>
+                      </div>
+                    )}
 
                     {saleVoucherFileName && (
                       <div className="space-y-2 mt-2">
@@ -2635,6 +2706,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                               setSaleVoucherFileName(null);
                               setSaleVoucherFile(null);
                               setSaleVoucherPreviewUrl(null);
+                              setSaleOcrExtracted(null);
                             }}
                             className="text-slate-400 hover:text-rose-600 text-xs ml-2 p-1 rounded-md transition-colors inline-flex items-center"
                             title="Quitar archivo"
