@@ -722,12 +722,12 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
       try {
         const res = await api.analyzeDocument(file, 'TRANSFER');
         if (res?.extracted) {
-          if (res.extracted.amount && res.extracted.amount > 0) {
-            setPayAmount(res.extracted.amount.toString());
+          if (res.extracted.amount && Number(res.extracted.amount) > 0) {
+            setPayAmount(Number(res.extracted.amount).toFixed(2));
           }
           if (res.extracted.reference) {
             setPayTxNumber(res.extracted.reference);
-            setPayRef(res.extracted.reference);
+            setPayRef(`Comprobante ${res.extracted.reference}`);
           }
           if (res.extracted.date) {
             setPayDate(res.extracted.date.slice(0, 10));
@@ -2989,9 +2989,19 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                       </div>
 
                       {payOcrExtracted && (
-                        <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-900 text-[11px] flex items-center gap-1.5">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                          <span>Datos autocompletados con exito mediante Amazon Textract. Verifique antes de registrar.</span>
+                        <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900 text-xs flex items-start gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                          <div className="space-y-0.5">
+                            <p className="font-bold">
+                              Comprobante analizado con exito por Amazon Textract
+                            </p>
+                            <p className="text-slate-600 text-[11px]">
+                              Monto: <strong>${payAmount}</strong> | Banco: <strong>{payBank}</strong> | Ref: <strong>{payTxNumber || 'Sin ref'}</strong>
+                            </p>
+                            <p className="text-[10px] text-slate-500">
+                              Valores precargados automaticamente. Puede editarlos antes de confirmar el pago.
+                            </p>
+                          </div>
                         </div>
                       )}
 
