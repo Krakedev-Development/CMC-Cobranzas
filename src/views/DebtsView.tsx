@@ -1456,7 +1456,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
             <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
               {/* Search */}
               <div className="relative flex-1 min-w-[220px] max-w-sm">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
                   type="text"
                   placeholder="Buscar por alumno, cédula o programa..."
@@ -1465,8 +1465,21 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                     setDebtSearchQuery(e.target.value);
                     setDebtsCurrentPage(1);
                   }}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-8 py-2 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
                 />
+                {debtSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDebtSearchQuery('');
+                      setDebtsCurrentPage(1);
+                    }}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-md hover:bg-slate-200/50 transition-colors"
+                    title="Limpiar búsqueda"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
 
               {/* Custom Selectors and Actions */}
@@ -2157,7 +2170,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                     </button>
                   </div>
                   <div className="relative">
-                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
                       type="text"
                       placeholder="Buscar por nombre o cédula..."
@@ -2166,8 +2179,21 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                         setClientSearchText(e.target.value);
                         setSelectedClientId('');
                       }}
-                      className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-slate-800 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
+                      className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-8 py-2 text-slate-800 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
                     />
+                    {clientSearchText && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setClientSearchText('');
+                          setSelectedClientId('');
+                        }}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-md hover:bg-slate-100 transition-colors"
+                        title="Limpiar búsqueda"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
 
                   <div className="max-h-36 overflow-y-auto border border-slate-200 rounded-xl divide-y divide-slate-100 bg-white">
@@ -2207,7 +2233,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                     2. Programa Educativo o Servicio *
                   </label>
                   <div className="relative">
-                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
                       type="text"
                       placeholder="Buscar programa o digitar uno nuevo..."
@@ -2225,8 +2251,21 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                           setSelectedProductId('');
                         }
                       }}
-                      className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-slate-800 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
+                      className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-8 py-2 text-slate-800 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
                     />
+                    {productSearchText && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setProductSearchText('');
+                          setSelectedProductId('');
+                        }}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-md hover:bg-slate-100 transition-colors"
+                        title="Limpiar búsqueda"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
 
                   <div className="max-h-36 overflow-y-auto border border-slate-200 rounded-xl divide-y divide-slate-100 bg-white">
