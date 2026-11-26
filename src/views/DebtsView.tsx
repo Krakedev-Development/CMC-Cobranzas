@@ -735,6 +735,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
 
     setIsPayOcrScanning(true);
     setPayError('');
+    setPayOcrExtracted(null);
     try {
       const res = await api.analyzeDocument(file, 'TRANSFER');
       if (res?.extracted) {
@@ -790,6 +791,8 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
       }
     } catch (err: any) {
       console.warn('Textract OCR:', err);
+      setPayOcrExtracted(null);
+      setPayError(err.message || 'No se pudo leer el comprobante automáticamente. Puede ingresar los datos manualmente.');
     } finally {
       setIsPayOcrScanning(false);
     }
@@ -871,6 +874,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     }
 
     setIsSaleOcrScanning(true);
+    setSaleOcrExtracted(null);
     try {
       const res = await api.analyzeDocument(file, 'TRANSFER');
       if (res?.extracted) {
@@ -918,6 +922,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
       }
     } catch (err: any) {
       console.warn('Textract OCR:', err);
+      setSaleOcrExtracted(null);
     } finally {
       setIsSaleOcrScanning(false);
     }

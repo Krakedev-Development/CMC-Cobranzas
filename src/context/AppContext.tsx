@@ -1674,18 +1674,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     );
   };
 
-  // --- CSV EXPORT UTILITY ---
+  // --- CSV EXPORT UTILITY OPTIMIZED FOR MICROSOFT EXCEL ---
   const exportToCSV = (filename: string, headers: string[], rows: (string | number | undefined | null)[][]) => {
-    // Generate CSV content with UTF-8 BOM for clean Excel display
+    // Generate CSV content with UTF-8 BOM and sep=; directive for perfect Excel column distribution in any regional setting
     const escapeCell = (val: string | number | undefined | null) => {
       if (val === undefined || val === null) return '""';
       const str = String(val).replace(/"/g, '""');
       return `"${str}"`;
     };
 
-    const headerLine = headers.map(escapeCell).join(',');
-    const bodyLines = rows.map((row) => row.map(escapeCell).join(','));
-    const csvContent = '\uFEFF' + [headerLine, ...bodyLines].join('\r\n');
+    const headerLine = headers.map(escapeCell).join(';');
+    const bodyLines = rows.map((row) => row.map(escapeCell).join(';'));
+    const csvContent = '\uFEFFsep=;\r\n' + [headerLine, ...bodyLines].join('\r\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
