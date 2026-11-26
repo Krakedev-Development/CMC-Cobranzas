@@ -25,6 +25,7 @@ import {
   Mail,
   FileSpreadsheet,
   Printer,
+  MessageCircle,
 } from 'lucide-react';
 
 import { CustomSelect } from '../components/common/CustomSelect';
@@ -535,9 +536,29 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
 
                     {/* Contacto */}
                     <td className="py-3 px-4 text-slate-600 whitespace-nowrap">
-                      <div className="flex items-center gap-1 font-mono text-[11px]">
+                      <div className="flex items-center gap-1.5 font-mono text-[11px]">
                         <Phone className="w-3 h-3 text-slate-400 shrink-0" />
                         <span>{client.telefono}</span>
+                        {client.telefono && saldo > 0 && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const cleanPhone = client.telefono.replace(/\D/g, '');
+                              const fullPhone = cleanPhone.startsWith('593') ? cleanPhone : `593${cleanPhone.replace(/^0/, '')}`;
+                              const text = encodeURIComponent(
+                                `Estimado(a) ${client.nombres} ${client.apellidos}, le saludamos de CMC Cobranzas.\n\n` +
+                                `Le recordamos que mantiene un saldo pendiente de $${saldo.toFixed(2)} por liquidar.\n` +
+                                `Para reportar su comprobante de pago, por favor remítalo por este medio.\n\n` +
+                                `Muchas gracias.`
+                              );
+                              window.open(`https://wa.me/${fullPhone}?text=${text}`, '_blank');
+                            }}
+                            className="p-1 hover:bg-emerald-100 rounded text-emerald-600 hover:text-emerald-700 transition-colors"
+                            title="Enviar recordatorio de cobro por WhatsApp"
+                          >
+                            <MessageCircle className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
                       <div className="flex items-center gap-1 text-[11px] text-slate-400 mt-0.5">
                         <Mail className="w-3 h-3 text-slate-400 shrink-0" />

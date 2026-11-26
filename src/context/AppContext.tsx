@@ -201,6 +201,13 @@ interface AppContextType {
   // Utility
   exportToCSV: (filename: string, headers: string[], rows: (string | number | undefined | null)[][]) => void;
   exportToPDF: (title: string, headers: string[], rows: (string | number | undefined | null)[][], subtitle?: string) => void;
+  printPaymentReceipt: (
+    payment: Payment,
+    client?: Client,
+    debt?: Debt,
+    product?: Product,
+    saldoActual?: number
+  ) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -1815,6 +1822,168 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     );
   };
 
+  const printPaymentReceipt = (
+    payment: Payment,
+    client?: Client,
+    debt?: Debt,
+    product?: Product,
+    saldoActual?: number
+  ) => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert('Por favor habilite las ventanas emergentes (pop-ups) en su navegador para imprimir el recibo.');
+      return;
+    }
+
+    const receiptNo = `REC-CMC-${payment.id.slice(0, 8).toUpperCase()}`;
+    const todayStr = new Date().toLocaleDateString('es-EC', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    const saldo = saldoActual !== undefined ? saldoActual : (debt ? Math.max(0, debt.precioAcordado - payment.monto) : 0);
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>Recibo Oficial de Pago - ${receiptNo}</title>
+        <style>
+          @page { size: portrait; margin: 15mm; }
+          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; color: #0f172a; margin: 0; padding: 24px; line-height: 1.5; font-size: 13px; }
+          .receipt-box { border: 2px solid #0284c7; border-radius: 12px; padding: 24px; position: relative; background: #ffffff; }
+          .watermark { position: absolute; top: 40%; left: 20%; transform: rotate(-30deg); font-size: 50px; color: rgba(2, 132, 199, 0.04); font-weight: 900; pointer-events: none; text-transform: uppercase; }
+          .header { display: flex; justify-content: space-between; border-bottom: 2px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 20px; }
+          .company-name { font-size: 20px; font-weight: 800; color: #0369a1; letter-spacing: -0.5px; }
+          .company-sub { font-size: 11px; color: #64748b; margin-top: 2px; }
+          .receipt-badge { text-align: right; }
+          .receipt-no { font-size: 16px; font-weight: 800; color: #0f172a; font-family: monospace; }
+          .receipt-date { font-size: 11px; color: #64748b; margin-top: 3px; }
+          .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+          .section-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; }
+          .card-title { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; margin-bottom: 6px; }
+          .card-field { margin-bottom: 4px; font-size: 12px; }
+          .card-field strong { color: #334155; }
+          .payment-highlight { background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 10px; padding: 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+          .amount-label { font-size: 12px; font-weight: 700; color: #166534; text-transform: uppercase; }
+          .amount-val { font-size: 26px; font-weight: 900; color: #15803d; font-family: monospace; }
+          .summary-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+          .summary-table th { background: #f1f5f9; padding: 8px 10px; font-size: 11px; text-align: left; border: 1px solid #cbd5e1; color: #334155; }
+          .summary-table td { padding: 8px 10px; font-size: 12px; border: 1px solid #e2e8f0; }
+          .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 40px; text-align: center; }
+          .sig-line { border-top: 1.5px dashed #94a3b8; padding-top: 6px; font-size: 11px; color: #475569; font-weight: 600; }
+          .footer { margin-top: 24px; padding-top: 12px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 10px; color: #94a3b8; }
+        </style>
+      </head>
+      <body>
+        <div class="receipt-box">
+          <div class="watermark">CMC COBRANZAS</div>
+          <div class="header">
+            <div>
+              <div class="company-name">CLEAR MINDS CONSULTORES</div>
+              <div class="company-sub">CMC Cobranzas y Gestión Financiera Educativa</div>
+              <div class="company-sub">RUC: 1790010937001 - Quito, Ecuador</div>
+            </div>
+            <div class="receipt-badge">
+              <div style="font-size: 11px; font-weight: bold; color: #0284c7; text-transform: uppercase;">Recibo Oficial de Pago</div>
+              <div class="receipt-no">${receiptNo}</div>
+              <div class="receipt-date">Emisión: ${todayStr}</div>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="section-card">
+              <div class="card-title">Datos del Alumno / Cliente</div>
+              <div class="card-field"><strong>Nombre:</strong> ${client ? `${client.nombres} ${client.apellidos}` : 'Cliente Registrado'}</div>
+              <div class="card-field"><strong>Identificación:</strong> ${client?.cedula || 'N/A'}</div>
+              <div class="card-field"><strong>Contacto:</strong> ${client?.telefono || 'N/A'}</div>
+              <div class="card-field"><strong>Correo:</strong> ${client?.correo || 'N/A'}</div>
+            </div>
+            <div class="section-card">
+              <div class="card-title">Detalles de la Obligación</div>
+              <div class="card-field"><strong>Programa / Concepto:</strong> ${product?.nombre || 'Formación Profesional'}</div>
+              <div class="card-field"><strong>ID Deuda:</strong> ${debt ? debt.id.slice(0, 13) : 'Pago Directo'}</div>
+              <div class="card-field"><strong>Fecha de Pago:</strong> ${payment.fechaPago}</div>
+              <div class="card-field"><strong>Estado de Conciliación:</strong> ${payment.estadoConciliacion.toUpperCase()}</div>
+            </div>
+          </div>
+
+          <div class="payment-highlight">
+            <div>
+              <div class="amount-label">Monto Abonado Percibido</div>
+              <div style="font-size: 11px; color: #166534; margin-top: 2px;">Método: ${payment.metodo.toUpperCase()} ${payment.bancoOrigen ? `(${payment.bancoOrigen})` : ''}</div>
+              <div style="font-size: 11px; color: #166534;">Ref / Transacción: ${payment.numeroTransaccion || payment.referencia || 'Sin número'}</div>
+            </div>
+            <div class="amount-val">$${payment.monto.toFixed(2)}</div>
+          </div>
+
+          <table class="summary-table">
+            <thead>
+              <tr>
+                <th>Concepto Académico</th>
+                <th style="text-align: right;">Total Acordado</th>
+                <th style="text-align: right;">Abono Percibido</th>
+                <th style="text-align: right;">Saldo Pendiente</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>${product?.nombre || 'Cuota de Programa Académico'}</strong></td>
+                <td style="text-align: right;">$${debt ? debt.precioAcordado.toFixed(2) : payment.monto.toFixed(2)}</td>
+                <td style="text-align: right; color: #15803d; font-weight: bold;">$${payment.monto.toFixed(2)}</td>
+                <td style="text-align: right; font-weight: bold; color: ${saldo <= 0 ? '#15803d' : '#b91c1c'};">
+                  ${saldo <= 0 ? 'PAGADO TOTAL ($0.00)' : `$${saldo.toFixed(2)}`}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="signatures">
+            <div>
+              <div style="height: 40px;"></div>
+              <div class="sig-line">Gestión de Cobranzas y Recaudación CMC</div>
+            </div>
+            <div>
+              <div style="height: 40px;"></div>
+              <div class="sig-line">Firma de Conformidad del Alumno</div>
+            </div>
+          </div>
+
+          <div class="footer">
+            Este comprobante certifica formalmente la recepción del abono indicado. Conserve este documento para trámites académicos y validación de matrícula.
+          </div>
+        </div>
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+            }, 250);
+          };
+        </script>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(html);
+    printWindow.document.close();
+
+    logAudit(
+      'cobranzas',
+      'modificar',
+      'recibo_pago',
+      payment.id,
+      undefined,
+      { reciboNo: receiptNo, pagoId: payment.id, monto: payment.monto },
+      `Impresión de recibo oficial de pago ${receiptNo} ($${payment.monto.toFixed(2)})`,
+      'exitoso',
+      'interfaz'
+    );
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -1865,6 +2034,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         updateUserPermissions,
         exportToCSV,
         exportToPDF,
+        printPaymentReceipt,
       }}
     >
       {children}

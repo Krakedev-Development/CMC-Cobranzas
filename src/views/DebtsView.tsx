@@ -36,6 +36,7 @@ import {
   RefreshCw,
   Landmark,
   Loader2,
+  MessageCircle,
 } from 'lucide-react';
 import { CustomSelect } from '../components/common/CustomSelect';
 import { Pagination } from '../components/common/Pagination';
@@ -74,6 +75,7 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     currentUser,
     exportToCSV,
     exportToPDF,
+    printPaymentReceipt,
   } = useApp();
 
   const canExport = hasPermission('deudas', 'exportar');
@@ -148,6 +150,35 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
       ];
     });
     exportToPDF('Reporte de Cuentas por Cobrar (Deudas)', headers, rows, 'Listado oficial de cartera y saldos vigentes');
+  };
+
+  const handleSendWhatsAppReminder = (debt: Debt) => {
+    const client = clients.find((c) => c.id === debt.clienteId);
+    const product = products.find((p) => p.id === debt.productoId);
+    const fin = getDebtFinancials(debt.id);
+    const saldo = fin ? fin.saldoPendiente : debt.precioAcordado;
+
+    if (!client?.telefono) return;
+    const cleanPhone = client.telefono.replace(/\D/g, '');
+    const fullPhone = cleanPhone.startsWith('593') ? cleanPhone : `593${cleanPhone.replace(/^0/, '')}`;
+
+    const text = encodeURIComponent(
+      `Estimado(a) ${client.nombres} ${client.apellidos}, le saludamos cordialmente de CMC Cobranzas.\n\n` +
+      `Le recordamos que mantiene un saldo pendiente de $${saldo.toFixed(2)} correspondiente a su programa: "${product?.nombre || 'Formación Académica'}".\n\n` +
+      `Fecha de compromiso: ${debt.fechaCompromisoPago || 'Inmediata'}.\n` +
+      `Para reportar su transferencia o depósito, por favor adjunte su comprobante por este medio.\n\n` +
+      `Muchas gracias por su atención.`
+    );
+
+    window.open(`https://wa.me/${fullPhone}?text=${text}`, '_blank');
+  };
+
+  const handlePrintPaymentReceipt = (payment: Payment) => {
+    const debt = debts.find((d) => d.id === payment.deudaId);
+    const client = clients.find((c) => c.id === payment.clienteId);
+    const product = products.find((p) => p.id === debt?.productoId);
+    const fin = debt ? getDebtFinancials(debt.id) : null;
+    printPaymentReceipt(payment, client, debt, product, fin?.saldoPendiente);
   };
 
   // Active Sub-Tab: "deudas" or "pagos"
@@ -1845,6 +1876,18 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                                 >
                                   <CreditCard className="w-3.5 h-3.5" />
                                   <span>Pagar</span>
+                                </button>
+                              )}
+
+                              {/* Botón Cobrar por WhatsApp */}
+                              {!isPaid && debt.estado !== 'anulada' && client?.telefono && (
+                                <button
+                                  onClick={() => handleSendWhatsAppReminder(debt)}
+                                  className="px-2 py-1.5 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200 hover:border-emerald-600 rounded-lg text-xs font-semibold transition-all inline-flex items-center gap-1 shadow-2xs cursor-pointer"
+                                  title="Enviar recordatorio de cobro formal por WhatsApp"
+                                >
+                                  <MessageCircle className="w-3.5 h-3.5" />
+                                  <span className="hidden xl:inline">WhatsApp</span>
                                 </button>
                               )}
 
@@ -3726,15 +3769,26 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                                   </span>
                                 </td>
                                 <td className="p-2.5 text-right whitespace-nowrap">
-                                  {onViewVoucher && (
-                                    <button
-                                      onClick={() => onViewVoucher(p)}
-                                      className="p-1 hover:bg-slate-200 rounded text-slate-500 hover:text-slate-800"
-                                      title="Ver comprobante adjunto"
-                                    >
-                                      <Eye className="w-3.5 h-3.5" />
-                                    </button>
-                                  )}
+                                  <div className="flex items-center justify-end gap-1">
+                                    {!isAnulado && (
+                                      <button
+                                        onClick={() => handlePrintPaymentReceipt(p)}
+                                        className="p-1 hover:bg-sky-100 rounded text-sky-600 hover:text-sky-800 transition-colors"
+                                        title="Generar e imprimir recibo oficial de este abono"
+                                      >
+                                        <Printer className="w-3.5 h-3.5" />
+                                      </button>
+                                    )}
+                                    {onViewVoucher && (
+                                      <button
+                                        onClick={() => onViewVoucher(p)}
+                                        className="p-1 hover:bg-slate-200 rounded text-slate-500 hover:text-slate-800"
+                                        title="Ver comprobante adjunto"
+                                      >
+                                        <Eye className="w-3.5 h-3.5" />
+                                      </button>
+                                    )}
+                                  </div>
                                 </td>
                               </tr>
                             );
