@@ -17,10 +17,12 @@ import {
   TrendingUp,
   Tag,
   Power,
+  FileSpreadsheet,
+  Printer,
 } from 'lucide-react';
 
 export const ProductsView: React.FC = () => {
-  const { products, debts, addProduct, updateProduct, hasPermission } = useApp();
+  const { products, debts, addProduct, updateProduct, hasPermission, exportToCSV, exportToPDF } = useApp();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'activo' | 'inactivo'>('all');
@@ -37,6 +39,63 @@ export const ProductsView: React.FC = () => {
 
   const canCreate = hasPermission('productos', 'crear');
   const canModify = hasPermission('productos', 'modificar');
+  const canExport = hasPermission('productos', 'exportar');
+
+  // Export handlers
+  const handleExportExcel = () => {
+    if (!canExport) return;
+    const headers = [
+      'Nombre del Programa / Producto',
+      'Descripción',
+      'Precio Nominal ($)',
+      'Estado',
+      'Alumnos Matriculados',
+      'Cartera Total Acordada ($)',
+    ];
+    const rows = filteredProducts.map((p) => {
+      const associatedDebts = debts.filter((d) => d.productoId === p.id && d.estado !== 'anulada');
+      const matriculados = associatedDebts.length;
+      const carteraAcordada = associatedDebts.reduce((sum, d) => sum + d.precioAcordado, 0);
+      return [
+        p.nombre,
+        p.descripcion || 'Sin descripción',
+        p.precioNominal.toFixed(2),
+        p.estado.toUpperCase(),
+        matriculados,
+        carteraAcordada.toFixed(2),
+      ];
+    });
+    exportToCSV(`Catalogo_Productos_Y_Programas_${new Date().toISOString().slice(0, 10)}`, headers, rows);
+  };
+
+  const handleExportPDF = () => {
+    if (!canExport) return;
+    const headers = [
+      'Nombre del Programa / Producto',
+      'Precio Nominal ($)',
+      'Estado',
+      'Matriculados',
+      'Cartera Acordada ($)',
+    ];
+    const rows = filteredProducts.map((p) => {
+      const associatedDebts = debts.filter((d) => d.productoId === p.id && d.estado !== 'anulada');
+      const matriculados = associatedDebts.length;
+      const carteraAcordada = associatedDebts.reduce((sum, d) => sum + d.precioAcordado, 0);
+      return [
+        p.nombre,
+        `$${p.precioNominal.toFixed(2)}`,
+        p.estado.toUpperCase(),
+        matriculados,
+        `$${carteraAcordada.toFixed(2)}`,
+      ];
+    });
+    exportToPDF(
+      'Catálogo de Productos y Programas Académicos',
+      headers,
+      rows,
+      'Listado oficial de oferta formativa, precios de lista y métricas de cartera'
+    );
+  };
 
   // Filter products
   const filteredProducts = useMemo(() => {
@@ -271,6 +330,28 @@ export const ProductsView: React.FC = () => {
               <List className="w-4 h-4" />
             </button>
           </div>
+
+          {/* Export Actions */}
+          {canExport && (
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={handleExportExcel}
+                className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-2xs"
+                title="Exportar catálogo a Excel / CSV"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Excel</span>
+              </button>
+              <button
+                onClick={handleExportPDF}
+                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-2xs"
+                title="Exportar o imprimir catálogo en PDF"
+              >
+                <Printer className="w-3.5 h-3.5 text-slate-600" />
+                <span>PDF</span>
+              </button>
+            </div>
+          )}
 
           {/* Create Button */}
           {canCreate && (

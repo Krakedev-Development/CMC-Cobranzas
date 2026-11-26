@@ -729,44 +729,69 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     }
 
     // Escaneo automatico con Amazon Textract si es transferencia o deposito
-    if (payMethod === 'transferencia' || payMethod === 'deposito') {
-      setIsPayOcrScanning(true);
-      setPayError('');
-      try {
-        const res = await api.analyzeDocument(file, 'TRANSFER');
-        if (res?.extracted) {
-          const extractedAmt =
-            res.extracted.amount !== undefined && res.extracted.amount !== null
-              ? Number(res.extracted.amount)
-              : 0;
-          if (extractedAmt > 0) {
-            setPayAmount(extractedAmt.toFixed(2));
-          }
-          if (res.extracted.reference) {
-            setPayTxNumber(res.extracted.reference);
-            setPayRef(`Comprobante ${res.extracted.reference}`);
-          }
-          if (res.extracted.date) {
-            setPayDate(res.extracted.date.slice(0, 10));
-          }
-          if (res.extracted.bank) {
-            const b = res.extracted.bank.toUpperCase();
-            if (b.includes('PICHINCHA')) setPayBank('Banco Pichincha');
-            else if (b.includes('GUAYAQUIL')) setPayBank('Banco Guayaquil');
-            else if (b.includes('PRODUBANCO')) setPayBank('Produbanco');
-            else if (b.includes('INTERNACIONAL')) setPayBank('Banco Internacional');
-            else setPayBank(res.extracted.bank);
-          }
-          if (res.suggestions?.duplicatePaymentDetected) {
-            setPayError('Aviso: Este comprobante ya ha sido registrado previamente.');
-          }
-          setPayOcrExtracted(res.extracted as any);
+    if (payMethod !== 'transferencia' && payMethod !== 'deposito') {
+      setPayMethod('transferencia');
+    }
+
+    setIsPayOcrScanning(true);
+    setPayError('');
+    try {
+      const res = await api.analyzeDocument(file, 'TRANSFER');
+      if (res?.extracted) {
+        const extractedAmt =
+          res.extracted.amount !== undefined && res.extracted.amount !== null
+            ? Number(res.extracted.amount)
+            : 0;
+        if (extractedAmt > 0) {
+          setPayAmount(extractedAmt.toFixed(2));
         }
-      } catch (err: any) {
-        console.warn('Textract OCR:', err);
-      } finally {
-        setIsPayOcrScanning(false);
+        if (res.extracted.reference) {
+          setPayTxNumber(res.extracted.reference);
+          setPayRef(`Comprobante ${res.extracted.reference}`);
+        }
+        if (res.extracted.date) {
+          setPayDate(res.extracted.date.slice(0, 10));
+        }
+        if (res.extracted.bank) {
+          const b = res.extracted.bank.toUpperCase();
+          if (b.includes('PICHINCHA')) setPayBank('Banco Pichincha');
+          else if (b.includes('GUAYAQUIL')) setPayBank('Banco Guayaquil');
+          else if (b.includes('PRODUBANCO')) setPayBank('Produbanco');
+          else if (b.includes('INTERNACIONAL')) setPayBank('Banco Internacional');
+          else setPayBank(res.extracted.bank);
+        }
+
+        // Autoseleccionar cliente y deuda si no se abrio desde una deuda especifica
+        if (!debtToPay) {
+          let matchedClient = null;
+          if (res.suggestions?.payer?.selectedId) {
+            matchedClient = clients.find((c) => c.id === res.suggestions?.payer?.selectedId);
+          }
+          if (!matchedClient && res.extracted.payerName) {
+            const cedMatch = res.extracted.payerName.match(/\b\d{10}\b/);
+            if (cedMatch) {
+              matchedClient = clients.find((c) => c.cedula === cedMatch[0]);
+            }
+          }
+          if (matchedClient) {
+            setPayModalClientId(matchedClient.id);
+            setPayModalClientSearch(`${matchedClient.nombres} ${matchedClient.apellidos} (${matchedClient.cedula})`);
+            const clientDebts = debts.filter((d) => d.clienteId === matchedClient.id && d.estado !== 'anulada');
+            if (clientDebts.length > 0) {
+              setPayModalDebtId(clientDebts[0].id);
+            }
+          }
+        }
+
+        if (res.suggestions?.duplicatePaymentDetected) {
+          setPayError('Aviso: Este comprobante ya ha sido registrado previamente.');
+        }
+        setPayOcrExtracted(res.extracted as any);
       }
+    } catch (err: any) {
+      console.warn('Textract OCR:', err);
+    } finally {
+      setIsPayOcrScanning(false);
     }
 
     e.target.value = '';
@@ -841,39 +866,60 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
       setSaleVoucherPreviewUrl(null);
     }
 
-    if (salePaymentMethod === 'transferencia' || salePaymentMethod === 'deposito') {
-      setIsSaleOcrScanning(true);
-      try {
-        const res = await api.analyzeDocument(file, 'TRANSFER');
-        if (res?.extracted) {
-          const extractedAmt =
-            res.extracted.amount !== undefined && res.extracted.amount !== null
-              ? Number(res.extracted.amount)
-              : 0;
-          if (extractedAmt > 0) {
-            setSaleInitialPayAmount(extractedAmt.toFixed(2));
-          }
-          if (res.extracted.reference) {
-            setSaleInitialTxNumber(res.extracted.reference);
-          }
-          if (res.extracted.bank) {
-            const b = res.extracted.bank.toUpperCase();
-            if (b.includes('PICHINCHA')) setSaleBankOrEntity('Banco Pichincha');
-            else if (b.includes('GUAYAQUIL')) setSaleBankOrEntity('Banco Guayaquil');
-            else if (b.includes('PRODUBANCO')) setSaleBankOrEntity('Produbanco');
-            else if (b.includes('INTERNACIONAL')) setSaleBankOrEntity('Banco Internacional');
-            else setSaleBankOrEntity(res.extracted.bank);
-          }
-          if (res.extracted.date) {
-            setSaleFechaAdquisicion(res.extracted.date.slice(0, 10));
-          }
-          setSaleOcrExtracted(res.extracted as any);
+    if (salePaymentMethod !== 'transferencia' && salePaymentMethod !== 'deposito') {
+      setSalePaymentMethod('transferencia');
+    }
+
+    setIsSaleOcrScanning(true);
+    try {
+      const res = await api.analyzeDocument(file, 'TRANSFER');
+      if (res?.extracted) {
+        const extractedAmt =
+          res.extracted.amount !== undefined && res.extracted.amount !== null
+            ? Number(res.extracted.amount)
+            : 0;
+        if (extractedAmt > 0) {
+          setSaleInitialPayAmount(extractedAmt.toFixed(2));
         }
-      } catch (err: any) {
-        console.warn('Textract OCR:', err);
-      } finally {
-        setIsSaleOcrScanning(false);
+        if (res.extracted.reference) {
+          setSaleInitialTxNumber(res.extracted.reference);
+        }
+        if (res.extracted.bank) {
+          const b = res.extracted.bank.toUpperCase();
+          if (b.includes('PICHINCHA')) setSaleBankOrEntity('Banco Pichincha');
+          else if (b.includes('GUAYAQUIL')) setSaleBankOrEntity('Banco Guayaquil');
+          else if (b.includes('PRODUBANCO')) setSaleBankOrEntity('Produbanco');
+          else if (b.includes('INTERNACIONAL')) setSaleBankOrEntity('Banco Internacional');
+          else setSaleBankOrEntity(res.extracted.bank);
+        }
+        if (res.extracted.date) {
+          setSaleFechaAdquisicion(res.extracted.date.slice(0, 10));
+        }
+
+        // Autocompletar cliente en la venta si no habia sido seleccionado
+        if (!selectedClientId) {
+          let matchedClient = null;
+          if (res.suggestions?.payer?.selectedId) {
+            matchedClient = clients.find((c) => c.id === res.suggestions?.payer?.selectedId);
+          }
+          if (!matchedClient && res.extracted.payerName) {
+            const cedMatch = res.extracted.payerName.match(/\b\d{10}\b/);
+            if (cedMatch) {
+              matchedClient = clients.find((c) => c.cedula === cedMatch[0]);
+            }
+          }
+          if (matchedClient) {
+            setSelectedClientId(matchedClient.id);
+            setClientSearchText(`${matchedClient.nombres} ${matchedClient.apellidos} (${matchedClient.cedula})`);
+          }
+        }
+
+        setSaleOcrExtracted(res.extracted as any);
       }
+    } catch (err: any) {
+      console.warn('Textract OCR:', err);
+    } finally {
+      setIsSaleOcrScanning(false);
     }
 
     e.target.value = '';

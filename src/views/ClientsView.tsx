@@ -24,6 +24,7 @@ import {
   Phone,
   Mail,
   FileSpreadsheet,
+  Printer,
 } from 'lucide-react';
 
 import { CustomSelect } from '../components/common/CustomSelect';
@@ -55,6 +56,8 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
     getDebtFinancials,
     auditLogs,
     hasPermission,
+    exportToCSV,
+    exportToPDF,
   } = useApp();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -91,6 +94,69 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
 
   const canCreate = hasPermission('clientes', 'crear');
   const canModify = hasPermission('clientes', 'modificar');
+  const canExport = hasPermission('clientes', 'exportar');
+
+  // Export handlers
+  const handleExportExcel = () => {
+    if (!canExport) return;
+    const headers = [
+      'Cédula / Identificación',
+      'Nombres',
+      'Apellidos',
+      'Teléfono',
+      'Correo Electrónico',
+      'Estado',
+      'Total Acordado ($)',
+      'Total Pagado ($)',
+      'Saldo Pendiente ($)',
+    ];
+    const rows = filteredClients.map((c) => {
+      const fin = getClientFinancials(c.id);
+      return [
+        c.cedula,
+        c.nombres,
+        c.apellidos,
+        c.telefono || 'N/A',
+        c.correo || 'N/A',
+        c.estado.toUpperCase(),
+        fin.totalAcordado.toFixed(2),
+        fin.totalPagado.toFixed(2),
+        fin.saldoPendiente.toFixed(2),
+      ];
+    });
+    exportToCSV(`Directorio_Clientes_Alumnos_${new Date().toISOString().slice(0, 10)}`, headers, rows);
+  };
+
+  const handleExportPDF = () => {
+    if (!canExport) return;
+    const headers = [
+      'Cédula',
+      'Cliente / Alumno',
+      'Teléfono',
+      'Estado',
+      'Total Acordado ($)',
+      'Total Pagado ($)',
+      'Saldo ($)',
+    ];
+    const rows = filteredClients.map((c) => {
+      const fin = getClientFinancials(c.id);
+      return [
+        c.cedula,
+        `${c.nombres} ${c.apellidos}`,
+        c.telefono || 'N/A',
+        c.estado.toUpperCase(),
+        `$${fin.totalAcordado.toFixed(2)}`,
+        `$${fin.totalPagado.toFixed(2)}`,
+        `$${fin.saldoPendiente.toFixed(2)}`,
+      ];
+    });
+    exportToPDF(
+      'Directorio Oficial de Clientes y Alumnos',
+      headers,
+      rows,
+      'Listado general de alumnos registrados con saldos financieros actualizados'
+    );
+  };
 
   // Pagination state (15, 20, 25)
   const [currentPage, setCurrentPage] = useState(1);
@@ -344,6 +410,27 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
               Inactivos
             </button>
           </div>
+
+          {canExport && (
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={handleExportExcel}
+                className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-2xs"
+                title="Exportar directorio de clientes a Excel / CSV"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Excel</span>
+              </button>
+              <button
+                onClick={handleExportPDF}
+                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-2xs"
+                title="Exportar o imprimir directorio de clientes en PDF"
+              >
+                <Printer className="w-3.5 h-3.5 text-slate-600" />
+                <span>PDF</span>
+              </button>
+            </div>
+          )}
 
           {canCreate && (
             <>
