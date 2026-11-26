@@ -1,5 +1,5 @@
-import React from 'react';
-import { X, FileText, CheckCircle2, Download, Printer, ExternalLink, ShieldCheck, Image as ImageIcon } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, FileText, CheckCircle2, Download, Printer, ExternalLink, ShieldCheck, Image as ImageIcon, RotateCw, ZoomIn, ZoomOut } from 'lucide-react';
 import { Voucher, Payment, Client } from '../../types';
 import { API_BASE_URL } from '../../services/api';
 
@@ -18,6 +18,26 @@ export const VoucherPreviewModal: React.FC<VoucherPreviewModalProps> = ({
   payment,
   client,
 }) => {
+  const [rotation, setRotation] = useState<number>(0);
+  const [zoom, setZoom] = useState<number>(1);
+
+  const handleRotate = () => {
+    setRotation((prev) => (prev + 90) % 360);
+  };
+
+  const handleZoomIn = () => {
+    setZoom((prev) => Math.min(Number((prev + 0.25).toFixed(2)), 2.5));
+  };
+
+  const handleZoomOut = () => {
+    setZoom((prev) => Math.max(Number((prev - 0.25).toFixed(2)), 0.75));
+  };
+
+  const handleReset = () => {
+    setRotation(0);
+    setZoom(1);
+  };
+
   if (!isOpen || (!voucher && !payment)) return null;
 
   const datos = voucher?.datosExtraidos;
@@ -103,15 +123,53 @@ export const VoucherPreviewModal: React.FC<VoucherPreviewModalProps> = ({
           <div className="bg-slate-100 p-4 rounded-2xl border border-slate-200 flex flex-col items-center justify-center">
             {isImage ? (
               <div className="w-full flex flex-col items-center space-y-3">
-                <div className="text-xs font-bold text-slate-800 flex items-center gap-1.5 self-start">
-                  <ImageIcon className="w-4 h-4 text-sky-600" />
-                  <span>Imagen de la Transferencia / Comprobante:</span>
+                <div className="flex items-center justify-between w-full">
+                  <div className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <ImageIcon className="w-4 h-4 text-sky-600" />
+                    <span>Comprobante Adjunto:</span>
+                  </div>
+                  <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-lg p-0.5 shadow-2xs">
+                    <button
+                      onClick={handleRotate}
+                      className="p-1 hover:bg-slate-100 rounded text-slate-600 hover:text-slate-900 transition-colors"
+                      title="Girar imagen 90°"
+                    >
+                      <RotateCw className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={handleZoomIn}
+                      className="p-1 hover:bg-slate-100 rounded text-slate-600 hover:text-slate-900 transition-colors"
+                      title="Acercar (Zoom In)"
+                    >
+                      <ZoomIn className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={handleZoomOut}
+                      className="p-1 hover:bg-slate-100 rounded text-slate-600 hover:text-slate-900 transition-colors"
+                      title="Alejar (Zoom Out)"
+                    >
+                      <ZoomOut className="w-3.5 h-3.5" />
+                    </button>
+                    {(rotation !== 0 || zoom !== 1) && (
+                      <button
+                        onClick={handleReset}
+                        className="px-1.5 py-0.5 text-[10px] font-bold text-sky-600 hover:text-sky-800 rounded hover:bg-sky-50 transition-colors"
+                        title="Restablecer vista original"
+                      >
+                        Reset
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <div className="w-full max-h-[350px] overflow-hidden rounded-xl border border-slate-300 shadow-md bg-white flex items-center justify-center p-1 group relative">
+                <div className="w-full max-h-[350px] overflow-hidden rounded-xl border border-slate-300 shadow-md bg-white flex items-center justify-center p-2 relative">
                   <img
                     src={fileUrl}
                     alt="Comprobante Bancario de Transferencia"
-                    className="max-h-[340px] w-auto max-w-full object-contain rounded-lg transition-transform group-hover:scale-[1.02]"
+                    style={{
+                      transform: `rotate(${rotation}deg) scale(${zoom})`,
+                      transition: 'transform 0.25s ease',
+                    }}
+                    className="max-h-[330px] w-auto max-w-full object-contain rounded-lg"
                   />
                 </div>
                 <div className="flex items-center gap-2 w-full">

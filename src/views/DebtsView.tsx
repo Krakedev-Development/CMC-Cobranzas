@@ -41,6 +41,7 @@ import {
 import { CustomSelect } from '../components/common/CustomSelect';
 import { Pagination } from '../components/common/Pagination';
 import { DatePicker } from '../components/common/DatePicker';
+import { validateEcuadorianCedula, validateEcuadorianPhone } from '../utils/ecuadorian-id.validator';
 
 export type DebtStatusTab = 'todas' | 'al_dia' | 'vencidos' | 'en_comprobacion' | 'conciliados';
 
@@ -836,8 +837,9 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     setQuickClientError('');
 
     const cedula = quickClient.cedula.trim();
-    if (!/^\d{10}$/.test(cedula)) {
-      setQuickClientError('La cédula debe contener exactamente 10 dígitos numéricos.');
+    const cedulaVal = validateEcuadorianCedula(cedula);
+    if (!cedulaVal.isValid) {
+      setQuickClientError(cedulaVal.error || 'La cédula ingresada no es válida.');
       return;
     }
 
@@ -851,6 +853,15 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{2,}$/.test(apellidos)) {
       setQuickClientError('Los apellidos solo deben contener letras (mínimo 2 caracteres).');
       return;
+    }
+
+    const telefono = quickClient.telefono.trim();
+    if (telefono) {
+      const phoneVal = validateEcuadorianPhone(telefono);
+      if (!phoneVal.isValid) {
+        setQuickClientError(phoneVal.error || 'Número de teléfono inválido.');
+        return;
+      }
     }
 
     const correo = quickClient.correo.trim();
@@ -2937,14 +2948,28 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                 </div>
               )}
               {([
-                ['cedula', 'Cédula / Identificación * (10 dígitos)', 'Ej: 1712345678'],
+                ['cedula', 'Cédula / Identificación * (10 dígitos)', 'Ej: 1755841002'],
                 ['nombres', 'Nombres * (solo letras)', 'Ej: María José'],
                 ['apellidos', 'Apellidos * (solo letras)', 'Ej: Pérez Andrade'],
-                ['telefono', 'Teléfono', 'Ej: +593 99 123 4567'],
+                ['telefono', 'Teléfono', 'Ej: 0991234567'],
                 ['correo', 'Correo electrónico', 'Ej: alumno@correo.com'],
               ] as const).map(([key, label, placeholder]) => (
                 <div key={key}>
-                  <label className="block font-semibold text-slate-700 mb-1">{label}</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block font-semibold text-slate-700">{label}</label>
+                    {key === 'cedula' && quickClient.cedula.length === 10 && (() => {
+                      const res = validateEcuadorianCedula(quickClient.cedula);
+                      return res.isValid ? (
+                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                          Válida · {res.province}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md">
+                          Inválida
+                        </span>
+                      );
+                    })()}
+                  </div>
                   <input
                     type="text"
                     maxLength={key === 'cedula' ? 10 : key === 'telefono' ? 15 : undefined}

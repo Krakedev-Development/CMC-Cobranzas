@@ -31,6 +31,7 @@ import {
 import { CustomSelect } from '../components/common/CustomSelect';
 import { Pagination } from '../components/common/Pagination';
 import { renderBankBadge } from './BankReconciliationView';
+import { validateEcuadorianCedula, validateEcuadorianPhone } from '../utils/ecuadorian-id.validator';
 
 const getInitials = (nombres: string, apellidos: string) => {
   const n = (nombres || '').trim().split(/\s+/)[0] || '';
@@ -205,8 +206,9 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
     setFormError('');
 
     const cleanCedula = formData.cedula.trim();
-    if (!/^\d{10}$/.test(cleanCedula)) {
-      setFormError('La cédula debe contener exactamente 10 dígitos numéricos (sin letras ni espacios).');
+    const cedulaVal = validateEcuadorianCedula(cleanCedula);
+    if (!cedulaVal.isValid) {
+      setFormError(cedulaVal.error || 'La cédula ingresada no es válida.');
       return;
     }
 
@@ -220,6 +222,15 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
     if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{2,}$/.test(cleanApellidos)) {
       setFormError('Los apellidos solo deben contener letras (mínimo 2 caracteres).');
       return;
+    }
+
+    const cleanTelefono = formData.telefono.trim();
+    if (cleanTelefono) {
+      const phoneVal = validateEcuadorianPhone(cleanTelefono);
+      if (!phoneVal.isValid) {
+        setFormError(phoneVal.error || 'Número de teléfono inválido.');
+        return;
+      }
     }
 
     const cleanCorreo = formData.correo.trim();
@@ -721,14 +732,28 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
               )}
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Cédula / Identificación <span className="text-rose-500">* (10 dígitos numéricos)</span>
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block font-semibold text-slate-700">
+                    Cédula / Identificación <span className="text-rose-500">* (10 dígitos)</span>
+                  </label>
+                  {formData.cedula.length === 10 && (() => {
+                    const res = validateEcuadorianCedula(formData.cedula);
+                    return res.isValid ? (
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                        Válida · {res.province}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md">
+                        Inválida
+                      </span>
+                    );
+                  })()}
+                </div>
                 <input
                   type="text"
                   required
                   maxLength={10}
-                  placeholder="Ej: 1718293041"
+                  placeholder="Ej: 1755841002"
                   value={formData.cedula}
                   onChange={(e) => setFormData({ ...formData, cedula: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-mono focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 focus:outline-none"
