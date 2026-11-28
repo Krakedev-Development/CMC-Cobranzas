@@ -7,19 +7,28 @@ import ExcelJS from 'exceljs';
 
 async function getLogoBase64(): Promise<string | null> {
   if (typeof window === 'undefined') return null;
-  try {
-    const res = await fetch('/assets/clear-minds-horizontal-logo.png');
-    if (!res.ok) return null;
-    const blob = await res.blob();
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(blob);
-    });
-  } catch {
-    return null;
+  const paths = [
+    '/assets/clear-minds-horizontal-logo.png',
+    '/assets/clear-minds-consultores-transparent.png',
+    '/assets/clear-minds-logo.jpg',
+  ];
+  for (const p of paths) {
+    try {
+      const res = await fetch(p);
+      if (res.ok) {
+        const blob = await res.blob();
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = () => resolve(null);
+          reader.readAsDataURL(blob);
+        });
+      }
+    } catch {
+      // Intentar con la siguiente ruta
+    }
   }
+  return null;
 }
 
 export function isExplicitTextColumn(header: string): boolean {
@@ -131,7 +140,19 @@ export async function exportExecutiveExcel(
     properties: { tabColor: { argb: 'FF00A3E0' } }, // Color Cyan corporativo Clear Minds
   });
 
-  // 1. Intentar incrustar logotipo oficial en A1:B3
+  // 1. Limpiar lienzo de cabecera A2:C4 para incrustar el logotipo oficial sin líneas de corte
+  for (let r = 2; r <= 4; r++) {
+    for (let c = 1; c <= 3; c++) {
+      const cell = worksheet.getCell(r, c);
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFFFFFFF' },
+      };
+      cell.border = {};
+    }
+  }
+
   const logoData = await getLogoBase64();
   if (logoData && logoData.includes('base64,')) {
     try {
@@ -140,52 +161,53 @@ export async function exportExecutiveExcel(
         base64: base64Pure,
         extension: 'png',
       });
+      // Posicionamiento exacto sobre filas 2 a 4 con proporción corporativa 155x46px
       worksheet.addImage(imageId, {
-        tl: { col: 0.1, row: 0.3 },
-        ext: { width: 140, height: 48 },
+        tl: { col: 0.1, row: 1.1 },
+        ext: { width: 155, height: 46 },
       });
     } catch {
-      // Si falla, se escribe texto de marca
+      // Respaldo de texto si la imagen tuviera algún fallo
     }
   }
 
-  // Si no hay logo o como respaldo, texto de marca en A2
+  // Si no hay logo o como respaldo, texto de marca en A2:C3
   if (!logoData) {
-    worksheet.mergeCells('A2:B2');
+    worksheet.mergeCells('A2:C2');
     const brandCell = worksheet.getCell('A2');
     brandCell.value = 'Clear Minds';
     brandCell.font = { name: 'Segoe UI', size: 16, bold: true, color: { argb: 'FF00A3E0' } };
+    worksheet.mergeCells('A3:C3');
     const brandSub = worksheet.getCell('A3');
     brandSub.value = 'CONSULTORES';
     brandSub.font = { name: 'Segoe UI', size: 9, bold: true, color: { argb: 'FF2C3E50' } };
   }
 
-  // 2. Bloque de Título y Metadatos en columna D / C
-  const titleCol = headers.length > 5 ? 'D' : 'C';
-  const titleCell = worksheet.getCell(`${titleCol}2`);
+  // 2. Bloque de Título y Metadatos en columna D
+  const titleCell = worksheet.getCell('D2');
   titleCell.value = title;
-  titleCell.font = { name: 'Segoe UI', size: 14, bold: true, color: { argb: 'FF0F172A' } };
+  titleCell.font = { name: 'Segoe UI', size: 13, bold: true, color: { argb: 'FF13103C' } };
 
-  const subCell = worksheet.getCell(`${titleCol}3`);
+  const subCell = worksheet.getCell('D3');
   subCell.value = subtitle || `Periodo: ${currentMonth} · Saldo según registros contables y cobranza`;
-  subCell.font = { name: 'Segoe UI', size: 9.5, italic: true, color: { argb: 'FF64748B' } };
+  subCell.font = { name: 'Segoe UI', size: 9, italic: true, color: { argb: 'FF64748B' } };
 
-  const metaCell = worksheet.getCell(`${titleCol}4`);
+  const metaCell = worksheet.getCell('D4');
   const dateStr = new Date().toLocaleDateString('es-EC', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
   });
   const timeStr = new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' });
-  metaCell.value = `Generado el ${dateStr} ${timeStr} por ${username || 'Administrador'} · CMC Cobranzas`;
+  metaCell.value = `Generado el ${dateStr} ${timeStr} por ${username || 'Sofía Supervisora'} · CMC Cobranzas`;
   metaCell.font = { name: 'Segoe UI', size: 8.5, color: { argb: 'FF64748B' } };
 
-  // Espaciado de filas de encabezado
-  worksheet.getRow(1).height = 12;
-  worksheet.getRow(2).height = 20;
+  // Espaciado de filas de encabezado idéntico a la plantilla ejecutiva
+  worksheet.getRow(1).height = 10;
+  worksheet.getRow(2).height = 24;
   worksheet.getRow(3).height = 16;
   worksheet.getRow(4).height = 16;
-  worksheet.getRow(5).height = 26; // Fila de cabecera de tabla
+  worksheet.getRow(5).height = 26; // Fila de cabecera de tabla Midnight Navy
 
   // 3. Fila de Encabezados de Tabla (Fila 5) - Deep Midnight Navy (#13103C / #171738)
   const headerRow = worksheet.getRow(5);
@@ -298,12 +320,15 @@ export async function exportExecutiveExcel(
     };
 
     if (c === 1) {
-      cell.value = `Total Registros (${rows.length})`;
+      const isCobros = title.toLowerCase().includes('cobro') || title.toLowerCase().includes('pago');
+      cell.value = isCobros
+        ? `Total cobrado en el mes (${rows.length} registros)`
+        : `Total Registros (${rows.length})`;
       cell.font = { name: 'Segoe UI', size: 9.5, bold: true, color: { argb: 'FF1E1B4B' } };
       cell.alignment = { vertical: 'middle', horizontal: 'left' };
     } else if (isNumericColumn[c] && columnSums[c] !== undefined) {
       cell.value = columnSums[c];
-      cell.numFmt = '$#,##0.00';
+      cell.numFmt = '#,##0.00';
       cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF1E1B4B' } };
       cell.alignment = { vertical: 'middle', horizontal: 'right' };
     } else {
@@ -322,8 +347,78 @@ export async function exportExecutiveExcel(
         if (len > maxLen) maxLen = len;
       }
     });
-    // Añadir margen generoso para que ninguna celda o total muestre ###
-    worksheet.getColumn(colNum).width = Math.max(maxLen + 5, 16);
+    const hLow = h.toLowerCase();
+    if (hLow.includes('fecha') || hLow.includes('registrado')) {
+      worksheet.getColumn(colNum).width = 15;
+    } else if (hLow.includes('recibo') || hLow.includes('medio')) {
+      worksheet.getColumn(colNum).width = 16;
+    } else if (hLow.includes('cedula') || hLow.includes('cédula')) {
+      worksheet.getColumn(colNum).width = 17;
+    } else if (hLow.includes('valor') || hLow.includes('acumulado') || hLow.includes('monto') || hLow.includes('saldo')) {
+      worksheet.getColumn(colNum).width = Math.max(maxLen + 5, 17);
+    } else {
+      worksheet.getColumn(colNum).width = Math.max(maxLen + 4, 16);
+    }
+  });
+
+  // 7. Segunda Pestaña: Resumen Ejecutivo (idéntica a la pestaña 'Resumen' de la plantilla del supervisor)
+  const summarySheet = workbook.addWorksheet('Resumen', {
+    views: [{ showGridLines: true }],
+    properties: { tabColor: { argb: 'FF13103C' } },
+  });
+
+  summarySheet.getColumn('A').width = 4;
+  summarySheet.getColumn('B').width = 34;
+  summarySheet.getColumn('C').width = 30;
+
+  summarySheet.getRow(2).height = 24;
+  const sTitle = summarySheet.getCell('B2');
+  sTitle.value = 'Clear Minds Consultores';
+  sTitle.font = { name: 'Segoe UI', size: 14, bold: true, color: { argb: 'FF13103C' } };
+
+  summarySheet.getRow(3).height = 18;
+  const sSub = summarySheet.getCell('B3');
+  sSub.value = `Resumen Ejecutivo de Gestión y Control · ${title}`;
+  sSub.font = { name: 'Segoe UI', size: 10, italic: true, color: { argb: 'FF64748B' } };
+
+  summarySheet.getRow(5).height = 24;
+  const h1 = summarySheet.getCell('B5');
+  h1.value = 'INDICADOR FINANCIERO / METRICA';
+  h1.font = { name: 'Segoe UI', size: 9.5, bold: true, color: { argb: 'FFFFFFFF' } };
+  h1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF13103C' } };
+  h1.alignment = { vertical: 'middle', horizontal: 'left' };
+
+  const h2 = summarySheet.getCell('C5');
+  h2.value = 'VALOR AUDITADO';
+  h2.font = { name: 'Segoe UI', size: 9.5, bold: true, color: { argb: 'FFFFFFFF' } };
+  h2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF13103C' } };
+  h2.alignment = { vertical: 'middle', horizontal: 'right' };
+
+  const summaryKpis = [
+    { label: 'Total de Registros en Periodo', val: `${rows.length} registros`, isMoney: false },
+    { label: 'Periodo de Conciliación', val: currentMonth, isMoney: false },
+    { label: 'Fecha y Hora de Emisión', val: `${dateStr} ${timeStr}`, isMoney: false },
+    { label: 'Responsable de Emisión / Cobranzas', val: username || 'Sofía Supervisora', isMoney: false },
+    { label: 'Supervisor General / Aprobación', val: 'Stalin Krak (Aprobado)', isMoney: false },
+  ];
+
+  let sumRowIdx = 6;
+  summaryKpis.forEach((kpi, idx) => {
+    summarySheet.getRow(sumRowIdx).height = 20;
+    const c1 = summarySheet.getCell(`B${sumRowIdx}`);
+    c1.value = kpi.label;
+    c1.font = { name: 'Segoe UI', size: 9.5, color: { argb: 'FF1E293B' } };
+    c1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: idx % 2 === 0 ? 'FFFFFFFF' : 'FFF8FAFC' } };
+    c1.border = { top: { style: 'thin', color: { argb: 'FFE2E8F0' } }, bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } }, left: { style: 'thin', color: { argb: 'FFE2E8F0' } }, right: { style: 'thin', color: { argb: 'FFE2E8F0' } } };
+
+    const c2 = summarySheet.getCell(`C${sumRowIdx}`);
+    c2.value = kpi.val;
+    c2.font = { name: 'Segoe UI', size: 9.5, bold: true, color: { argb: 'FF1E293B' } };
+    c2.alignment = { vertical: 'middle', horizontal: 'right' };
+    c2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: idx % 2 === 0 ? 'FFFFFFFF' : 'FFF8FAFC' } };
+    c2.border = { top: { style: 'thin', color: { argb: 'FFE2E8F0' } }, bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } }, left: { style: 'thin', color: { argb: 'FFE2E8F0' } }, right: { style: 'thin', color: { argb: 'FFE2E8F0' } } };
+
+    sumRowIdx++;
   });
 
   // Descarga del archivo .xlsx nativo en el navegador

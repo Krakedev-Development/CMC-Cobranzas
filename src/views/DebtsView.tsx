@@ -153,6 +153,117 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     exportToPDF('Reporte de Cuentas por Cobrar (Deudas)', headers, rows, 'Listado oficial de cartera y saldos vigentes');
   };
 
+  const handleExportPaymentsExcel = () => {
+    if (!canExport) return;
+    const headers = [
+      'Fecha',
+      'Registrado',
+      'Recibo',
+      'Cliente',
+      'Proyecto',
+      'Cuota / detalle',
+      'Medio',
+      'Referencia',
+      'Valor',
+      'Acumulado',
+    ];
+
+    let runningTotal = 0;
+    const rows = filteredPayments.map((p, idx) => {
+      const client = clients.find((c) => c.id === p.clienteId);
+      const debt = debts.find((d) => d.id === p.deudaId);
+      const product = products.find((pr) => pr.id === debt?.productoId);
+
+      const isAnulado = p.estadoRegistro === 'anulado';
+      const valorNum = isAnulado ? -Math.abs(p.monto) : p.monto;
+      runningTotal += valorNum;
+
+      const seqStr = String(idx + 1).padStart(4, '0');
+      const reciboCode = isAnulado ? `ANU-${seqStr}` : `REC-${seqStr}`;
+      const fechaDisplay = p.fechaPago ? p.fechaPago.slice(0, 10) : '-';
+      const horaDisplay = p.createdAt ? new Date(p.createdAt).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' }) : '10:00';
+
+      const cuotaDetalle = isAnulado
+        ? (p.observaciones ? `Anula ${reciboCode} - ${p.observaciones}` : 'Anula REC - monto equivocado')
+        : (p.observaciones || 'Abono / Cuota');
+
+      const medioDisplay = p.metodo ? (p.metodo.charAt(0).toUpperCase() + p.metodo.slice(1)) : 'Transferencia';
+
+      return [
+        fechaDisplay,
+        horaDisplay,
+        reciboCode,
+        client ? `${client.nombres} ${client.apellidos}` : p.clienteId,
+        product?.nombre || 'Capacitación Académica',
+        cuotaDetalle,
+        medioDisplay,
+        p.numeroTransaccion || p.referencia || '—',
+        valorNum,
+        runningTotal,
+      ];
+    });
+
+    exportToCSV('Historial-cobros_Pichincha-4521_2026-11', headers, rows);
+  };
+
+  const handleExportPaymentsPDF = () => {
+    if (!canExport) return;
+    const headers = [
+      'Fecha',
+      'Registrado',
+      'Recibo',
+      'Cliente',
+      'Proyecto',
+      'Cuota / detalle',
+      'Medio',
+      'Referencia',
+      'Valor ($)',
+      'Acumulado ($)',
+    ];
+
+    let runningTotal = 0;
+    const rows = filteredPayments.map((p, idx) => {
+      const client = clients.find((c) => c.id === p.clienteId);
+      const debt = debts.find((d) => d.id === p.deudaId);
+      const product = products.find((pr) => pr.id === debt?.productoId);
+
+      const isAnulado = p.estadoRegistro === 'anulado';
+      const valorNum = isAnulado ? -Math.abs(p.monto) : p.monto;
+      runningTotal += valorNum;
+
+      const seqStr = String(idx + 1).padStart(4, '0');
+      const reciboCode = isAnulado ? `ANU-${seqStr}` : `REC-${seqStr}`;
+      const fechaDisplay = p.fechaPago ? p.fechaPago.slice(0, 10) : '-';
+      const horaDisplay = p.createdAt ? new Date(p.createdAt).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' }) : '10:00';
+
+      const cuotaDetalle = isAnulado
+        ? (p.observaciones ? `Anula ${reciboCode} - ${p.observaciones}` : 'Anulación de pago')
+        : (p.observaciones || 'Abono / Cuota');
+
+      const medioDisplay = p.metodo ? (p.metodo.charAt(0).toUpperCase() + p.metodo.slice(1)) : 'Transferencia';
+
+      return [
+        fechaDisplay,
+        horaDisplay,
+        reciboCode,
+        client ? `${client.nombres} ${client.apellidos}` : p.clienteId,
+        product?.nombre || 'Capacitación Académica',
+        cuotaDetalle,
+        medioDisplay,
+        p.numeroTransaccion || p.referencia || '—',
+        valorNum,
+        runningTotal,
+      ];
+    });
+
+    exportToPDF(
+      'Historial de cobros · CMC Cobranzas',
+      headers,
+      rows,
+      `Periodo: ${new Date().toLocaleDateString('es-EC', { month: 'long', year: 'numeric' })} · Saldo según cobros registrados (no es el saldo bancario)`
+    );
+  };
+
   const handleSendWhatsAppReminder = (debt: Debt) => {
     const client = clients.find((c) => c.id === debt.clienteId);
     const product = products.find((p) => p.id === debt.productoId);
@@ -2041,6 +2152,30 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
                 }}
                 className="w-44"
               />
+
+              {canExport && (
+                <div className="inline-flex items-center rounded-xl border border-slate-200 bg-slate-50 p-0.5 shadow-2xs">
+                  <button
+                    type="button"
+                    onClick={handleExportPaymentsExcel}
+                    className="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-emerald-800 hover:bg-white hover:shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                    title="Exportar historial de cobros a formato Excel (.xlsx)"
+                  >
+                    <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Excel</span>
+                  </button>
+                  <div className="h-3.5 w-px bg-slate-200" />
+                  <button
+                    type="button"
+                    onClick={handleExportPaymentsPDF}
+                    className="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-700 hover:bg-white hover:shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                    title="Exportar historial de cobros a documento PDF oficial"
+                  >
+                    <Printer className="w-3.5 h-3.5 text-slate-500" />
+                    <span>PDF</span>
+                  </button>
+                </div>
+              )}
 
               {canPay && (
                 <button
