@@ -156,6 +156,11 @@ export async function exportExecutiveExcel(
     }
   }
 
+  // 2. Columna contigua inteligente para el bloque de Título y Metadatos
+  const firstColHeader = (headers[0] || '').toLowerCase();
+  const isFirstColWide = firstColHeader.includes('id') || firstColHeader.includes('codigo') || firstColHeader.includes('secuencia');
+  const titleCol = isFirstColWide ? 'B' : 'D';
+
   const logoData = await getLogoBase64();
   if (logoData && logoData.includes('base64,')) {
     try {
@@ -164,10 +169,14 @@ export async function exportExecutiveExcel(
         base64: base64Pure,
         extension: 'png',
       });
-      // Posicionamiento exacto sobre filas 1 a 3 con proporción corporativa 170x52px
+      // Centrado exacto del logo en la mitad del cuadro blanco (vertical y horizontal)
+      const colOffset = isFirstColWide ? 0.18 : 0.45;
+      const rowOffset = 0.36; // Margen superior para centrado vertical entre filas 1 y 3
+
       worksheet.addImage(imageId, {
-        tl: { col: 0.1, row: 0.15 },
-        ext: { width: 170, height: 52 },
+        tl: { col: colOffset, row: rowOffset },
+        ext: { width: 185, height: 58 },
+        editAs: 'oneCell',
       });
     } catch {
       // Respaldo de texto si la imagen tuviera algún fallo
@@ -185,11 +194,6 @@ export async function exportExecutiveExcel(
     brandSub.value = 'CONSULTORES';
     brandSub.font = { name: 'Segoe UI', size: 9, bold: true, color: { argb: 'FF2C3E50' } };
   }
-
-  // 2. Columna contigua inteligente para el bloque de Título y Metadatos
-  const firstColHeader = (headers[0] || '').toLowerCase();
-  const isFirstColWide = firstColHeader.includes('id') || firstColHeader.includes('codigo') || firstColHeader.includes('secuencia');
-  const titleCol = isFirstColWide ? 'B' : 'D';
 
   const titleCell = worksheet.getCell(`${titleCol}1`);
   titleCell.value = title;
@@ -210,9 +214,9 @@ export async function exportExecutiveExcel(
   metaCell.font = { name: 'Segoe UI', size: 9, color: { argb: 'FF64748B' } };
 
   // Espaciado de filas de encabezado idéntico a la plantilla ejecutiva del supervisor:
-  worksheet.getRow(1).height = 24; // Fila 1: Título
-  worksheet.getRow(2).height = 18; // Fila 2: Subtítulo
-  worksheet.getRow(3).height = 16; // Fila 3: Metadatos
+  worksheet.getRow(1).height = 26; // Fila 1: Título
+  worksheet.getRow(2).height = 20; // Fila 2: Subtítulo
+  worksheet.getRow(3).height = 18; // Fila 3: Metadatos
   worksheet.getRow(4).height = 10; // Fila 4: Separador limpio vacío
   worksheet.getRow(5).height = 26; // Fila 5: Cabecera Midnight Navy de tabla
 
@@ -428,6 +432,23 @@ export async function exportExecutiveExcel(
     views: [{ showGridLines: true }],
     properties: { tabColor: { argb: 'FF13103C' } },
   });
+
+  if (logoData && logoData.includes('base64,')) {
+    try {
+      const base64Pure = logoData.split('base64,')[1];
+      const sImageId = workbook.addImage({
+        base64: base64Pure,
+        extension: 'png',
+      });
+      summarySheet.addImage(sImageId, {
+        tl: { col: 1.05, row: 0.36 },
+        ext: { width: 185, height: 58 },
+        editAs: 'oneCell',
+      });
+    } catch {
+      // Fallback
+    }
+  }
 
   summarySheet.getColumn('A').width = 4;
   summarySheet.getColumn('B').width = 34;
