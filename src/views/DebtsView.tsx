@@ -824,7 +824,12 @@ export const DebtsView: React.FC<DebtsViewProps> = ({
     } catch (err: any) {
       console.warn('Textract OCR:', err);
       setPayOcrExtracted(null);
-      setPayError(err.message || 'No se pudo leer el comprobante automáticamente. Puede ingresar los datos manualmente.');
+      const isAuth = String(err?.message || '').toLowerCase().includes('unauthorized') || String(err?.message || '').includes('401');
+      if (isAuth) {
+        setPayError('Aviso del servicio OCR: Autenticación requerida. Ingrese los datos del comprobante manualmente.');
+      } else {
+        setPayError(err?.message || 'No se pudo leer el comprobante automáticamente. Puede ingresar los datos manualmente.');
+      }
     } finally {
       setIsPayOcrScanning(false);
     }

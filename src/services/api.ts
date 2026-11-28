@@ -108,10 +108,20 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  let response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
     headers,
   });
+
+  // Reintento sin cabecera de autorización para endpoints públicos si el token local expiró o es inválido
+  if (response.status === 401 && token && endpoint.includes('/documents/analyze')) {
+    const fallbackHeaders = { ...headers };
+    delete fallbackHeaders['Authorization'];
+    response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers: fallbackHeaders,
+    });
+  }
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
