@@ -22,10 +22,72 @@ async function getLogoBase64(): Promise<string | null> {
   }
 }
 
-function parseNumericValue(val: any): { isNumber: boolean; num: number; formatted: string } {
+export function isExplicitTextColumn(header: string): boolean {
+  if (!header) return false;
+  const h = header.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  return (
+    h.includes('cedula') ||
+    h.includes('ruc') ||
+    h.includes('identifica') ||
+    h.includes('telefono') ||
+    h.includes('celular') ||
+    h.includes('cuenta') ||
+    h.includes('factura') ||
+    h.includes('comprobante') ||
+    h.includes('recibo') ||
+    h.includes('referencia') ||
+    h.includes('codigo') ||
+    h.includes('secuencia') ||
+    h.includes('id') ||
+    h.includes('fecha') ||
+    h.includes('hora') ||
+    h.includes('dia') ||
+    h.includes('plazo') ||
+    h.includes('cuota') ||
+    h.includes('estado') ||
+    h.includes('archivo') ||
+    h.includes('observacion')
+  );
+}
+
+export function isMonetaryColumn(header: string): boolean {
+  if (!header) return false;
+  const h = header.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  return (
+    h.includes('monto') ||
+    h.includes('precio') ||
+    h.includes('valor') ||
+    h.includes('saldo') ||
+    h.includes('total') ||
+    h.includes('abono') ||
+    h.includes('deuda') ||
+    h.includes('subtotal') ||
+    h.includes('iva') ||
+    h.includes('acumulado') ||
+    h.includes('ingreso') ||
+    h.includes('egreso') ||
+    h.includes('pago')
+  );
+}
+
+function parseNumericValue(val: any, header?: string): { isNumber: boolean; num: number; formatted: string } {
   if (val === null || val === undefined || val === '') {
     return { isNumber: false, num: 0, formatted: '-' };
   }
+
+  // Si la columna es explicitamente de texto (cedula, RUC, telefono, cuenta, factura), nunca parsear como numero
+  if (header && isExplicitTextColumn(header)) {
+    return { isNumber: false, num: 0, formatted: String(val) };
+  }
+
+  const str = String(val).trim();
+
+  // Patrones que representan identificadores continuos que no deben formatearse como dinero:
+  // Cedula ecuatoriana (10 digitos), RUC (13 digitos), telefonos (10 digitos empezando en 09)
+  if (/^\d{9,16}$/.test(str)) {
+    return { isNumber: false, num: 0, formatted: str };
+  }
+
   if (typeof val === 'number') {
     return {
       isNumber: true,
@@ -33,8 +95,8 @@ function parseNumericValue(val: any): { isNumber: boolean; num: number; formatte
       formatted: val.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
     };
   }
-  const str = String(val).trim();
-  // Quitar símbolos de dólar o separadores para comprobar si es un número monetario
+
+  // Quitar simbolos de dolar o separadores para comprobar si es un numero monetario
   const clean = str.replace(/^\$\s*/, '').replace(/\./g, '').replace(',', '.');
   const parsed = parseFloat(clean);
   if (!isNaN(parsed) && /^[-+]?\$?\s*\d+([.,]\d{2})?$/.test(str.replace(/\s+/g, ''))) {
@@ -163,23 +225,29 @@ export async function exportExecutiveExcel(
 
     row.forEach((val, cIdx) => {
       const colNum = cIdx + 1;
+      const headerName = headers[cIdx] || '';
       const cell = rowObj.getCell(colNum);
-      const parsed = parseNumericValue(val);
+      const isTextCol = isExplicitTextColumn(headerName);
+      const isMoneyCol = isMonetaryColumn(headerName);
+      const parsed = parseNumericValue(val, headerName);
 
       const isNegative = typeof val === 'number' && val < 0;
       const isCancellation = typeof val === 'string' && (val.toLowerCase().includes('anula') || val.startsWith('-'));
+      const isColNumeric = !isTextCol && (isMoneyCol || parsed.isNumber) && parsed.isNumber;
 
-      if (parsed.isNumber) {
+      if (isColNumeric) {
         cell.value = parsed.num;
         cell.numFmt = '#,##0.00';
         cell.alignment = { vertical: 'middle', horizontal: 'right' };
         columnSums[colNum] = (columnSums[colNum] || 0) + parsed.num;
         isNumericColumn[colNum] = true;
       } else {
-        cell.value = val !== undefined && val !== null ? String(val) : '-';
+        const textVal = val !== undefined && val !== null ? String(val) : '-';
+        cell.value = textVal;
+        cell.numFmt = '@'; // Formato de TEXTO explícito en Excel para preservar ceros a la izquierda y evitar formato numérico en cédulas
         cell.alignment = {
           vertical: 'middle',
-          horizontal: String(val).match(/^\d{2}[/-]\d{2}[/-]\d{2,4}/) || String(val).startsWith('REC-') || String(val).startsWith('ANU-')
+          horizontal: isTextCol || textVal.match(/^\d{2}[/-]\d{2}[/-]\d{2,4}/) || textVal.startsWith('REC-') || textVal.startsWith('ANU-') || textVal.startsWith('001-')
             ? 'center'
             : 'left',
         };
@@ -254,8 +322,8 @@ export async function exportExecutiveExcel(
         if (len > maxLen) maxLen = len;
       }
     });
-    // Añadir margen de comodidad para fuente Segoe UI
-    worksheet.getColumn(colNum).width = Math.max(maxLen + 4, 14);
+    // Añadir margen generoso para que ninguna celda o total muestre ###
+    worksheet.getColumn(colNum).width = Math.max(maxLen + 5, 16);
   });
 
   // Descarga del archivo .xlsx nativo en el navegador
@@ -301,8 +369,13 @@ export function exportExecutivePDF(
 
   rows.forEach((row) => {
     row.forEach((val, cIdx) => {
-      const parsed = parseNumericValue(val);
-      if (parsed.isNumber) {
+      const headerName = headers[cIdx] || '';
+      const isTextCol = isExplicitTextColumn(headerName);
+      const isMoneyCol = isMonetaryColumn(headerName);
+      const parsed = parseNumericValue(val, headerName);
+      const isColNumeric = !isTextCol && (isMoneyCol || parsed.isNumber) && parsed.isNumber;
+
+      if (isColNumeric) {
         columnSums[cIdx] = (columnSums[cIdx] || 0) + parsed.num;
         isNumericColumn[cIdx] = true;
       }
@@ -311,7 +384,7 @@ export function exportExecutivePDF(
 
   const headerHtml = headers
     .map((h, i) => {
-      const align = isNumericColumn[i] ? 'text-align: right;' : 'text-align: left;';
+      const align = isNumericColumn[i] ? 'text-align: right;' : (isExplicitTextColumn(h) ? 'text-align: center;' : 'text-align: left;');
       return `<th style="padding: 10px 12px; background: #13103C; color: #ffffff; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid #2D2B55; ${align}">${h}</th>`;
     })
     .join('');
@@ -321,12 +394,17 @@ export function exportExecutivePDF(
       const bg = i % 2 === 0 ? '#ffffff' : '#f8fafc';
       const cells = r
         .map((c, colIdx) => {
-          const parsed = parseNumericValue(c);
+          const headerName = headers[colIdx] || '';
+          const isTextCol = isExplicitTextColumn(headerName);
+          const isMoneyCol = isMonetaryColumn(headerName);
+          const parsed = parseNumericValue(c, headerName);
           const isNeg = typeof c === 'number' && c < 0;
           const isCancel = typeof c === 'string' && (c.toLowerCase().includes('anula') || c.startsWith('-'));
+          const isColNumeric = !isTextCol && (isMoneyCol || parsed.isNumber) && parsed.isNumber;
+
           const textColor = isNeg || isCancel ? '#dc2626; font-weight: bold;' : '#0f172a;';
-          const align = isNumericColumn[colIdx] ? 'text-align: right;' : 'text-align: left;';
-          const displayVal = parsed.isNumber ? parsed.formatted : (c !== null && c !== undefined ? c : '-');
+          const align = isColNumeric ? 'text-align: right;' : (isTextCol ? 'text-align: center;' : 'text-align: left;');
+          const displayVal = isColNumeric ? `$${parsed.formatted}` : (c !== null && c !== undefined ? String(c) : '-');
           return `<td style="padding: 8px 12px; border: 1px solid #e2e8f0; font-size: 10px; color: ${textColor} ${align}">${displayVal}</td>`;
         })
         .join('');
