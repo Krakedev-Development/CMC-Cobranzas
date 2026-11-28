@@ -143,9 +143,10 @@ export async function exportExecutiveExcel(
     properties: { tabColor: { argb: 'FF00A3E0' } }, // Color Cyan corporativo Clear Minds
   });
 
-  // 1. Limpiar lienzo de cabecera A1:C4 para incrustar el logotipo oficial sin líneas de corte
+  // 1. Limpiar lienzo de cabecera en filas 1 a 4 para unificar el cuadro blanco corporativo sin líneas de cuadrícula
+  const headerColsCount = Math.max(headers.length, 12);
   for (let r = 1; r <= 4; r++) {
-    for (let c = 1; c <= 3; c++) {
+    for (let c = 1; c <= headerColsCount; c++) {
       const cell = worksheet.getCell(r, c);
       cell.fill = {
         type: 'pattern',
@@ -169,13 +170,13 @@ export async function exportExecutiveExcel(
         base64: base64Pure,
         extension: 'png',
       });
-      // Centrado exacto del logo en la mitad del cuadro blanco (vertical y horizontal)
-      const colOffset = isFirstColWide ? 0.18 : 0.45;
-      const rowOffset = 0.36; // Margen superior para centrado vertical entre filas 1 y 3
+      // Centrado exacto del logo en la mitad del cuadro blanco (vertical y horizontalmente)
+      const colOffset = isFirstColWide ? 0.16 : 0.65;
+      const rowOffset = 0.38; // Centrado vertical perfecto en las filas 1 a 3
 
       worksheet.addImage(imageId, {
         tl: { col: colOffset, row: rowOffset },
-        ext: { width: 185, height: 58 },
+        ext: { width: 192, height: 60 },
         editAs: 'oneCell',
       });
     } catch {
@@ -433,6 +434,13 @@ export async function exportExecutiveExcel(
     properties: { tabColor: { argb: 'FF13103C' } },
   });
 
+  for (let r = 1; r <= 4; r++) {
+    for (let c = 1; c <= 5; c++) {
+      summarySheet.getCell(r, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+      summarySheet.getCell(r, c).border = {};
+    }
+  }
+
   if (logoData && logoData.includes('base64,')) {
     try {
       const base64Pure = logoData.split('base64,')[1];
@@ -441,8 +449,8 @@ export async function exportExecutiveExcel(
         extension: 'png',
       });
       summarySheet.addImage(sImageId, {
-        tl: { col: 1.05, row: 0.36 },
-        ext: { width: 185, height: 58 },
+        tl: { col: 1.05, row: 0.38 },
+        ext: { width: 192, height: 60 },
         editAs: 'oneCell',
       });
     } catch {
