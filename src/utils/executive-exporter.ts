@@ -336,7 +336,7 @@ export async function exportExecutiveExcel(
     }
   }
 
-  // 6. Ajuste dinámico inteligente del ancho de columnas para evitar "###"
+  // 6. Ajuste dinámico inteligente del ancho de columnas para evitar "###" y texto cortado
   headers.forEach((h, colIdx) => {
     const colNum = colIdx + 1;
     let maxLen = h.length;
@@ -348,16 +348,19 @@ export async function exportExecutiveExcel(
       }
     });
     const hLow = h.toLowerCase();
+    const headerLen = h.length;
+    const minCalculated = Math.max(maxLen + 4, headerLen + 3);
+
     if (hLow.includes('fecha') || hLow.includes('registrado')) {
-      worksheet.getColumn(colNum).width = 15;
+      worksheet.getColumn(colNum).width = Math.max(minCalculated, 18);
     } else if (hLow.includes('recibo') || hLow.includes('medio')) {
-      worksheet.getColumn(colNum).width = 16;
+      worksheet.getColumn(colNum).width = Math.max(minCalculated, 16);
     } else if (hLow.includes('cedula') || hLow.includes('cédula')) {
-      worksheet.getColumn(colNum).width = 17;
+      worksheet.getColumn(colNum).width = Math.max(minCalculated, 18);
     } else if (hLow.includes('valor') || hLow.includes('acumulado') || hLow.includes('monto') || hLow.includes('saldo')) {
-      worksheet.getColumn(colNum).width = Math.max(maxLen + 5, 17);
+      worksheet.getColumn(colNum).width = Math.max(maxLen + 5, headerLen + 3, 17);
     } else {
-      worksheet.getColumn(colNum).width = Math.max(maxLen + 4, 16);
+      worksheet.getColumn(colNum).width = Math.max(minCalculated, 16);
     }
   });
 
