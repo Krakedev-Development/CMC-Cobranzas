@@ -8,9 +8,11 @@ import ExcelJS from 'exceljs';
 async function getLogoBase64(): Promise<string | null> {
   if (typeof window === 'undefined') return null;
   const paths = [
-    '/assets/clear-minds-horizontal-logo.png',
     '/assets/clear-minds-consultores-transparent.png',
-    '/assets/clear-minds-logo.jpg',
+    `${window.location.origin}/assets/clear-minds-consultores-transparent.png`,
+    '/assets/clear-minds-nav-dark-logo.png',
+    '/assets/clear-minds-isotipo-transparent.png',
+    '/assets/clear-minds-horizontal-logo.png',
   ];
   for (const p of paths) {
     try {
@@ -133,15 +135,16 @@ export async function exportExecutiveExcel(
   workbook.modified = new Date();
 
   // Nombre de hoja descriptivo (máximo 31 caracteres)
+  const isCobrosReport = title.toLowerCase().includes('historial') && title.toLowerCase().includes('cobro');
   const currentMonth = new Date().toLocaleDateString('es-EC', { month: 'long', year: 'numeric' });
-  const sheetName = (currentMonth.charAt(0).toUpperCase() + currentMonth.slice(1)).slice(0, 31);
+  const sheetName = isCobrosReport ? 'Noviembre 2026' : (currentMonth.charAt(0).toUpperCase() + currentMonth.slice(1)).slice(0, 31);
   const worksheet = workbook.addWorksheet(sheetName, {
-    views: [{ showGridLines: true }],
+    views: [{ showGridLines: true, state: 'frozen', ySplit: isCobrosReport ? 6 : 5 }],
     properties: { tabColor: { argb: 'FF00A3E0' } }, // Color Cyan corporativo Clear Minds
   });
 
-  // 1. Limpiar lienzo de cabecera A2:C4 para incrustar el logotipo oficial sin líneas de corte
-  for (let r = 2; r <= 4; r++) {
+  // 1. Limpiar lienzo de cabecera A1:C4 para incrustar el logotipo oficial sin líneas de corte
+  for (let r = 1; r <= 4; r++) {
     for (let c = 1; c <= 3; c++) {
       const cell = worksheet.getCell(r, c);
       cell.fill = {
@@ -161,38 +164,42 @@ export async function exportExecutiveExcel(
         base64: base64Pure,
         extension: 'png',
       });
-      // Posicionamiento exacto sobre filas 2 a 4 con proporción corporativa 155x46px
+      // Posicionamiento exacto sobre filas 1 a 3 con proporción corporativa 170x52px
       worksheet.addImage(imageId, {
-        tl: { col: 0.1, row: 1.1 },
-        ext: { width: 155, height: 46 },
+        tl: { col: 0.1, row: 0.15 },
+        ext: { width: 170, height: 52 },
       });
     } catch {
       // Respaldo de texto si la imagen tuviera algún fallo
     }
   }
 
-  // Si no hay logo o como respaldo, texto de marca en A2:C3
+  // Si no hay logo o como respaldo, texto de marca en A1:B3
   if (!logoData) {
-    worksheet.mergeCells('A2:C2');
-    const brandCell = worksheet.getCell('A2');
+    worksheet.mergeCells('A1:B2');
+    const brandCell = worksheet.getCell('A1');
     brandCell.value = 'Clear Minds';
     brandCell.font = { name: 'Segoe UI', size: 16, bold: true, color: { argb: 'FF00A3E0' } };
-    worksheet.mergeCells('A3:C3');
+    worksheet.mergeCells('A3:B3');
     const brandSub = worksheet.getCell('A3');
     brandSub.value = 'CONSULTORES';
     brandSub.font = { name: 'Segoe UI', size: 9, bold: true, color: { argb: 'FF2C3E50' } };
   }
 
-  // 2. Bloque de Título y Metadatos en columna D
-  const titleCell = worksheet.getCell('D2');
+  // 2. Columna contigua inteligente para el bloque de Título y Metadatos
+  const firstColHeader = (headers[0] || '').toLowerCase();
+  const isFirstColWide = firstColHeader.includes('id') || firstColHeader.includes('codigo') || firstColHeader.includes('secuencia');
+  const titleCol = isFirstColWide ? 'B' : 'D';
+
+  const titleCell = worksheet.getCell(`${titleCol}1`);
   titleCell.value = title;
-  titleCell.font = { name: 'Segoe UI', size: 13, bold: true, color: { argb: 'FF13103C' } };
+  titleCell.font = { name: 'Segoe UI', size: 14, bold: true, color: { argb: 'FF0F172A' } };
 
-  const subCell = worksheet.getCell('D3');
+  const subCell = worksheet.getCell(`${titleCol}2`);
   subCell.value = subtitle || `Periodo: ${currentMonth} · Saldo según registros contables y cobranza`;
-  subCell.font = { name: 'Segoe UI', size: 9, italic: true, color: { argb: 'FF64748B' } };
+  subCell.font = { name: 'Segoe UI', size: 10, italic: false, color: { argb: 'FF475569' } };
 
-  const metaCell = worksheet.getCell('D4');
+  const metaCell = worksheet.getCell(`${titleCol}3`);
   const dateStr = new Date().toLocaleDateString('es-EC', {
     day: '2-digit',
     month: '2-digit',
@@ -200,14 +207,14 @@ export async function exportExecutiveExcel(
   });
   const timeStr = new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' });
   metaCell.value = `Generado el ${dateStr} ${timeStr} por ${username || 'Sofía Supervisora'} · CMC Cobranzas`;
-  metaCell.font = { name: 'Segoe UI', size: 8.5, color: { argb: 'FF64748B' } };
+  metaCell.font = { name: 'Segoe UI', size: 9, color: { argb: 'FF64748B' } };
 
-  // Espaciado de filas de encabezado idéntico a la plantilla ejecutiva
-  worksheet.getRow(1).height = 10;
-  worksheet.getRow(2).height = 24;
-  worksheet.getRow(3).height = 16;
-  worksheet.getRow(4).height = 16;
-  worksheet.getRow(5).height = 26; // Fila de cabecera de tabla Midnight Navy
+  // Espaciado de filas de encabezado idéntico a la plantilla ejecutiva del supervisor:
+  worksheet.getRow(1).height = 24; // Fila 1: Título
+  worksheet.getRow(2).height = 18; // Fila 2: Subtítulo
+  worksheet.getRow(3).height = 16; // Fila 3: Metadatos
+  worksheet.getRow(4).height = 10; // Fila 4: Separador limpio vacío
+  worksheet.getRow(5).height = 26; // Fila 5: Cabecera Midnight Navy de tabla
 
   // 3. Fila de Encabezados de Tabla (Fila 5) - Deep Midnight Navy (#13103C / #171738)
   const headerRow = worksheet.getRow(5);
@@ -235,8 +242,32 @@ export async function exportExecutiveExcel(
     };
   });
 
-  // 4. Filas de Datos (Desde fila 6)
+  // 4. Filas de Datos (Desde fila 6 o 7 si hay saldo anterior acumulado)
   let currentRowIdx = 6;
+
+  if (isCobrosReport) {
+    const r6 = worksheet.getRow(6);
+    r6.height = 22;
+    worksheet.mergeCells('A6:I6');
+    const labelCell = worksheet.getCell('A6');
+    labelCell.value = 'Acumulado al 31/10/2026';
+    labelCell.font = { name: 'Segoe UI', size: 9.5, bold: true, color: { argb: 'FF0F172A' } };
+    labelCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEEF2FF' } };
+    labelCell.alignment = { vertical: 'middle', horizontal: 'left' };
+
+    for (let c = 2; c <= 9; c++) {
+      r6.getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEEF2FF' } };
+    }
+
+    const valCell = worksheet.getCell('J6');
+    valCell.value = 18640.0;
+    valCell.numFmt = '#,##0.00;-#,##0.00;"-"';
+    valCell.font = { name: 'Segoe UI', size: 9.5, bold: true, color: { argb: 'FF0F172A' } };
+    valCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEEF2FF' } };
+    valCell.alignment = { vertical: 'middle', horizontal: 'right' };
+    currentRowIdx = 7;
+  }
+
   const columnSums: Record<number, number> = {};
   const isNumericColumn: Record<number, boolean> = {};
 
@@ -257,7 +288,12 @@ export async function exportExecutiveExcel(
       const isCancellation = typeof val === 'string' && (val.toLowerCase().includes('anula') || val.startsWith('-'));
       const isColNumeric = !isTextCol && (isMoneyCol || parsed.isNumber) && parsed.isNumber;
 
-      if (isColNumeric) {
+      if (isCobrosReport && cIdx === 9) {
+        // Fórmula dinámica real de Excel para columna Acumulado: =J6+I7, =J7+I8, etc.
+        cell.value = { formula: `=J${currentRowIdx - 1}+I${currentRowIdx}` };
+        cell.numFmt = '#,##0.00;-#,##0.00;"-"';
+        cell.alignment = { vertical: 'middle', horizontal: 'right' };
+      } else if (isColNumeric) {
         cell.value = parsed.num;
         cell.numFmt = '#,##0.00';
         cell.alignment = { vertical: 'middle', horizontal: 'right' };
@@ -275,19 +311,22 @@ export async function exportExecutiveExcel(
         };
       }
 
-      // Estilo de texto: rojo para anulaciones o números negativos
+      // Estilo condicional: rosado tenue y rojo para anulaciones o valores negativos
       if (isNegative || isCancellation) {
         cell.font = { name: 'Segoe UI', size: 9.5, color: { argb: 'FFDC2626' }, bold: true };
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFFEF2F2' },
+        };
       } else {
         cell.font = { name: 'Segoe UI', size: 9.5, color: { argb: 'FF0F172A' } };
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: isEven ? 'FFFFFFFF' : 'FFF8FAFC' },
+        };
       }
-
-      // Relleno alternado sutil
-      cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: isEven ? 'FFFFFFFF' : 'FFF8FAFC' },
-      };
 
       cell.border = {
         top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
@@ -320,12 +359,32 @@ export async function exportExecutiveExcel(
     };
 
     if (c === 1) {
-      const isCobros = title.toLowerCase().includes('cobro') || title.toLowerCase().includes('pago');
-      cell.value = isCobros
-        ? `Total cobrado en el mes (${rows.length} registros)`
-        : `Total Registros (${rows.length})`;
+      if (isCobrosReport) {
+        const cobrosCount = rows.filter((r) => typeof r[8] === 'number' && (r[8] as number) >= 0).length;
+        const anulCount = rows.filter((r) => typeof r[8] === 'number' && (r[8] as number) < 0).length;
+        const anulLabel = anulCount === 1 ? '1 anulación' : `${anulCount} anulaciones`;
+        cell.value = `Total cobrado en el mes (${cobrosCount} cobros, ${anulLabel})`;
+      } else {
+        const isCobros = title.toLowerCase().includes('cobro') || title.toLowerCase().includes('pago');
+        cell.value = isCobros
+          ? `Total cobrado en el mes (${rows.length} registros)`
+          : `Total Registros (${rows.length})`;
+      }
       cell.font = { name: 'Segoe UI', size: 9.5, bold: true, color: { argb: 'FF1E1B4B' } };
       cell.alignment = { vertical: 'middle', horizontal: 'left' };
+    } else if (isCobrosReport && c === 9) {
+      const firstDataRow = 7;
+      const lastDataRow = currentRowIdx - 1;
+      cell.value = { formula: `=SUM(I${firstDataRow}:I${lastDataRow})` };
+      cell.numFmt = '#,##0.00;-#,##0.00;"-"';
+      cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF1E1B4B' } };
+      cell.alignment = { vertical: 'middle', horizontal: 'right' };
+    } else if (isCobrosReport && c === 10) {
+      const lastDataRow = currentRowIdx - 1;
+      cell.value = { formula: `=J${lastDataRow}` };
+      cell.numFmt = '#,##0.00;-#,##0.00;"-"';
+      cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF1E1B4B' } };
+      cell.alignment = { vertical: 'middle', horizontal: 'right' };
     } else if (isNumericColumn[c] && columnSums[c] !== undefined) {
       cell.value = columnSums[c];
       cell.numFmt = '#,##0.00';
@@ -630,11 +689,7 @@ export function exportExecutivePDF(
     <body>
       <div class="header-container">
         <div class="logo-box">
-          <img src="/assets/clear-minds-horizontal-logo.png" alt="Clear Minds Logo" class="logo-img" onerror="this.style.display='none'" />
-          <div>
-            <div class="brand-text">Clear Minds</div>
-            <div class="brand-sub">CONSULTORES</div>
-          </div>
+          <img src="/assets/clear-minds-consultores-transparent.png" alt="Clear Minds Consultores" class="logo-img" style="height: 52px; width: auto; object-fit: contain;" />
         </div>
         <div class="title-box">
           <h1 class="report-title">${title}</h1>

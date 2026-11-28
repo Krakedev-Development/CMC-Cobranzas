@@ -1704,7 +1704,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   // --- EXPORTACIÓN EJECUTIVA A EXCEL (.XLSX) CON DISENO CORPORATIVO CLEAR MINDS ---
   const exportToCSV = (filename: string, headers: string[], rows: (string | number | undefined | null)[][]) => {
-    const cleanTitle = filename.replace(/[_-]/g, ' ').replace(/\.csv$/i, '').trim();
+    let cleanTitle = filename.replace(/[_-]/g, ' ').replace(/\.csv$/i, '').trim();
+    let subtitle: string | undefined = undefined;
+
+    if (filename.toLowerCase().includes('historial-cobros') || filename.toLowerCase().includes('historial_cobros')) {
+      cleanTitle = 'Historial de cobros · Banco Pichincha · Corriente ···4521';
+      subtitle = 'Periodo: noviembre 2026 · Saldo según cobros registrados (no es el saldo bancario)';
+    } else if (filename.toLowerCase().includes('cuentas_por_cobrar') || filename.toLowerCase().includes('deudas')) {
+      cleanTitle = 'Cuentas Por Cobrar (Deudas)';
+      subtitle = 'Periodo: noviembre de 2026 · Saldo según registros contables y cobranza';
+    } else if (filename.toLowerCase().includes('facturas')) {
+      cleanTitle = 'Facturas y Documentos Tributarios';
+      subtitle = 'Periodo: noviembre de 2026 · Saldo según registros contables y cobranza';
+    }
+
     const titleCapitalized = cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1);
     const userDisplayName = currentUser.nombre || currentUser.username || 'Sofía Supervisora';
 
@@ -1714,7 +1727,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       titleCapitalized,
       headers,
       rows,
-      undefined,
+      subtitle,
       userDisplayName
     ).catch((err) => {
       console.warn('Fallback de contingencia a CSV simple:', err);
