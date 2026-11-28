@@ -78,6 +78,12 @@ export const InvoicesView: React.FC = () => {
     setFormError('');
     setOcrAnalysisResult(null);
 
+    // Fallback inicial desde el nombre del archivo si contiene formato de factura SRI (ej: 001-001-3916028)
+    const nameMatch = file.name.match(/\b(\d{3}[-_ ]\d{3}[-_ ]\d{7,9})\b/);
+    if (nameMatch) {
+      setFormNumero(nameMatch[1].replace(/[_ ]/g, '-'));
+    }
+
     try {
       setFormNombreArchivo(file.name);
       const res = await api.analyzeDocument(file, 'INVOICE');
@@ -86,18 +92,30 @@ export const InvoicesView: React.FC = () => {
       if (res.extracted.invoiceNumber) {
         setFormNumero(res.extracted.invoiceNumber);
       }
-      if (res.extracted.total) {
-        setFormMonto(res.extracted.total.toString());
+      const totalAmt = res.extracted.total !== undefined ? res.extracted.total : (res.extracted as any).amount;
+      if (totalAmt !== undefined && totalAmt !== null && Number(totalAmt) > 0) {
+        setFormMonto(Number(totalAmt).toFixed(2));
       }
       if (res.extracted.date) {
         setFormFecha(res.extracted.date.slice(0, 10));
       }
 
-      if (res.suggestions.clientCandidate?.id) {
-        setFormClientId(res.suggestions.clientCandidate.id);
+      // Vinculación automática con el cliente por RUC completo o por Cédula (10 primeros dígitos)
+      let matchedClient = null;
+      const candidateId = res.suggestions?.clientCandidate?.id;
+      if (candidateId) {
+        matchedClient = clients.find((c) => c.id === candidateId);
       } else if (res.extracted.recipientRuc) {
-        const found = clients.find((c) => c.cedula === res.extracted.recipientRuc);
-        if (found) setFormClientId(found.id);
+        const ruc10 = res.extracted.recipientRuc.slice(0, 10);
+        matchedClient = clients.find((c) => c.cedula === res.extracted.recipientRuc || c.cedula === ruc10);
+      }
+
+      if (matchedClient) {
+        setFormClientId(matchedClient.id);
+        const clientDebts = debts.filter((d) => d.clienteId === matchedClient.id && d.estado !== 'anulada');
+        if (clientDebts.length > 0 && !formDebtId) {
+          setFormDebtId(clientDebts[0].id);
+        }
       }
 
       const obsParts: string[] = [];
@@ -115,7 +133,12 @@ export const InvoicesView: React.FC = () => {
         setFormObservaciones((prev) => (prev ? `${prev}\n${obsParts.join(' | ')}` : obsParts.join(' | ')));
       }
     } catch (err: any) {
-      setFormError(err.message || 'Error al analizar la factura con Amazon Textract');
+      const isAuth = String(err?.message || '').toLowerCase().includes('unauthorized') || String(err?.message || '').includes('401');
+      if (isAuth) {
+        setFormError('Aviso del servicio OCR: Inicie sesión en el servidor para el análisis automático. Puede ingresar los datos manualmente.');
+      } else {
+        setFormError(err?.message || 'Error al analizar la factura con Amazon Textract. Puede ingresar los datos manualmente.');
+      }
     } finally {
       setIsAnalyzing(false);
     }

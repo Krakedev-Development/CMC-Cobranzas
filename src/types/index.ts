@@ -99,12 +99,18 @@ export type AnalysisStatus = 'no_analizado' | 'analizado' | 'revision_requerida'
 
 export interface ExtractedData {
   ordenante?: string;
+  payerName?: string;
   fecha?: string;
+  date?: string;
   monto?: number;
+  amount?: number;
   numeroTransaccion?: string;
   banco?: string;
+  bank?: string;
   referencia?: string;
-  confianza: number; // 0 a 100
+  reference?: string;
+  confianza?: number; // 0 a 100
+  confidenceScore?: number;
   camposDudosos?: string[];
 }
 

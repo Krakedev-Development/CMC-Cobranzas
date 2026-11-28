@@ -121,9 +121,9 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
         c.telefono || 'N/A',
         c.correo || 'N/A',
         c.estado.toUpperCase(),
-        fin.totalAcordado.toFixed(2),
-        fin.totalPagado.toFixed(2),
-        fin.saldoPendiente.toFixed(2),
+        (fin?.totalPrecioAcordado ?? 0).toFixed(2),
+        (fin?.totalPagado ?? 0).toFixed(2),
+        (fin?.saldoPendienteTotal ?? 0).toFixed(2),
       ];
     });
     exportToCSV(`Directorio_Clientes_Alumnos_${new Date().toISOString().slice(0, 10)}`, headers, rows);
@@ -147,9 +147,9 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
         `${c.nombres} ${c.apellidos}`,
         c.telefono || 'N/A',
         c.estado.toUpperCase(),
-        `$${fin.totalAcordado.toFixed(2)}`,
-        `$${fin.totalPagado.toFixed(2)}`,
-        `$${fin.saldoPendiente.toFixed(2)}`,
+        `$${(fin?.totalPrecioAcordado ?? 0).toFixed(2)}`,
+        `$${(fin?.totalPagado ?? 0).toFixed(2)}`,
+        `$${(fin?.saldoPendienteTotal ?? 0).toFixed(2)}`,
       ];
     });
     exportToPDF(
